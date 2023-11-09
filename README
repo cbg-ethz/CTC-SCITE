@@ -1,0 +1,23 @@
+To compile the C/C++ program, open a terminal and go to the folder containing the source files, and type
+
+clang++ *.cpp -o CTC-scite
+This writes a file named scite. With older compiler versions you may need to use the option -std=c++11.
+
+#Getting Started
+
+Assuming the sample data file Br16.txt and annotation file  is located in the same folder, scite can then be executed as follows
+./CTC-scite -i Br16.txt -samples ../topSeparatingMutations/Br16/Br16_samples_nodeDescription.tsv -r 1 -l 1000 -g 1 -e 0.1 -p 1 -o test
+
+# Parameters
+
+- `-i <filename>` Replace <filename> with the file containing the mutation matrix
+- `-samples <sampledesciption>` Replace <sampledescription> by the file containing the sample annotations
+- `-r <INT>` Set <INT> to the desired number of repetitions of the MCMC
+- `-l <INT>` Set <INT> to the desired chain length of each MCMC repetition
+- `-g <DOUBLE>` For ML/MAP computation only: Set <DOUBLE> to the desired value of gamma (gamma > 1: more local exploration, possibly local optimum; gamma < 1: easier to explore the space, but less deeply). The default value of gamma is 1 which is necessary for the MCMC chain to converge to the posterior distribution.
+- `-e <DOUBLE>` Invokes the learning of error rate beta. Set <double> to a value between zero and one to specify the probability to chose the move for changing the error rate in the MCMC.
+- `-p <INT>` When setting this option, SCITE samples from the posterior distribution, and writes the trees to a file using the parent vector format. The value of <INT> specifies how dense the sampling is. The name of the output file is derived from the input file name using the ending .sample. o make sure that SCITE samples from the posterior distribution -p <INT> needs to be combined with -g 1 (gamma is set to 1).
+- `-o <filename>` Optional. Replace <filename> with the desired base of the output file to overwrite the default output file names
+
+
+ 
