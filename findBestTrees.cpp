@@ -218,8 +218,11 @@ int main(int argc, char* argv[])
 		treeFiles.push_back(filename.str());
 	}
 	//getchar();
-	cout << "before MCMC\n";
-	runMCMCnew(rep, loops, gamma_, moveProbs, n, m, sampleCount, alleleCount, leafClusterId, mutReadCounts, totalReadCounts, dropOut, seqErr, tau, label, treeFiles, mutLabels, wbcStatus, prefix, sampleStep, burnin);
+	cout << "----------------------------------------------------------------\n"; //Debugging
+    cout << "Before MCMC..... \n";
+	cout << "----------------------------------------------------------------\n"; //Debugging
+
+    runMCMCnew(rep, loops, gamma_, moveProbs, n, m, sampleCount, alleleCount, leafClusterId, mutReadCounts, totalReadCounts, dropOut, seqErr, tau, label, treeFiles, mutLabels, wbcStatus, prefix, sampleStep, burnin);
 
 //	for(int i = 0; i < 10000; i++){
 //		int*  currTreeParentVec  = getRandomBinaryTree(m);     // sample a random binary tree

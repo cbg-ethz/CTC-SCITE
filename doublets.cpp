@@ -45,8 +45,7 @@ double doubletRatePrecision = 1e-6;    // defines to what precision of doublet r
 
 
 std::string runMCMCnew(vector<struct treeTheta>& bestTrees, double* errorRates, int noOfReps, int noOfLoops, double gamma_, vector<double> moveProbs, int n, int m, int** dataMatrix, char scoreType, int* trueParentVec, int step, bool sample, double chi, double priorSd_beta, double priorSd_alpha, bool useTreeList, char treeType, bool doubletModel, double doubletRate, int recMut, int z, double alphaMoveRatio, bool fixedDoubletProb){
-
-	cout << "test 0\n";
+    cout << "test 0\n";
 	double burnInPhase = 0.25;                   // first quarter of steps are burn in phase
 	unsigned int optStatesAfterBurnIn = 0;
 	int burnIn = noOfLoops*burnInPhase;

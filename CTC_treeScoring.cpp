@@ -171,11 +171,14 @@ std::string runMCMCnew(int noOfReps, int noOfLoops, double gamma_, vector<double
 	//int** postSamplingMatrix = init_intMatrix(n, m, 0);   // counts for each (mutation,sample) pair how often the
                                                           //  mutation occurs in the sample in the posterior samples
 	double currTreeLogScore = -DBL_MAX;
-	for(int r=0; r<noOfReps; r++){   // repeat the MCMC, start over with random tree each time, only best score and list of best trees is kept between repetitions
-
+	cout << "Running MCMC...";
+    cout << endl;    
+    for(int r=0; r<noOfReps; r++){   // repeat the MCMC, start over with random tree each time, only best score and list of best trees is kept between repetitions
+        bool newvariabledefinition = false;
+        bestTreeParentVec = nullptr;
 		cout << "MCMC repetition " << r << "\n";
-		int*   currTreeParentVec;
-		cout << m << " leafs" << endl;
+        int*   currTreeParentVec;
+        cout << m << " leaves" << endl;
 		currTreeParentVec = getRandomBinaryTree(m);                     // transposed case: random binary tree
 		double currSeqErrRate = seqErr;
 		double currDropOutRate = dropoutRate;
@@ -185,14 +188,16 @@ std::string runMCMCnew(int noOfReps, int noOfLoops, double gamma_, vector<double
 		//double currLogTausSquaredSum = currLogTau*currLogTau;
 		//logSquareSum.push_back(currLogTausSquaredSum);
 		//logSum.push_back(currLogTau);
-		bool** currTreeAncMatrix =  parentVector2ancMatrix(currTreeParentVec,parentVectorSize);
+        //cout << "Assigning currrTreeAncMatrix" << endl;
+		bool** currTreeAncMatrix = parentVector2ancMatrix(currTreeParentVec,parentVectorSize);
+        //cout << "Done" << endl;
 		vector<int> bestPlacementPoint;
 		for(int mut=0; mut< n; mut++){               // compute score separately for each mutation
 			bestPlacementPoint.push_back(-1);
 		}
 		vector<vector<double> > currTable;
 		currTreeLogScore = scoreTree(m, n, sampleCount, currTreeAncMatrix, alleleCount, leafClusterId, mutReadCounts, totalReadCounts, dropoutRate, seqErr, tau, bestPlacementPoint, wbcStatus);
-		for(int it=0; it<noOfLoops; it++){                                     // run the iterations of the MCMC
+        for(int it=0; it<noOfLoops; it++){                                     // run the iterations of the MCMC
 			//cout << "iteration " << it << ": " << endl;
         	if(it % 10000 == 0){
         		cout.precision(16);
@@ -211,15 +216,17 @@ std::string runMCMCnew(int noOfReps, int noOfLoops, double gamma_, vector<double
 
         	bool isAcceptedMove = false;                               // Is the MCMC move accepted?
         	bool moveChangesParams = changeSeqErr(moveProbs[0]);        // true if this move changes beta, not the tree
-
+            //cout << "move: " << it << endl;
         	if(moveChangesParams){                     // new theta is proposed, log scores change, tree is copy of current tree
-        		//cout << "change params\n";
-        		double propSeqErrRate = currSeqErrRate;
+        		//cout << "change parameter\n";
+                double propSeqErrRate = currSeqErrRate;
         		double propDropOutRate = currDropOutRate;
         		//double propLogTau = currLogTau;
         		double propLogTau = 0.0;
         		char paramType = pickParam();
-        		if(paramType=='s'){
+        		//cout <<  "parameter Typ " << paramType;
+                //cout << endl;
+                if(paramType=='s'){
         			propSeqErrRate = proposeNewSeqErr(currSeqErrRate, 0.1*currSeqErrRate);
         		}
         		else if(paramType=='d'){
@@ -256,16 +263,15 @@ std::string runMCMCnew(int noOfReps, int noOfLoops, double gamma_, vector<double
         		//currLogTausSquaredSum += (currLogTau*currLogTau);
         	}
         	else{      // move changed tree
-
         		//cout << "change tree\n";
-        		double nbhcorrection = 1.0;
+                double nbhcorrection = 1.0;
         		int* propTreeParVec;
         		double propTreeLogScore;
         		propTreeParVec = proposeNextBinTree(moveProbs, m, currTreeParentVec, currTreeAncMatrix);
         		bool** propTreeAncMatrix = parentVector2ancMatrix(propTreeParVec,parentVectorSize);
         		propTreeLogScore = scoreTree(m, n, sampleCount, propTreeAncMatrix, alleleCount, leafClusterId, mutReadCounts, totalReadCounts, currDropOutRate, currSeqErrRate, tau, bestPlacementPoint, wbcStatus);
-//        		cout << propTreeLogScore << "\t" << currTreeLogScore << bestTreeLogScore << endl;
-
+        		//cout << propTreeLogScore << "\t" << currTreeLogScore << bestTreeLogScore << endl;
+                
         		isAcceptedMove = sample_0_1() < nbhcorrection*exp((propTreeLogScore-currTreeLogScore)*gamma_);
 
         		if(isAcceptedMove){                                    // the proposed state is accepted
@@ -274,6 +280,12 @@ std::string runMCMCnew(int noOfReps, int noOfLoops, double gamma_, vector<double
         			currTreeAncMatrix = propTreeAncMatrix; //parentVector2ancMatrix(propTreeParVec,parentVectorSize); // update matrix of current tree
         			currTreeParentVec = propTreeParVec;                                         // update parent vector of current tree
         			currTreeLogScore  = propTreeLogScore;                                       // update score of current tree
+                    //cout << "Deleting propTreeParVec:" <<endl;
+                    //delete [] propTreeParVec;
+                    //cout << "Deleted propTreeParVec" <<endl;
+                    //cout << "Freeing propTreeAncMatrix:" <<endl;
+                    //free_boolMatrix(propTreeAncMatrix);
+                    //cout << "Freed propTreeAncMatrix" <<endl;
         		}
         		else{
         			delete [] propTreeParVec;            // discard proposed tree
@@ -282,22 +294,25 @@ std::string runMCMCnew(int noOfReps, int noOfLoops, double gamma_, vector<double
         		//cout << "new tree" << endl;
         		//print_intArray(currTreeParentVec, parentVectorSize);
         	}
-
+            //cout << "Move " << it << " completed!" << endl;
         	/* Update best tree in case we have found a new best one */
 			if(currTreeLogScore > bestScore){
 				//optStatesAfterBurnIn = 0;                    // new opt state found, discard old count
-				bestTreeLogScore = currTreeLogScore;
+				newvariabledefinition = true;
+                bestTreeLogScore = currTreeLogScore;
 				delete [] bestTreeParentVec;
-				bestTreeParentVec = deepCopy_intArray(currTreeParentVec, parentVectorSize);
+                bestTreeParentVec = deepCopy_intArray(currTreeParentVec, parentVectorSize);
 				bestScore = bestTreeLogScore;                 // log score of best combination (T, beta)
 				bestSeqErrRate = currSeqErrRate;
 				bestDropOutRate = currDropOutRate;
 				//bestTau = exp(currLogTau);
 				cout << it <<  "\tnew best score: " << bestTreeLogScore << endl;
 			}
-
-        	if(isAcceptedMove){        // update top tree list if necessary
+        	
+            if(isAcceptedMove){        // update top tree list if necessary
+                //cout << "Move " << it << " accepted." << endl;
         		bool insert = false;
+                //cout << "Number of top trees: " << topTreeList.size() << endl;
         		if(topTreeList.size() < 10){
         			insert = true;
         		}
@@ -340,7 +355,6 @@ std::string runMCMCnew(int noOfReps, int noOfLoops, double gamma_, vector<double
     					treeString << " ";
     				}
     				treeString << currTreeParentVec[node];
-
     			}
     			//cout << treeString.str() << endl;
     			//cout << std::setprecision( std::numeric_limits<int>::max() ) << currSeqErrRate << "\t" << currDropOutRate << "\t" << currLogTau << "\t" << treeString.str() << endl;
@@ -349,7 +363,10 @@ std::string runMCMCnew(int noOfReps, int noOfLoops, double gamma_, vector<double
     			sampleOutput << parameters.str() << "\t" << treeString.str();
     		}
         }
+        //cout << "Deleting currTreeParentVec" << endl;
         delete [] currTreeParentVec;
+        //cout << "bestTreeParentVec has been overwritten: " << newvariabledefinition << endl;
+        //cout << "Deleting bestTreeParentVec" <<endl;
         delete [] bestTreeParentVec;
         //free_doubleMatrix(currLogScores);
         free_boolMatrix(currTreeAncMatrix);
