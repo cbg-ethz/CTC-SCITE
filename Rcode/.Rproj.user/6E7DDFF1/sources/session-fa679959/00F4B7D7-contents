@@ -1,0 +1,260 @@
+../input_folder/Pr9/Pr9.txt
+opening read count file ...
+chr19	36639596	T	A
+chr2	151810586	A	G
+chr19	21183023	T	C
+chr18	46704562	C	T
+chr6	29112175	C	T
+chr19	22316451	C	A
+chr1	179813738	A	G
+chr10	47995404	C	T
+chr22	19361954	A	T
+chr12	122703337	G	A
+chr8	119619349	A	T
+chr19	9235515	G	A
+chr9	32541889	G	A
+chr1	161323626	T	C
+chr20	38228324	C	T
+chr13	77662146	C	T
+chr19	8885072	C	T
+chr20	34285508	T	G
+chr9	92046044	G	T
+chr11	19165102	G	T
+chr6	18368772	G	A
+chr12	9091193	A	T
+chr7	65399523	A	T
+chr16	77294985	G	T
+chr2	241491434	G	A
+chr18	23904741	C	T
+chr2	190366777	G	A
+chr3	195720934	T	C
+chr1	151782836	C	T
+chr1	146962102	G	A
+chr11	72172530	C	A
+chr11	49833285	T	C
+chr1	146966567	G	A
+chr17	18580319	G	C
+chr19	4885709	A	T
+chr11	120447066	G	A
+chr12	9307187	G	A
+chr1	117623122	G	A
+chr19	23653679	G	A
+chr19	54278989	C	A
+chr14	105898065	T	C
+chr14	31175192	C	A
+chr11	60181664	A	G
+chr19	21807973	T	G
+chr19	22758275	G	T
+chr10	133625438	G	T
+chr17	36195375	A	G
+chr22	18548383	G	T
+chr12	11031362	T	A
+chr9	26997621	A	T
+chr14	105986963	G	A
+chr1	85081375	C	T
+chr12	11022272	A	C
+chr19	52950870	C	T
+chr20	30399358	A	G
+chr7	48615301	G	A
+chr1	148103850	T	C
+chr19	22314268	G	T
+chr19	8907754	C	T
+chrY	11333770	G	A
+chr15	52425798	G	A
+chr4	190022703	G	A
+chr1	146972854	G	A
+chr19	44132133	A	T
+chr14	105888639	T	G
+chr17	76089331	G	A
+chr12	132023831	G	A
+chr16	15065160	C	T
+chrX	111687900	C	T
+chr19	44303411	C	A
+chr2	110656980	A	G
+chr1_KI270706v1_random	45988	A	C
+chr6	89083860	C	T
+chr4	186611335	T	A
+chr7	64928509	T	G
+chr9	33541199	A	T
+chr14	64541317	C	T
+chr19	23222594	G	T
+chr19	8897572	G	C
+chr17	39746793	C	A
+chr14	61727504	C	A
+chr7	142753027	C	T
+chr13	77662254	G	A
+chr9	35148301	C	T
+chr10	80504925	A	T
+chr2	73221820	C	T
+chr7	64978186	G	T
+chr2	53895028	T	C
+chr1	146972960	A	G
+chr16	3494694	C	T
+chr19	22314826	G	A
+chr13	37033506	C	T
+chr20	16430013	G	T
+chr3	58869346	G	A
+chrX	147260677	C	T
+chr16	75414662	A	C
+chr6	30949853	C	T
+chr19	20303351	A	G
+chr7	105102183	A	T
+chr18	68701696	A	T
+chr13	25097025	T	A
+chr19	8896139	T	A
+chr3	119866607	A	T
+chr17	62522250	C	T
+chr19	22757903	A	G
+chr19	8886727	G	A
+chr2	95935635	T	A
+chr2	203057333	G	A
+chr11	124265794	T	A
+109 lines read from ../input_folder/Pr9/Pr9.txt
+../input_folder/Pr9/Pr9.txt open
+0	c	h	r	1	9	_	3	6	6	3	9	5	9	6	_	T	A	
+1	c	h	r	2	_	1	5	1	8	1	0	5	8	6	_	A	G	
+2	c	h	r	1	9	_	2	1	1	8	3	0	2	3	_	T	C	
+3	c	h	r	1	8	_	4	6	7	0	4	5	6	2	_	C	T	
+4	c	h	r	6	_	2	9	1	1	2	1	7	5	_	C	T	
+5	c	h	r	1	9	_	2	2	3	1	6	4	5	1	_	C	A	
+6	c	h	r	1	_	1	7	9	8	1	3	7	3	8	_	A	G	
+7	c	h	r	1	0	_	4	7	9	9	5	4	0	4	_	C	T	
+8	c	h	r	2	2	_	1	9	3	6	1	9	5	4	_	A	T	
+9	c	h	r	1	2	_	1	2	2	7	0	3	3	3	7	_	G	A	
+10	c	h	r	8	_	1	1	9	6	1	9	3	4	9	_	A	T	
+11	c	h	r	1	9	_	9	2	3	5	5	1	5	_	G	A	
+12	c	h	r	9	_	3	2	5	4	1	8	8	9	_	G	A	
+13	c	h	r	1	_	1	6	1	3	2	3	6	2	6	_	T	C	
+14	c	h	r	2	0	_	3	8	2	2	8	3	2	4	_	C	T	
+15	c	h	r	1	3	_	7	7	6	6	2	1	4	6	_	C	T	
+16	c	h	r	1	9	_	8	8	8	5	0	7	2	_	C	T	
+17	c	h	r	2	0	_	3	4	2	8	5	5	0	8	_	T	G	
+18	c	h	r	9	_	9	2	0	4	6	0	4	4	_	G	T	
+19	c	h	r	1	1	_	1	9	1	6	5	1	0	2	_	G	T	
+20	c	h	r	6	_	1	8	3	6	8	7	7	2	_	G	A	
+21	c	h	r	1	2	_	9	0	9	1	1	9	3	_	A	T	
+22	c	h	r	7	_	6	5	3	9	9	5	2	3	_	A	T	
+23	c	h	r	1	6	_	7	7	2	9	4	9	8	5	_	G	T	
+24	c	h	r	2	_	2	4	1	4	9	1	4	3	4	_	G	A	
+25	c	h	r	1	8	_	2	3	9	0	4	7	4	1	_	C	T	
+26	c	h	r	2	_	1	9	0	3	6	6	7	7	7	_	G	A	
+27	c	h	r	3	_	1	9	5	7	2	0	9	3	4	_	T	C	
+28	c	h	r	1	_	1	5	1	7	8	2	8	3	6	_	C	T	
+29	c	h	r	1	_	1	4	6	9	6	2	1	0	2	_	G	A	
+30	c	h	r	1	1	_	7	2	1	7	2	5	3	0	_	C	A	
+31	c	h	r	1	1	_	4	9	8	3	3	2	8	5	_	T	C	
+32	c	h	r	1	_	1	4	6	9	6	6	5	6	7	_	G	A	
+33	c	h	r	1	7	_	1	8	5	8	0	3	1	9	_	G	C	
+34	c	h	r	1	9	_	4	8	8	5	7	0	9	_	A	T	
+35	c	h	r	1	1	_	1	2	0	4	4	7	0	6	6	_	G	A	
+36	c	h	r	1	2	_	9	3	0	7	1	8	7	_	G	A	
+37	c	h	r	1	_	1	1	7	6	2	3	1	2	2	_	G	A	
+38	c	h	r	1	9	_	2	3	6	5	3	6	7	9	_	G	A	
+39	c	h	r	1	9	_	5	4	2	7	8	9	8	9	_	C	A	
+40	c	h	r	1	4	_	1	0	5	8	9	8	0	6	5	_	T	C	
+41	c	h	r	1	4	_	3	1	1	7	5	1	9	2	_	C	A	
+42	c	h	r	1	1	_	6	0	1	8	1	6	6	4	_	A	G	
+43	c	h	r	1	9	_	2	1	8	0	7	9	7	3	_	T	G	
+44	c	h	r	1	9	_	2	2	7	5	8	2	7	5	_	G	T	
+45	c	h	r	1	0	_	1	3	3	6	2	5	4	3	8	_	G	T	
+46	c	h	r	1	7	_	3	6	1	9	5	3	7	5	_	A	G	
+47	c	h	r	2	2	_	1	8	5	4	8	3	8	3	_	G	T	
+48	c	h	r	1	2	_	1	1	0	3	1	3	6	2	_	T	A	
+49	c	h	r	9	_	2	6	9	9	7	6	2	1	_	A	T	
+50	c	h	r	1	4	_	1	0	5	9	8	6	9	6	3	_	G	A	
+51	c	h	r	1	_	8	5	0	8	1	3	7	5	_	C	T	
+52	c	h	r	1	2	_	1	1	0	2	2	2	7	2	_	A	C	
+53	c	h	r	1	9	_	5	2	9	5	0	8	7	0	_	C	T	
+54	c	h	r	2	0	_	3	0	3	9	9	3	5	8	_	A	G	
+55	c	h	r	7	_	4	8	6	1	5	3	0	1	_	G	A	
+56	c	h	r	1	_	1	4	8	1	0	3	8	5	0	_	T	C	
+57	c	h	r	1	9	_	2	2	3	1	4	2	6	8	_	G	T	
+58	c	h	r	1	9	_	8	9	0	7	7	5	4	_	C	T	
+59	c	h	r	Y	_	1	1	3	3	3	7	7	0	_	G	A	
+60	c	h	r	1	5	_	5	2	4	2	5	7	9	8	_	G	A	
+61	c	h	r	4	_	1	9	0	0	2	2	7	0	3	_	G	A	
+62	c	h	r	1	_	1	4	6	9	7	2	8	5	4	_	G	A	
+63	c	h	r	1	9	_	4	4	1	3	2	1	3	3	_	A	T	
+64	c	h	r	1	4	_	1	0	5	8	8	8	6	3	9	_	T	G	
+65	c	h	r	1	7	_	7	6	0	8	9	3	3	1	_	G	A	
+66	c	h	r	1	2	_	1	3	2	0	2	3	8	3	1	_	G	A	
+67	c	h	r	1	6	_	1	5	0	6	5	1	6	0	_	C	T	
+68	c	h	r	X	_	1	1	1	6	8	7	9	0	0	_	C	T	
+69	c	h	r	1	9	_	4	4	3	0	3	4	1	1	_	C	A	
+70	c	h	r	2	_	1	1	0	6	5	6	9	8	0	_	A	G	
+71	c	h	r	1	_	K	I	2	7	0	7	0	6	v	1	_	r	a	n	d	o	m	_	4	5	9	8	8	_	A	C	
+72	c	h	r	6	_	8	9	0	8	3	8	6	0	_	C	T	
+73	c	h	r	4	_	1	8	6	6	1	1	3	3	5	_	T	A	
+74	c	h	r	7	_	6	4	9	2	8	5	0	9	_	T	G	
+75	c	h	r	9	_	3	3	5	4	1	1	9	9	_	A	T	
+76	c	h	r	1	4	_	6	4	5	4	1	3	1	7	_	C	T	
+77	c	h	r	1	9	_	2	3	2	2	2	5	9	4	_	G	T	
+78	c	h	r	1	9	_	8	8	9	7	5	7	2	_	G	C	
+79	c	h	r	1	7	_	3	9	7	4	6	7	9	3	_	C	A	
+80	c	h	r	1	4	_	6	1	7	2	7	5	0	4	_	C	A	
+81	c	h	r	7	_	1	4	2	7	5	3	0	2	7	_	C	T	
+82	c	h	r	1	3	_	7	7	6	6	2	2	5	4	_	G	A	
+83	c	h	r	9	_	3	5	1	4	8	3	0	1	_	C	T	
+84	c	h	r	1	0	_	8	0	5	0	4	9	2	5	_	A	T	
+85	c	h	r	2	_	7	3	2	2	1	8	2	0	_	C	T	
+86	c	h	r	7	_	6	4	9	7	8	1	8	6	_	G	T	
+87	c	h	r	2	_	5	3	8	9	5	0	2	8	_	T	C	
+88	c	h	r	1	_	1	4	6	9	7	2	9	6	0	_	A	G	
+89	c	h	r	1	6	_	3	4	9	4	6	9	4	_	C	T	
+90	c	h	r	1	9	_	2	2	3	1	4	8	2	6	_	G	A	
+91	c	h	r	1	3	_	3	7	0	3	3	5	0	6	_	C	T	
+92	c	h	r	2	0	_	1	6	4	3	0	0	1	3	_	G	T	
+93	c	h	r	3	_	5	8	8	6	9	3	4	6	_	G	A	
+94	c	h	r	X	_	1	4	7	2	6	0	6	7	7	_	C	T	
+95	c	h	r	1	6	_	7	5	4	1	4	6	6	2	_	A	C	
+96	c	h	r	6	_	3	0	9	4	9	8	5	3	_	C	T	
+97	c	h	r	1	9	_	2	0	3	0	3	3	5	1	_	A	G	
+98	c	h	r	7	_	1	0	5	1	0	2	1	8	3	_	A	T	
+99	c	h	r	1	8	_	6	8	7	0	1	6	9	6	_	A	T	
+100	c	h	r	1	3	_	2	5	0	9	7	0	2	5	_	T	A	
+101	c	h	r	1	9	_	8	8	9	6	1	3	9	_	T	A	
+102	c	h	r	3	_	1	1	9	8	6	6	6	0	7	_	A	T	
+103	c	h	r	1	7	_	6	2	5	2	2	2	5	0	_	C	T	
+104	c	h	r	1	9	_	2	2	7	5	7	9	0	3	_	A	G	
+105	c	h	r	1	9	_	8	8	8	6	7	2	7	_	G	A	
+106	c	h	r	2	_	9	5	9	3	5	6	3	5	_	T	A	
+107	c	h	r	2	_	2	0	3	0	5	7	3	3	3	_	G	A	
+108	c	h	r	1	1	_	1	2	4	2	6	5	7	9	4	_	T	A	
+0 lines read
+here
+../input_folder/Pr9/Pr9_1M_5_seed17671
+read count line: 
+read count line: 
+read count line: 
+before: 109
+after:  109
+sample count = 0
+../input_folder/Pr9/Pr9_samples_nodeDescription.tsv
+0
+---------------------------
+getting leaf labels
+
+0 samples
+109 muts
+
+
+tree labels:
+end of tree labels:
+end of allele counts:
+../input_folder/Pr9/Pr9_1M_5_seed17671_rank_1.gv
+../input_folder/Pr9/Pr9_1M_5_seed17671_rank_2.gv
+../input_folder/Pr9/Pr9_1M_5_seed17671_rank_3.gv
+../input_folder/Pr9/Pr9_1M_5_seed17671_rank_4.gv
+../input_folder/Pr9/Pr9_1M_5_seed17671_rank_5.gv
+../input_folder/Pr9/Pr9_1M_5_seed17671_rank_6.gv
+../input_folder/Pr9/Pr9_1M_5_seed17671_rank_7.gv
+../input_folder/Pr9/Pr9_1M_5_seed17671_rank_8.gv
+../input_folder/Pr9/Pr9_1M_5_seed17671_rank_9.gv
+../input_folder/Pr9/Pr9_1M_5_seed17671_rank_10.gv
+before MCMC
+Note: 0 !+ 0
+MCMC repetition 0
+0 leafs
+terminate called after throwing an instance of 'std::bad_alloc'
+  what():  std::bad_alloc
+/var/spool/slurm/slurmd/state/job39811176/slurm_script: line 4: 80732 Aborted                 ./CTC_SCITE_katharina/CTC_SCITE -i ../input_folder/Pr9/Pr9.txt -r 1 -l 1000000 -g 1 -seed 17671 -e 0.2 -p 200.0 200000 -samples ../input_folder/Pr9/Pr9_samples_nodeDescription.tsv -o ../input_folder/Pr9/Pr9_1M_5_seed17671

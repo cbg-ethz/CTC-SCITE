@@ -1,0 +1,358 @@
+digraph G {
+node [color=gray, shape=box, fontcolor=black, fontsize=20, fontname=Helvetica];
+scoreBox [label= "Tree score = -5178.73
+ Dropout rate = 0.241416
+ Sequencing error rate = 0.000942956"];
+edge [penwidth=4];
+node [color=honeydew4, style=filled, fontcolor=white, shape=oval];
+27 [label="chr9_65690975_AG
+chr19_8907941_GC
+"];
+28 [label="chr3_123931253_CT
+"];
+29 [label="chr12_111434995_TA
+chr1_173044020_AT
+chr11_62690624_CG
+chr2_110097596_AT
+chr1_148107750_TC
+chr12_81512318_CT
+chr1_150223358_CG
+chr8_132129832_GC
+chr6_38815581_CG
+chrX_141003357_CT
+chr9_33926557_GC
+chr8_119616240_GA
+chr6_30167200_GA
+chr19_21117852_TC
+chr12_108823297_GC
+"];
+30 [label="chr14_57589250_CT
+"];
+31 [label=""];
+32 [label="chr12_11022546_GA
+"];
+33 [label="chr1_186153695_GT
+chr3_138306277_GA
+chr9_32633816_AG
+chr18_47231116_GA
+chr5_128408653_CT
+chr3_175460182_CT
+chr5_151517699_TC
+chr6_42829955_CT
+chr1_18365495_CT
+chr2_68946374_CT
+chr20_59755282_GA
+chr3_11883959_CT
+chr11_36274279_GA
+chr7_86945032_GA
+chr3_52969104_CT
+chr15_42685399_CT
+chr8_119562856_CT
+chr11_118390619_CA
+chr2_218249879_GA
+chr15_70656976_GA
+chr1_214376341_CT
+chr19_36825756_GA
+chr5_34830724_CT
+chr19_11725269_AG
+chr14_55612544_GA
+chr8_23224854_CT
+chr9_32634817_GA
+chr14_94496637_CT
+chr14_29630872_TG
+chr17_31213533_CT
+chrX_54455525_TA
+chr13_48477754_TC
+chr15_83572607_CT
+"];
+34 [label="chr15_81358387_AG
+"];
+35 [label="chr14_105986963_GA
+chr15_75738032_CT
+"];
+36 [label="chr3_109328836_CT
+"];
+37 [label="chr8_139618492_GT
+chr1_236482536_CG
+chr19_41579683_AG
+chr21_34521852_GC
+chr7_56087759_AG
+chr3_170894375_CT
+chrX_54014563_TC
+chr1_120890143_AG
+chr1_13225117_CT
+chr1_151098000_CG
+chr2_85303921_GA
+chr8_123436616_GC
+chr2_216081478_CT
+chr5_146014000_AT
+chr10_5723785_GA
+chr2_127942456_CT
+"];
+38 [label="chr1_173041312_CT
+chr19_55911723_CT
+chr1_248638536_AT
+chr1_12795570_CT
+chr12_52471598_TC
+chr19_54595789_CG
+chrX_41347836_CT
+chr4_GL000008v2_random_7447_AG
+chr11_56290784_GT
+"];
+39 [label="chr21_30487232_GA
+chr13_28015158_TC
+chr17_7743188_GA
+chr2_64094823_CT
+chr9_116334894_TC
+chr1_46185081_GA
+chr11_113989386_GA
+chr3_141571429_CT
+chrX_67717550_CA
+chr12_95879684_CT
+chr1_241795417_CT
+chr12_99648449_CT
+chr17_68401381_GA
+chr12_108538266_CT
+chrX_70177503_AG
+chr16_21210241_AT
+chr17_75693492_GA
+chr1_89057102_CT
+chr3_151447918_GA
+chr12_48139482_TC
+chr10_30700037_CT
+chr19_58260952_GA
+chr6_166508332_GA
+chr15_84025417_AG
+chr7_51026518_GA
+chr5_7784397_GA
+chr17_10343837_GA
+chr2_49283231_AG
+chr5_140562363_GA
+chr15_82240456_GA
+chrX_84147190_CT
+chr5_181124710_GT
+chr12_113266384_GA
+chr15_88137460_CT
+chr17_42612306_GA
+chr12_295662_CT
+chr1_169704698_GA
+chr2_98555710_CT
+chr14_94469771_CT
+chr4_75888392_TA
+chr1_17637933_AG
+chr1_178785626_GA
+chr5_73579972_GA
+chr5_149616624_CT
+chr1_75792298_CT
+chr6_29889484_CT
+chr11_106009805_CT
+chr16_28488587_GA
+"];
+40 [label="chr14_105986661_CT
+"];
+41 [label="chr7_31529671_GA
+chr1_117115735_GA
+chr1_39372662_CT
+chr12_44523451_CT
+chr16_27648527_CT
+chr3_119491561_GA
+chr2_223982816_CT
+chr6_26405449_CT
+chr13_40977298_CT
+chr11_73649000_CT
+chr17_38334677_GA
+chr20_45945230_CT
+chr9_104694671_GC
+chr9_6330113_CT
+chr8_132001746_CT
+"];
+42 [label="chr12_110340980_GC
+chr17_38852704_CT
+chr14_44963330_GA
+chr15_90090706_GA
+"];
+43 [label="chr1_145996180_GA
+"];
+44 [label="chr8_138716081_CA
+chr19_54788324_TA
+chr2_98587514_GC
+chr13_25097025_TA
+"];
+45 [label="chr4_78374278_GA
+chr4_69018182_GC
+chr2_177618191_CT
+chr19_22088127_GA
+chr19_8886727_GA
+chr16_27884710_CG
+chr19_54596470_TC
+chr12_5563381_CA
+chr2_218249480_GA
+"];
+46 [label="chr5_141430691_GT
+chr14_106038076_GA
+chr10_56359895_CT
+chr19_54336979_CA
+chr4_444053_AT
+"];
+47 [label=""];
+48 [label="chr17_31123348_CT
+"];
+49 [label="chr4_79325320_AT
+chrX_54440802_CT
+chr17_64534580_CT
+chr20_5185748_CT
+chr9_121074807_GT
+chr17_34255415_CT
+chr4_88061968_GT
+chr15_75877970_CT
+chr12_43429582_TG
+chr19_48311796_GA
+"];
+50 [label="chr14_81068366_CG
+chr17_74619148_CA
+chr8_75017096_AC
+chrX_100676144_CA
+"];
+51 [label="chr19_8896061_GA
+chr2_68818086_AT
+"];
+52 [label="chr2_32603063_CG
+chr6_33592924_GA
+chr3_16219493_GA
+chrX_132628373_GA
+chr17_10642442_GC
+chr12_109092367_GC
+chr6_138218227_CG
+chr5_181124401_GA
+chr12_120524051_CA
+chr6_119180427_CT
+chr10_18616302_GT
+chr4_150220793_GC
+chr15_43711033_CG
+chrX_77695277_GC
+chr19_43574973_TC
+chr6_7189299_TA
+chrX_120543030_CT
+chr16_66537109_GC
+chr17_1056052_CT
+chr18_36895852_CT
+chr2_228019711_TC
+chr9_35259239_CT
+chr16_57436803_AG
+chr10_88593934_TA
+chr13_77260456_TC
+chr6_150918512_AG
+chr19_8914258_TA
+chr13_46266821_GC
+chr3_195751283_GT
+chr2_219295082_CG
+chr6_137872494_GA
+chr15_22429597_CG
+chr2_98625785_GC
+chr13_77158093_GC
+chr17_2324701_AC
+chr1_99970557_GC
+chr16_68363418_CT
+chr22_18088312_GA
+chr2_95856109_GA
+chr3_97942357_AT
+chr18_21499822_GC
+chr11_129063859_GA
+chr10_27334154_CT
+chr10_43100554_CT
+chr19_47834402_CT
+chr6_49459370_GC
+chr19_22052733_CA
+chr1_66981863_TA
+chr1_113825087_AT
+chr17_1613192_CG
+chr19_21183023_TC
+chr12_104994717_GC
+chr10_73526634_TC
+chr1_173050893_AG
+chrX_118609254_AG
+chr4_3206612_GC
+chr8_30837400_CG
+chr13_51423074_CG
+"];
+node [fontname=helvetica,fontcolor=black,shape="box",penwidth=10,style="rounded,filled,bold",imagepos="bc",imagescale=true, labelloc=b]; 
+0[color=gray93,label="Br16_C10",fillcolor=gray93,image="../CTC-cluster-icons/cluster_1-0.png"];
+1[color=gray93,label="Br16_C12",fillcolor=gray93,image="../CTC-cluster-icons/cluster_1-0.png"];
+2[color=forestgreen,label="Br16_C15_A",fillcolor=forestgreen,image="../CTC-cluster-icons/cluster_2-0.png"];
+3[color=forestgreen,label="Br16_C15_B",fillcolor=forestgreen,image="../CTC-cluster-icons/cluster_2-0.png"];
+4[color=gray93,label="Br16_C18",fillcolor=gray93,image="../CTC-cluster-icons/cluster_1-0.png"];
+5[color=gray93,label="Br16_C19",fillcolor=gray93,image="../CTC-cluster-icons/cluster_1-0.png"];
+6[color=gray93,label="Br16_C20",fillcolor=gray93,image="../CTC-cluster-icons/cluster_1-0.png"];
+7[color=firebrick,label="Br16_C21_A",fillcolor=firebrick,image="../CTC-cluster-icons/cluster_3-0.png"];
+8[color=firebrick,label="Br16_C21_B",fillcolor=firebrick,image="../CTC-cluster-icons/cluster_3-0.png"];
+9[color=firebrick,label="Br16_C21_C",fillcolor=firebrick,image="../CTC-cluster-icons/cluster_3-0.png"];
+10[color=gray93,label="Br16_C22",fillcolor=gray93,image="../CTC-cluster-icons/cluster_1-0.png"];
+11[color=gray93,label="Br16_C24",fillcolor=gray93,image="../CTC-cluster-icons/cluster_1-0.png"];
+12[color=dodgerblue4,label="Br16_C26_A",fillcolor=dodgerblue4,image="../CTC-cluster-icons/cluster_2-0.png"];
+13[color=dodgerblue4,label="Br16_C26_B",fillcolor=dodgerblue4,image="../CTC-cluster-icons/cluster_2-0.png"];
+14[color=gray93,label="Br16_C27",fillcolor=gray93,image="../CTC-cluster-icons/cluster_1-0.png"];
+15[color=limegreen,label="Br16_C28_A",fillcolor=limegreen,image="../CTC-cluster-icons/cluster_2-0.png"];
+16[color=limegreen,label="Br16_C28_B",fillcolor=limegreen,image="../CTC-cluster-icons/cluster_2-0.png"];
+17[color=gray93,label="Br16_C3",fillcolor=gray93,image="../CTC-cluster-icons/cluster_1-0.png"];
+18[color=khaki4,label="Br16_C30_A",fillcolor=khaki4,image="../CTC-cluster-icons/cluster_2-0.png"];
+19[color=khaki4,label="Br16_C30_B",fillcolor=khaki4,image="../CTC-cluster-icons/cluster_2-0.png"];
+20[color=gray93,label="Br16_C4",fillcolor=gray93,image="../CTC-cluster-icons/cluster_1-0.png"];
+21[color=deepskyblue,label="Br16_C5_A",fillcolor=deepskyblue,image="../CTC-cluster-icons/cluster_2-0.png"];
+22[color=deepskyblue,label="Br16_C5_B",fillcolor=deepskyblue,image="../CTC-cluster-icons/cluster_2-0.png"];
+23[color=darkorange,label="Br16_C6_A",fillcolor=darkorange,image="../CTC-cluster-icons/cluster_2-0.png"];
+24[color=darkorange,label="Br16_C6_B",fillcolor=darkorange,image="../CTC-cluster-icons/cluster_2-0.png"];
+25[color=gray93,label="Br16_C7",fillcolor=gray93,image="../CTC-cluster-icons/cluster_1-0.png"];
+26[color=gray93,label="Br16_C9",fillcolor=gray93,image="../CTC-cluster-icons/cluster_1-0.png"];
+37 -> 0;
+43 -> 1;
+41 -> 2;
+33 -> 3;
+30 -> 4;
+34 -> 5;
+31 -> 6;
+45 -> 7;
+38 -> 8;
+32 -> 9;
+40 -> 10;
+36 -> 11;
+44 -> 12;
+52 -> 13;
+36 -> 14;
+50 -> 15;
+40 -> 16;
+35 -> 17;
+49 -> 18;
+48 -> 19;
+34 -> 20;
+48 -> 21;
+47 -> 22;
+39 -> 23;
+28 -> 24;
+33 -> 25;
+31 -> 26;
+51 -> 27;
+27 -> 28;
+45 -> 29;
+42 -> 30;
+43 -> 31;
+29 -> 32;
+39 -> 33;
+30 -> 34;
+27 -> 35;
+28 -> 36;
+38 -> 37;
+44 -> 38;
+41 -> 39;
+35 -> 40;
+32 -> 41;
+37 -> 42;
+51 -> 43;
+29 -> 44;
+49 -> 45;
+42 -> 46;
+52 -> 47;
+46 -> 48;
+50 -> 49;
+47 -> 50;
+46 -> 51;
+}
