@@ -1,16 +1,12 @@
+#install.packages("readr")
+#install.packages("Rcpp")
+#install.packages("dplyr")
 library(readr)
+library(dplyr)
 library(Rcpp)
 
 sourceCpp('mutations_placement.cpp')
-find_most_recent_common_ancestor <- function(leaf1, leaf2, ################ Untested, can remove many of the parameters
-                                             tree_parent_vector_format,
-                                             nCells, nMutations, nSamples,
-                                             ancestorMatrix, alleleCount,
-                                             leafClusterId,mutatedReadCounts,
-                                             totalReadCounts,
-                                             dropoutRate, seqErr,
-                                             wbcStatus
-                                             ){
+find_most_recent_common_ancestor <- function(treeParentVectorFormat, leaf1, leaf2){
   ##Trace back the lineage of the tree for one leaf.
   ##Then trace back the lineage of the tree for the other leaf and for every node
   ##whether is lies in the lineage of the first leaf.
@@ -19,23 +15,26 @@ find_most_recent_common_ancestor <- function(leaf1, leaf2, ################ Unte
   ## If there is a mutation on the tree, then this means that the cells are
   ##split by the tree, if there is none, then they aren't.
   
-  ##Note that the nodes of the tree are encoded from 0 to the number of nodes -1
-  lineage1 <- vector()
-  while(lineage1[length(lineage1)]!= length(tree_parent_vector_format))  
-    lineage1 <- c(lineage1, tree_parent_vector_format[lineage1[length(lineage1)]])
+  ##Note that the nodes and leaves of the tree are encoded from 0 to the number of nodes minus 1
+  ## Therefore, I add 1 to the indices to be compatible with R indication starting at 1
+  lineage1 <- leaf1
+  repeat {  
+    #print(treeParentVectorFormat[lineage1[length(lineage1)] + 1])
+    lineage1 <- c(lineage1, treeParentVectorFormat[lineage1[length(lineage1)] + 1])
+    if(lineage1[length(lineage1)] == length(treeParentVectorFormat)) break
   }
-  lineage2 <- vector()
-  while(TRUE)  {
-    lineage2 <- c(lineage2, tree_parent_vector_format[lineage2[length(lineage2)]]) 
-    if (lineage2[length(lineage2] %in% lineage1) break
+  lineage2 <- leaf2
+  nextParent <- treeParentVectorFormat[leaf2 + 1]
+  while(!(nextParent %in% lineage1))  {
+    lineage2 <- c(lineage2, nextParent)
+    nextParent <- treeParentVectorFormat[nextParent + 1]
+    #print(nextParent)
+    #print(!(nextParent %in% lineage1))
+    
   }
-  MRCA <- lineage2[length(lineage2)]
-  return(c(lineage1,lineage2, MRCA))
-
+  MRCA <- nextParent
+  return(list(lineage1,lineage2, MRCA))
 }
-
-
-
 
 
 posteriorSamplingFile <-  "../../input_folder/Br7/Br7_1M_2_seed13543_postSampling.tsv"
@@ -57,22 +56,29 @@ alleleCount <- description$CellCount*2
 ##The i-th entry having value x means that 
 ## Cells i is in cluster description$Cluster[j]
 ClusterID <- vector()
-for(i in 1:nClusters) ClusterID <- c(ClusterID, rep.int(i,description$CellCount[i]))
+for(i in 1:nClusters) ClusterID <- c(ClusterID, rep.int(i-1,description$CellCount[i]))
+## Note that Cpp counts arrays from zero, so the cluster IDs are counted likewise
+## in order to be compatible with Cpp code.
 
 ##Pull apart the count file into counts for mutated read and total counts respectively
 mutatedReadCounts <- matrix(0,nrow = nMutations, ncol = 0)
 for (j in 1:nClusters){
-    print(j)
     mutatedReadCounts <- cbind(mutatedReadCounts,counts[,4+2*j])
 }
 
 wildtypeReadCounts <- matrix(0,nrow = nMutations, ncol = 0)
 for (j in 1:nClusters){
-  print(j)
   wildtypeReadCounts <- cbind(wildtypeReadCounts,counts[,4+2*j-1])
 }
 
+
 totalReadCounts <- mutatedReadCounts + wildtypeReadCounts
+
+
+mutatedReadCounts <- mutatedReadCounts %>% t() %>% as.data.frame() %>% as.list()
+wildtypeReadCounts <- wildtypeReadCounts %>% t() %>% as.data.frame() %>% as.list()
+totalReadCounts <- totalReadCounts %>% t() %>% as.data.frame() %>% as.list()
+
 
 
 ##wbc status indicates which of the cells is a white blood cells and which one isn't.
@@ -81,10 +87,11 @@ wbcStatus <- rep(0, nCells)
 
 for(i in 1:nClusters){
   j <- 1
-  while(j>0 & j<description$WBCs[i]+1){ #Iterating over the number of White blood cells of a cluster
-    wbcStatus[which(ClusterID == i)[1] + j-1] <- 1 # and identifying the first cell
+  while(j <= description$WBCs[i]){ #Iterating over the number of White blood cells of a cluster
+    wbcStatus[which(ClusterID == i-1)[1] + j-1] <- 1 # and identifying the first cell
                                               # that belongs to a cluster and counting from then on
-  j<- j+1
+  ## Note: The cluster IDs are counted from zero!  
+    j<- j+1
   }
 }
 
@@ -92,7 +99,7 @@ for(i in 1:nClusters){
 
 #for (i in nrow(postSampling)){
 #  tree <- postSampling$Tree[i]
-tree <- postSampling$Tree[1] ##Debugging
+tree <- postSampling$Tree[3200] ##Debugging
   treeParentVectorFormat <- as.numeric(unlist(strsplit(tree, " ")))
   dropoutRate <- postSampling$DropoutRate[i]
   seqErrRate <- postSampling$SequencingErrorRate[i]
@@ -100,19 +107,38 @@ tree <- postSampling$Tree[1] ##Debugging
   ### Now I need to compute the best mutation placement on the tree. This is done
   ##using the scoreTree C++ function (taken from CTC_treeScoring.cpp).
   
-  find_most_recent_common_ancestor(1,3, )
   
   ancestorMatrix <- parentVector2ancMatrix(treeParentVectorFormat,
-                                            length(treeParentVectorFormat)) #############Something wrong here still
+                                            length(treeParentVectorFormat)) #%>%
+#    matrix(ncol = length(treeParentVectorFormat), byrow = TRUE)
   
-  best_mutation_placement <- getMutationPlacement (nCells, nMutations, nSamples, ############# Untested
+  sourceCpp('mutations_placement.cpp') 
+  
+
+  bestMutationPlacement <- getMutationPlacement (nCells, nMutations, nClusters,
                                                    ancestorMatrix, alleleCount,
-                                                   leafClusterId,mutatedReadCounts,
+                                                   ClusterID,mutatedReadCounts,
                                                    totalReadCounts,
-                                                   dropoutRate, seqErr, 1,
-                                                   wbcStatus 
+                                                   dropoutRate, seqErrRate, 1,
+                                                   wbcStatus)
+
+  pairwiseGenealogy <- find_most_recent_common_ancestor(treeParentVectorFormat, 0,2)
+  pairwiseGenealogy
+  
+  positionOfMRCA <- which(pairwiseGenealogy[[1]] == pairwiseGenealogy[[3]])
+  firstLeafToMRCA <- pairwiseGenealogy[[1]][1:(positionOfMRCA)]
+  
+  secondLeafToMRCA <- pairwiseGenealogy[[2]]
+  
+  #print(firstLeafToMRCA)
+  #print(secondLeafToMRCA)
+  pathBetweenLeaves <- c(firstLeafToMRCA,rev(secondLeafToMRCA))
+  #print(pathBetweenLeaves)
+  
+  ## Now count how many of the mutations lie in the shortest path between the leaves.
+  ##Need to exclude the MRCA for this
+
+  sum(bestMutationPlacement %in% pathBetweenLeaves[pathBetweenLeaves != firstLeafToMRCA[positionOfMRCA]])
   
 #}
 
-
-dropoutRate

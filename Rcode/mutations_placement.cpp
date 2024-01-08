@@ -37,7 +37,7 @@ double logBinomCoeff(int n, int k){
 double logBetaBinom(int k, int r, int alpha, int beta, int p, int q, double tau){
   
   double logScore = 0.0;
-  double M = ((alpha-p)+(beta-q))*tau;
+   double M = ((alpha-p)+(beta-q))*tau;
   double mu = (1.0*alpha-p)/((alpha-p)+(beta-q));
   
   //	cout << "M  = " << M << endl;
@@ -56,7 +56,8 @@ double logBetaBinom(int k, int r, int alpha, int beta, int p, int q, double tau)
 
 
 /* precompute for each pair (sample, mutation placement) the number of expected mutated alleles in the sample */
-std::vector<std::vector<int> > getExpVarAlleleCount(int m, int sampleCount, std::vector<std::vector<bool> > ancMatrix, std::vector<int>& leafClusterId){
+
+std::vector<std::vector<int> > getExpVarAlleleCount(int m, int sampleCount, std::vector<std::vector<bool> > ancMatrix, std::vector<int> leafClusterId){
   
   std::vector<std::vector<int> > expVarReadCount;
   for(int sample=0; sample<sampleCount; sample++){
@@ -65,21 +66,25 @@ std::vector<std::vector<int> > getExpVarAlleleCount(int m, int sampleCount, std:
       expVarReadCount.at(sample).push_back(0);
     }
   }
-  
+ 
   for(int leaf=0; leaf<m; leaf++){
     int clusterId = leafClusterId[leaf];
+    
     for(int node=0; node<(2*m)-2; node++){
       if(ancMatrix[node][leaf]==1){
-        expVarReadCount[clusterId][node] += 1;   // count how many leafs belonging to the sample have
+        expVarReadCount[clusterId][node] += 1;   // count how many leaves belonging to the sample have
       }                                          // the node where the mutation is placed as ancestor
     }
-    expVarReadCount[clusterId][(2*m)-2] += 1;
+    
+  
+    expVarReadCount[clusterId][(2*m)-2] += 1; 
   }
+   
   return expVarReadCount;
 }
 
 
-std::vector<std::vector<int> > getExpAlleleCountFreqs(int m, int sampleCount, std::vector<std::vector<bool> > ancMatrix, std::vector<int>& leafClusterId){
+std::vector<std::vector<int> > getExpAlleleCountFreqs(int m, int sampleCount, std::vector<std::vector<bool> > ancMatrix, std::vector<int> leafClusterId){
   
   std::vector<std::vector<int> > expVarReadCount = getExpVarAlleleCount(m, sampleCount, ancMatrix, leafClusterId);
   std::vector<std::vector<int> > expVarReadCountFreqs;
@@ -106,7 +111,7 @@ std::vector<std::vector<int> > getExpAlleleCountFreqs(int m, int sampleCount, st
 
 
 /** this computes for each node in the current tree how many wbc's are below it (including node itself)**/
-std::vector<int> getWBC_count_below(int m, int sampleCount, std::vector<std::vector<bool> > ancMatrix, std::vector<bool>& wbcStatus){
+std::vector<int> getWBC_count_below(int m, int sampleCount, std::vector<std::vector<bool> > ancMatrix, std::vector<bool> wbcStatus){
   std::vector<int> wbcBelowCount;
   
   for(int node=0; node<(2*m)-1; node++){  // init vector of wbc counts
@@ -135,6 +140,8 @@ double computeLogSampleScore(int expCount, int alleleCount, int obsMutCount, int
   int r = obsTotalCount;
   double delta = dropoutRate;
   
+  //std::cout << "alleleCount " << alleleCount << std::endl;
+  //std::cout <<"alpha " << alpha << std::endl;
   
   std::vector<double> logScores;
   double logSumScore;
@@ -146,9 +153,9 @@ double computeLogSampleScore(int expCount, int alleleCount, int obsMutCount, int
   }
   // both alleles still present: use beta-binomial for modeling drop-out
   for(int p=0; p<alpha; p++){
-    //cout << "p " << p << endl;
+    //std::cout << "p " << p << std::endl;
     for(int q=0; q<beta; q++){
-      //cout << "q " << q << endl;
+      //std::cout << "q " << q << std::endl;
       double logScore = -DBL_MAX;
       //double test_1 = logBinomCoeff(alpha, p);
       //cout << "part 1: " << test_1 << endl;
@@ -159,9 +166,10 @@ double computeLogSampleScore(int expCount, int alleleCount, int obsMutCount, int
       logScore = logBinomCoeff(alpha, p) + logBinomCoeff(beta,q) + (p+q)*log(delta) + ((alpha-p)+(beta-q)) * log(1-delta) + logBetaBinom(k, r, alpha, beta, p, q, tau);
       //cout << "        (i)" << logScore << endl;
       logScores.push_back(logScore);
-      maxLogScore = std::max(maxLogScore, logScore);
+      maxLogScore = std::max(maxLogScore, logScore); 
     }
   }
+
   // only mutated alleles amplified: use binomial for modeling sequencing errors
   for(int p=0; p<alpha; p++){
     double logScore = logBinomCoeff(alpha, p) + (beta+p)*log(delta) + (alpha-p)*log(1-delta) + logBinomCoeff(r, k) + (r-k)*log(seqErr) + k* log(1-seqErr);
@@ -189,6 +197,7 @@ double computeLogSampleScore(int expCount, int alleleCount, int obsMutCount, int
     std::cout << "k > r: " << k << " > " << r<< std::endl;
     getchar();
   }
+  
   return logSumScore;
 }
 
@@ -197,7 +206,16 @@ double computeLogSampleScore(int expCount, int alleleCount, int obsMutCount, int
 
 
 // [[Rcpp::export]]
-std::vector<int> getMutationPlacement(int m, int n, int sampleCount, std::vector<std::vector<bool> > ancMatrix, std::vector<int>& alleleCount, std::vector<int>& leafClusterId, std::vector<std::vector<int> >& mutReadCounts, std::vector<std::vector<int> >& totalReadCounts, double dropoutRate, double seqErr, double tau, std::vector<bool>& wbcStatus){
+std::vector<int> getMutationPlacement(int m, int n, int sampleCount,
+                                      std::vector<std::vector<bool> > ancMatrix,
+                                      std::vector<int> alleleCount,
+                                      std::vector<int> leafClusterId,
+                                      std::vector<std::vector<int> > mutReadCounts,
+                                      std::vector<std::vector<int> > totalReadCounts,
+                                      double dropoutRate, 
+                                      double seqErr,
+                                      double tau,
+                                      std::vector<bool> wbcStatus){
 
   std::vector<int> bestPlacementPoint;
   for(int mut=0; mut< n; mut++){               // compute score separately for each mutation
@@ -205,31 +223,36 @@ std::vector<int> getMutationPlacement(int m, int n, int sampleCount, std::vector
   }
   
 	std::vector<std::vector<int> > expVarAlleleCount = getExpVarAlleleCount(m, sampleCount, ancMatrix, leafClusterId);
+  
 	std::vector<std::vector<int> > expVarAlleleFreqs = getExpAlleleCountFreqs(m, sampleCount, ancMatrix, leafClusterId);
 	std::vector<int> wbcBelowCount = getWBC_count_below(m, sampleCount, ancMatrix, wbcStatus);
-
+  
 	//double logScore = 0.0;
-
-	for(int mut=0; mut< n; mut++){               // compute score separately for each mutation
+  
+	for(int mut=0; mut<n; mut++){               // compute score separately for each mutation
 		//cout << "mut " << mut << " of " << n << endl;
 		std::vector<double> logAttachmentScores;
 		double bestLogAttachmentScore = -DBL_MAX;
 		//bestPlacementPoint.push_back(-1);
 
-		/* precompute scores per expected number of mutated alleles */
+		// precompute scores per expected number of mutated alleles
 		std::vector<std::vector<double> > scorePrecomp;
+		
 		for(int sample=0; sample<sampleCount; sample++){
 			std::vector<double> sampleScorePrecomp;
 			//cout << "sample: " << sample << endl;
+		 
 			for(int expFreq=0; expFreq<expVarAlleleFreqs.at(sample).size(); expFreq++){
-				//cout << "exp freq (" << mut << "): " << expFreq << "   allele count at sample " << alleleCount.at(sample) << " (" << mutReadCounts.at(mut).at(sample) << "," << totalReadCounts.at(mut).at(sample) << ")" << endl;
+				//std::cout << "exp freq (" << mut << "): " << expFreq << "   allele count at sample " << alleleCount.at(sample) << " (" << mutReadCounts.at(mut).at(sample) << "," << totalReadCounts.at(mut).at(sample) << ")" << std::endl;
 				double newScore = computeLogSampleScore(expFreq, alleleCount.at(sample), mutReadCounts[mut][sample], totalReadCounts[mut][sample], dropoutRate, seqErr, tau);
 				sampleScorePrecomp.push_back(newScore);
 				//cout << "done" << endl;
 			}
+		  
 			scorePrecomp.push_back(sampleScorePrecomp);
 		}
-
+		 
+    
 		//cout << "end 2" << endl;
 		for(int att=0; att< (2*m)-1; att++){           // for each attachment point
 			//cout << "wbcBelowCount.at(" << att << ") = " << wbcBelowCount.at(att) << endl;
@@ -287,34 +310,30 @@ std::vector<int> getMutationPlacement(int m, int n, int sampleCount, std::vector
 		//double logMutScore = log(sumScore)+bestLogAttachmentScore;              // transform back to log scores and change from score differences to actual scores
 		//logScore += logMutScore;
 	}
-
+  
 	return bestPlacementPoint;
 }
 
 // [[Rcpp::export]]
 std::vector<std::vector<bool>> parentVector2ancMatrix(std::vector<int> parent, int n){
   
-  std::vector<std::vector<bool>> ancMatrix;
+  std::vector<std::vector<bool>> ancMatrix(n, std::vector<bool>(n, false));
   
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < n; ++j) {
-      ancMatrix[i][j] = false;
+  int root = n;
+  
+  for(int i = 0; i < n; ++i){
+    int anc = i;
+    while(anc < root){                              
+      if(parent[anc] < n){
+        ancMatrix[parent[anc]][i] = true;
+      }
+      anc = parent[anc];
     }
   }
   
-	int root = n;
-	for(int i=0; i<n; i++){
-		int anc = i;
-		while(anc < root){                              // if the ancestor is the root node, it is not represented in the adjacency matrix
-			if(parent[anc]<n){
-				ancMatrix[parent[anc]][i] = true;
-			}
-
-			anc = parent[anc];
-		}
-	}
-	for(int i=0; i<n; i++){
-		ancMatrix[i][i] = true;
-	}
-	return ancMatrix;
+  for(int i = 0; i < n; ++i){
+    ancMatrix[i][i] = true;
+  }
+  
+  return ancMatrix;
 }
