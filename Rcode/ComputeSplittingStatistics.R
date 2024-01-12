@@ -10,20 +10,21 @@ library(purrr)
 library(ggplot2)
 
 
-#############Config
-
-posteriorSamplingFile <-  "../../input_folder/LM2/LM2_1M_10_seed10956_postSampling.tsv"
-countFile <- "../../input_folder/LM2/LM2.txt"
-descriptionFile <- "../../input_folder/LM2/LM2_samples_nodeDescription.tsv"
-treeName <- "LM2"
-
-###############
+############
+#Config
+############
+inputFolder <- "../../input_folder"
+treeName <- "Br61"
 
 
 
-
+############
+#Function Definitions
+############
 
 sourceCpp('mutations_placement.cpp')
+
+###
 find_most_recent_common_ancestor <- function(treeParentVectorFormat, leaf1, leaf2){
   ##Trace back the lineage of the tree for one leaf.
   ##Then trace back the lineage of the tree for the other leaf and for every node
@@ -57,6 +58,92 @@ find_most_recent_common_ancestor <- function(treeParentVectorFormat, leaf1, leaf
 
 
 
+
+compute_pairwise_distance_of_leaves <- function(treeData, leaf1, leaf2){
+  tree <- treeData$Tree
+  treeParentVectorFormat <- as.numeric(unlist(strsplit(tree, " ")))
+  dropoutRate <- treeData$DropoutRate
+  seqErrRate <- treeData$SequencingErrorRate
+  
+  ### Now I need to compute the best mutation placement on the tree. This is done
+  ##using the scoreTree C++ function (taken from CTC_treeScoring.cpp).
+  
+  print("Preprocess tree")
+  ancestorMatrix <- parentVector2ancMatrix(treeParentVectorFormat,
+                                           length(treeParentVectorFormat))
+  
+  
+  print("Find best Mutation placement")
+  bestMutationPlacement <- getMutationPlacement (nCells, nMutations, nClusters,
+                                                 ancestorMatrix, alleleCount,
+                                                 ClusterID,mutatedReadCounts,
+                                                 totalReadCounts,
+                                                 dropoutRate, seqErrRate, 1,
+                                                 wbcStatus)## This crashes when executed on posterior sampling of Br61
+  print("Finding most recent common ancestor")
+  pairwiseGenealogy <- findMostRecentCommonAncestor(treeParentVectorFormat, leaf1,leaf2)
+  
+  positionOfMRCA <- which(pairwiseGenealogy[[1]] == pairwiseGenealogy[[3]])
+  firstLeafToMRCA <- pairwiseGenealogy[[1]][1:(positionOfMRCA)]
+  
+  secondLeafToMRCA <- pairwiseGenealogy[[2]]
+  
+  #print(firstLeafToMRCA)
+  #print(secondLeafToMRCA)
+  pathBetweenLeaves <- c(firstLeafToMRCA,rev(secondLeafToMRCA))
+  #print(pathBetweenLeaves)
+  
+  ## Now count an output how many of the mutations lie in the shortest path between the leaves.
+  ##This equals the Hamming distance between the inferred Genotypes of two leaves
+  ##Need to exclude the MRCA for this
+  
+  return(sum(bestMutationPlacement %in% pathBetweenLeaves[pathBetweenLeaves != firstLeafToMRCA[positionOfMRCA]]))
+}
+
+
+produce_Distance_Posterior <- function(leaf1, leaf2,treePosterior, treeName){
+  
+  ## For each row in the posterior Sampling file, the distance of two leaves is computed
+  print("Sampling from the posterior")
+  dist_histogram <- sapply(split(postSampling, seq(nrow(postSampling))),FUN = compute_pairwise_distance_of_leaves, leaf1, leaf2)
+  median_dist <- median(dist_histogram)
+  
+  
+  plot(
+    ggplot(data.frame(HammingDistance = dist_histogram), aes(x = HammingDistance)) +
+    geom_histogram(binwidth = 1, fill = "skyblue", color = "black", alpha = 0.7)+ 
+    xlab(sprintf("genetic distance between leaf %d and leaf %d", leaf1, leaf2)) + ylab("total count") +
+    ggtitle(paste("Histogram of genetic distances of clusters cells in", treeName)) +
+    geom_vline(xintercept = median_dist,color = "red", linetype = "dashed", size = 1) +
+    labs(subtitle = "As sampled from the posterior distribution",caption = "median indicated by dashed red line") +
+    theme_minimal() +
+    theme(
+        plot.title = element_text(size = 24, face = "bold"),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+       plot.subtitle = element_text(size= 20),
+        axis.text = element_text(size = 16) 
+    )
+   )
+    
+    
+  return(median(dist_histogram))
+}
+
+
+
+############
+#Data preprocessing
+############
+
+##Define paths
+
+posteriorSamplingFile <-  sprintf("%s/%s/%s_postSampling.tsv", inputFolder, treeName,treeName)
+
+countFile <- sprintf("%s/%s/%s.txt", inputFolder, treeName,treeName)
+descriptionFile <- sprintf("%s/%s/%s_samples_nodeDescription.tsv", inputFolder, treeName, treeName)
+
+
 postSampling <- read_delim(posteriorSamplingFile,
                            delim = "\t", col_names = c("LogScore", "SequencingErrorRate","DropoutRate", "LogTau", "Tree"))
 
@@ -79,7 +166,7 @@ for(i in 1:nClusters) ClusterID <- c(ClusterID, rep.int(i-1,description$CellCoun
 ##Pull apart the count file into counts for mutated read and total counts respectively
 mutatedReadCounts <- matrix(0,nrow = nMutations, ncol = 0)
 for (j in 1:nClusters){
-    mutatedReadCounts <- cbind(mutatedReadCounts,counts[,4+2*j])
+  mutatedReadCounts <- cbind(mutatedReadCounts,counts[,4+2*j])
 }
 
 wildtypeReadCounts <- matrix(0,nrow = nMutations, ncol = 0)
@@ -105,83 +192,18 @@ for(i in 1:nClusters){
   j <- 1
   while(j <= description$WBCs[i]){ #Iterating over the number of White blood cells of a cluster
     wbcStatus[which(ClusterID == i-1)[1] + j-1] <- 1 # and identifying the first cell
-                                              # that belongs to a cluster and counting from then on
-  ## Note: The cluster IDs are counted from zero!  
+    # that belongs to a cluster and counting from then on
+    ## Note: The cluster IDs are counted from zero!  
     j<- j+1
   }
 }
 
 
-compute_pairwise_distance_of_leaves <- function(treeData, leaf1, leaf2){
-  tree <- treeData$Tree
-  treeParentVectorFormat <- as.numeric(unlist(strsplit(tree, " ")))
-  dropoutRate <- treeData$DropoutRate
-  seqErrRate <- treeData$SequencingErrorRate
-  
-  ### Now I need to compute the best mutation placement on the tree. This is done
-  ##using the scoreTree C++ function (taken from CTC_treeScoring.cpp).
-  
-  
-  ancestorMatrix <- parentVector2ancMatrix(treeParentVectorFormat,
-                                           length(treeParentVectorFormat))
-  
-  
-  
-  bestMutationPlacement <- getMutationPlacement (nCells, nMutations, nClusters,
-                                                 ancestorMatrix, alleleCount,
-                                                 ClusterID,mutatedReadCounts,
-                                                 totalReadCounts,
-                                                 dropoutRate, seqErrRate, 1,
-                                                 wbcStatus)
-  
-  pairwiseGenealogy <- find_most_recent_common_ancestor(treeParentVectorFormat, leaf1,leaf2)
-  
-  positionOfMRCA <- which(pairwiseGenealogy[[1]] == pairwiseGenealogy[[3]])
-  firstLeafToMRCA <- pairwiseGenealogy[[1]][1:(positionOfMRCA)]
-  
-  secondLeafToMRCA <- pairwiseGenealogy[[2]]
-  
-  #print(firstLeafToMRCA)
-  #print(secondLeafToMRCA)
-  pathBetweenLeaves <- c(firstLeafToMRCA,rev(secondLeafToMRCA))
-  #print(pathBetweenLeaves)
-  
-  ## Now count an output how many of the mutations lie in the shortest path between the leaves.
-  ##This equals the Hamming distance between the inferred Genotypes of two leaves
-  ##Need to exclude the MRCA for this
-  
-  return(sum(bestMutationPlacement %in% pathBetweenLeaves[pathBetweenLeaves != firstLeafToMRCA[positionOfMRCA]]))
-}
 
 
-produce_Distance_Posterior <- function(leaf1, leaf2,treePosterior, treeName){
-  
-  ## For each row in the posterior Sampling file, the distance of two leaves is computed
-  dist_histogram <- sapply(split(postSampling, seq(nrow(postSampling))),FUN = compute_pairwise_distance_of_leaves, leaf1, leaf2)
-  median_dist <- median(dist_histogram)
-  
-
-  plot(
-    ggplot(data.frame(HammingDistance = dist_histogram), aes(x = HammingDistance)) +
-    geom_histogram(binwidth = 1, fill = "skyblue", color = "black", alpha = 0.7)+ 
-    xlab(sprintf("genetic distance between leaf %d and leaf %d", leaf1, leaf2)) + ylab("total count") +
-    ggtitle(paste("Histogram of genetic distances of clusters cells in", treeName)) +
-    geom_vline(xintercept = median_dist,color = "red", linetype = "dashed", size = 1) +
-    labs(subtitle = "As sampled from the posterior distribution",caption = "median indicated by dashed red line") +
-    theme_minimal() +
-    theme(
-        plot.title = element_text(size = 24, face = "bold"),
-        axis.title.x = element_text(size = 20),
-        axis.title.y = element_text(size = 20),
-        plot.subtitle = element_text(size= 20),
-        axis.text = element_text(size = 16) 
-    )
-    )
-    
-    
-  return(median(dist_histogram))
-}
-
+############
+#Main Analysis
+############
 
 
 ## Go through all clusters an compare all pairs of cells within each cluster with
@@ -205,6 +227,7 @@ for (c in 1:nClusters){
   
 }
 
+findMostRecentCommonAncestor(c(11,11,1,1,2,2,3,3,7,7),4,9)
 
 intraClusterSplitMedianPlot <- ggplot(data.frame(Median_Distance = distance), aes(x = Median_Distance)) +
   geom_histogram(binwidth = 10, fill = "skyblue", color = "black", alpha = 0.7)+ 

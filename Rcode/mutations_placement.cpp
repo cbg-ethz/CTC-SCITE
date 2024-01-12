@@ -337,3 +337,52 @@ std::vector<std::vector<bool>> parentVector2ancMatrix(std::vector<int> parent, i
   
   return ancMatrix;
 }
+
+// // [[Rcpp::export]]
+//std::vector<std::vector<bool>> ComputeDistanceLeavesPosterior() {
+//  std::vector<double> distance;
+//  std::vector<int> clusterIdentityofdistance;
+//
+//  for (int c = 0; c < nClusters; ++c) {
+//    std::vector<int> cellsInCluster;
+//  
+//    for (int i = 0; i < ClusterID.size(); ++i) {
+//      if (ClusterID[i] == c) {
+//        cellsInCluster.push_back(i);
+//      }
+//    }
+  
+//    for (int i = 0; i < cellsInCluster.size(); ++i) {
+//      for (int j =0; j< i; j++) {
+//        distance.push_back(produce_Distance_Posterior(cellsInCluster[i], cellsInCluster[j], treePosterior, treeName));
+//        clusterIdentityofdistance.push_back(c);
+//        }
+//      }
+//    }
+//  }
+//  return ....;
+//}
+
+// [[Rcpp::export]]
+std::vector<std::vector<int>> findMostRecentCommonAncestor(const std::vector<int>& treeParentVectorFormat, int leaf1, int leaf2) {
+  std::vector<int> lineage1{leaf1};
+  
+  while (true) {
+    lineage1.push_back(treeParentVectorFormat[lineage1.back()]);
+    // std::cout << lineage1[lineage1.back()] << std::endl;
+    if (lineage1.back() == treeParentVectorFormat.size() + 1) break;
+  }
+  
+  std::vector<int> lineage2{leaf2};
+  int nextParent = treeParentVectorFormat[leaf2];
+  
+  while (std::find(lineage1.begin(), lineage1.end(), nextParent) == lineage1.end()) {
+    lineage2.push_back(nextParent);
+    nextParent = treeParentVectorFormat[nextParent];
+  }
+  
+  int MRCA = nextParent;
+  
+  return {lineage1, lineage2, {MRCA}};
+}
+
