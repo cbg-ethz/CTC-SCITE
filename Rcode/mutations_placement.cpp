@@ -363,6 +363,17 @@ std::vector<std::vector<bool>> parentVector2ancMatrix(std::vector<int> parent, i
 //  return ....;
 //}
 
+
+
+//Input: a tree in parent vector format, meaning that the i'th entry of the vector
+// is te parent node of the entry i. Nodes are counted from zero and the root is 
+// length(Tree)
+//Output: A list with three entries:
+//  - the first entry is a vector of nodes tracing back leaf 1 to the root
+//  - the second entry is a vector of nodes tracing back leaf2 to the descendant
+//    of the MRCA in the lineage
+//  - the thirs entry is the MRCA
+
 // [[Rcpp::export]]
 std::vector<std::vector<int>> findMostRecentCommonAncestor(const std::vector<int>& treeParentVectorFormat, int leaf1, int leaf2) {
   std::vector<int> lineage1{leaf1};
@@ -370,7 +381,7 @@ std::vector<std::vector<int>> findMostRecentCommonAncestor(const std::vector<int
   while (true) {
     lineage1.push_back(treeParentVectorFormat[lineage1.back()]);
     // std::cout << lineage1[lineage1.back()] << std::endl;
-    if (lineage1.back() == treeParentVectorFormat.size() + 1) break;
+    if (lineage1.back() == treeParentVectorFormat.size()) break;
   }
   
   std::vector<int> lineage2{leaf2};
