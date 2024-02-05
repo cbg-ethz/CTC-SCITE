@@ -215,18 +215,17 @@ int main(int argc, char* argv[]) {
 	    {
 	        temp.push_back(token);
 	    }
-
-	    if(temp.size()!=4){
+	    if(temp.size()-1 !=4){
 	    	cout << "wrong number of tabs in line: " << temp.size() << endl;
 	    	getchar();
 	   	}
 
-	    double currSeqErrRate = stod(temp.at(0));
-	    double currDropOutRate = stod(temp.at(1));
-	    double currLogTau = stod(temp.at(2));
+	    double currSeqErrRate = stod(temp.at(1));
+	    double currDropOutRate = stod(temp.at(2));
+	    double currLogTau = stod(temp.at(3));
 
 	    std::string buf;                        // Have a buffer string
-	    std::stringstream ss(temp.at(3));       // Insert the string into a stream
+	    std::stringstream ss(temp.at(4));       // Insert the string into a stream
 	    std::vector<std::string> elems;        // Create vector to hold node elems
 
 
