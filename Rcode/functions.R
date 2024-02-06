@@ -9,9 +9,9 @@ library(Rcpp)
 library(purrr)
 library(ggplot2)
 
-sourceCpp('mutations_placement.cpp')
-
-
+sourceCpp("mutations_placement.cpp")
+source('UnitTests.R')
+#Legacy
 #Input: a tree in parent vector format, meaning that the i'th entry of the vector
 # is te parent node of the entry i. Nodes are counted from zero and the root is 
 # length(Tree)
@@ -51,6 +51,9 @@ find_most_recent_common_ancestor <- function(treeParentVectorFormat, leaf1, leaf
   return(list(lineage1,lineage2, MRCA))
 }
 
+
+
+# Legacy:
 # Take a tree and a pair of mutations and do the following:
 compute_pairwise_distance_of_leaves <- function(treeData, leaf1, leaf2, nCells,
                                                 nMutations, nClusters,
@@ -96,27 +99,47 @@ compute_pairwise_distance_of_leaves <- function(treeData, leaf1, leaf2, nCells,
   return(sum(bestMutationPlacement %in% pathBetweenLeaves[pathBetweenLeaves != firstLeafToMRCA[positionOfMRCA]]))
 }
 
-###The function computes the distribution of evolutionary distances of two
-##specified leaves as sampled from the posterior distribution of trees.
-## @Input: leaf1: integer-valued index of first leaf
-## @Input: postSampling: loaded tibble containing the posterior Sampling
-## @Input: treeName: 
-## @Output: ....
 
-
-
+#' computes the distribution of evolutionary distances of two
+#' specified leaves as sampled from the posterior distribution of trees.
+#'
+#' @param leaf1 integer-valued index of first leaf
+#' @param leaf2 integer-valued index of second leaf
+#' @param postSampling loaded list of tibbles tibble containing the posterior Sampling
+#' @param treeName character string: Name of the tree for the output plot
+#' @param nCells integer-valued total number of cells in the dataset
+#' @param nMutations integer-valued total number of mutations in the dataset
+#' @param nClusters integer-valued total number of clusters in the dataset
+#' @param alleleCount integer vector of numbers of alleles per clusters
+#' @param ClusterID integer vector of cluster IDs
+#' @param mutatedReadCounts list of integer-valued vectors indicating the number
+#' of mutated read per mutation (list index) and sample (vector index)
+#' @param totalReadCounts list of integer-valued vectors indicating the total
+#' number of reads per mutation (list index) and sample (vector index)
+#' @param wbcStatus boolean vector of length nCells indicating for each cell if
+#' it is a white blood cell (TRUE) or not (FALSE)
+#'
+#' @return a double which is the median evolutionary distance of two leaves as
+#' sampled from the posterior distribution.
+#' @export
+#'
+#' @examples
 produce_Distance_Posterior <- function(leaf1, leaf2,postSampling, treeName,nCells,
                                        nMutations, nClusters,
                                        alleleCount,ClusterID,
-                                       mutatedReadCounts, totalReadCounts,wbcStatus){
+                                       mutatedReadCounts, totalReadCounts,wbcStatus, nSamplingEvents = 20){
   
   ## For each row in the posterior Sampling file, the distance of two leaves is computed
-
   
-  dist_histogram <- sapply(split(postSampling, seq(nrow(postSampling))),
-                           FUN = compute_pairwise_distance_of_leaves, leaf1,leaf2,
+  
+  
+  dist_histogram <- parallel::mclapply(postSampling,
+                           FUN = computePairwiseDistanceOfLeavesGivenTree, leaf1,leaf2,
                            nCells, nMutations,nClusters, alleleCount,
-                           ClusterID, mutatedReadCounts, totalReadCounts, wbcStatus)
+                           ClusterID, mutatedReadCounts, totalReadCounts, wbcStatus,
+                           nSamplingEvents) %>%
+    unlist()
+  
   median_dist <- median(dist_histogram)
   
   
@@ -125,7 +148,7 @@ produce_Distance_Posterior <- function(leaf1, leaf2,postSampling, treeName,nCell
       geom_histogram(binwidth = 1, fill = "skyblue", color = "black", alpha = 0.7)+ 
       xlab(sprintf("genetic distance between leaf %d and leaf %d", leaf1, leaf2)) + ylab("total count") +
       ggtitle(paste("Histogram of genetic distances of clusters cells in", treeName)) +
-      geom_vline(xintercept = median_dist,color = "red", linetype = "dashed", size = 1) +
+      geom_vline(xintercept = median_dist,color = "red", linetype = "dashed", linewidth = 1) +
       labs(subtitle = "As sampled from the posterior distribution",caption = "median indicated by dashed red line") +
       theme_minimal() +
       theme(
@@ -143,7 +166,7 @@ produce_Distance_Posterior <- function(leaf1, leaf2,postSampling, treeName,nCell
 
 # Loads all necessary data for the CTC-project.
 # Specifically it return a named list as follows:
-# postSampling: Loads the posterior sampling tsv as a tibble with the 
+# postSampling: Loads the posterior sampling tsv as a list of named vectors with the 
 #               following columns:
 #               the (unnormalised) LogScore, estimated sequencing error rate,
 #               the estimated dropout rate, logTau and the Tree in parent vector 
@@ -179,6 +202,8 @@ load_data <- function(inputFolder, treeName){
   
   postSampling <- read_delim(posteriorSamplingFile,
                              delim = "\t", col_names = c("LogScore", "SequencingErrorRate","DropoutRate", "LogTau", "Tree"))
+  postSampling <- split(postSampling, seq(nrow(postSampling)))
+  
   
   counts <- read_delim(countFile,
                        delim = "\t", col_names = FALSE)
@@ -246,4 +271,45 @@ load_data <- function(inputFolder, treeName){
               "totalReadCounts" = totalReadCounts, "wbcStatus" = wbcStatus))
 }
 
+####################
+##Helper Functions##
+####################
 
+#' Forking-based parallelisation.
+#' This function is a parallel version of lapply.
+#' It is the same as sapply, only that lapply is replaced by its parallel version
+#' mclapply.
+#'
+#' @param X a vector (atomic or list) or an expression object. Other objects
+#' (including classed objects) will be coerced by base::as.list.
+#' @param FUN the function to be applied to each element of X: see ‘Details’.
+#' In the case of functions like +, %*%, the function name must be backquoted or quoted.
+#' @param ... optional arguments to FUN.
+#' @param simplify logical or character string; should the result be simplified
+#' to a vector, matrix or higher dimensional array if possible? For sapply it
+#' must be named and not abbreviated. The default value, TRUE, returns a vector
+#' or matrix if appropriate, whereas if simplify = "array" the result may be an
+#' array of “rank” (==length(dim(.))) one higher than the result of FUN(X[[i]]).
+#' @param USE.NAMES logical; if TRUE and if X is character, use X as names for
+#' the result unless it had names already. Since this argument follows ... its
+#' name cannot be abbreviated. 
+#'
+#' @returnFor sapply(simplify = TRUE) and replicate(simplify = TRUE): if X has
+#' length zero or n = 0, an empty list. Otherwise an atomic vector or matrix or
+#' list of the same length as X (of length n for replicate). If simplification
+#' occurs, the output type is determined from the highest type of the return
+#' values in the hierarchy
+#' NULL < raw < logical < integer < double < complex < character < list < expression,
+#' after coercion of pairlists to lists.
+#' @export
+#'
+#' @examples
+mcsapply <- function (X, FUN, ..., simplify = TRUE, USE.NAMES = TRUE) {
+  FUN <- match.fun(FUN)
+  answer <- parallel::mclapply(X = X, FUN = FUN, ...)
+  if (USE.NAMES && is.character(X) && is.null(names(answer))) 
+    names(answer) <- X
+  if (!isFALSE(simplify) && length(answer)) 
+    simplify2array(answer, higher = (simplify == "array"))
+  else answer
+}

@@ -1,16 +1,10 @@
-#install.packages("readr")
-#install.packages("Rcpp")
-#install.packages("dplyr")
-#install.packages("purrr")
-#install.packages("ggplot2")
-
 source("functions.R")
 
 ############
 #Config
 ############
 inputFolder <- "../../input_folder"
-treeName <- "Br61"
+treeName <- "Br7"
 
 
 
@@ -31,39 +25,72 @@ ClustserID <- input$ClusterID
 mutatedReadCounts <- input$mutatedReadCounts
 totalReadCounts <- input$totalReadCounts
 wbcStatus <- input$wbcStatus
+
+
+
+############
+#Unit testing
+############
+
+
+
+test_compute_pairwise_distance_of_leaves1()
+test_compute_pairwise_distance_of_leaves2()
+test_compute_pairwise_distance_of_leaves3()
+test_find_MRCA1()
+test_find_MRCA2()
+test_find_MRCA3()
+test_computePairwiseDistanceOfLeavesGivenTree()
+test_transposeMatrix()
 ############
 #Main Analysis
 ############
 
+desired_values <- sample(1:length(postSampling), size = 4000, replace = FALSE) %>% sort()
 
-## Go through all clusters an compare all pairs of cells within each cluster with
+postSampling <- postSampling[desired_values]
+
+## Go through all clusters and compare all pairs of cells within each cluster with
 ## each other. Note that the cells from the clusters are adjacent to each other by
 ## design, so incrementing the index j by 1 makes sense
 distance <- vector()
 clusterIdentityofdistance <- vector()
-for (c in 1:nClusters){
+system.time(for (c in 1:nClusters){
   cellsInCluster <- which(ClusterID == (c-1))-1 ## Make sure array indication is 
                                                 ## compatible with cpp
-  
+  cluster_done <- 0
   for(i in cellsInCluster){
+    if(cluster_done == 1){
+      cluster_done <- 0
+      break
+    }
+    if(wbcStatus[i+1] == 1) next
     j <- cellsInCluster[1]
     while(j < i){
+      if(cluster_done == 1){
+        break
+      }
+      if(wbcStatus[j+1] == 1){
+        j <- j + 1
+        next
+      }
       print(paste(paste("Computing genomic distances of leaves:", i, sep = " "), j, sep = " "))
       distance <- c(distance, produce_Distance_Posterior(i,j,postSampling, treeName, nCells,
                                                          nMutations, nClusters,
                                                          alleleCount,ClusterID,
-                                                         mutatedReadCounts, totalReadCounts,wbcStatus))
+                                                         mutatedReadCounts, totalReadCounts,wbcStatus, nSamplingEvents = 1000))
       clusterIdentityofdistance <- c(clusterIdentityofdistance, c-1)
       j <- j + 1
+      cluster_done <- 1
     }
   }
   
-}
+})
 #########
 
 
 intraClusterSplitMedianPlot <- ggplot(data.frame(Median_Distance = distance), aes(x = Median_Distance)) +
-  geom_histogram(binwidth = 10, fill = "skyblue", color = "black", alpha = 0.7)+ 
+  geom_histogram(binwidth = 0.5, fill = "skyblue", color = "black", alpha = 0.7)+ 
   xlab("Median distance between of leaves within the same cluster") + ylab("total count") +
   ggtitle(treeName) +
   labs(subtitle = "Histogram of similarities of cells within cluster",caption = "dashed red line indicates cutoff for oligoclonality") +
@@ -107,6 +134,8 @@ for (c in 1:nClusters){
   }
 }
 which(ClusterID == 25)
+
+produce_Distance_Posterior(35,36, postSampling, "LM2")
 
 produce_Distance_Posterior(35,36, postSampling, "LM2")
 

@@ -17,11 +17,18 @@ load_cluster_df <- function(filename){
   df <- read_delim(filename, delim = "\t",col_names = FALSE)
   colnames(df)[1] <- "barcodes"
   colnames(df)[3] <- "counts"
-  df <- df %>% arrange(desc(counts))
-  df <- df %>%
+  df <- df %>% arrange(desc(counts)) %>%
     mutate(prop_col = counts/sum(counts), cumprop_col = cumsum(prop_col))
   return(df)
 }
+
+
+
+files <- list.files(path = "../../validation_experiment/Cluster_csv_files/", pattern = "\\.csv$")
+
+files <- map_chr(files, reverse_paste, "../../validation_experiment/Cluster_csv_files/")
+
+myfiles <- map(files, load_cluster_df)
 
 
 #' Load cluster files.
@@ -48,30 +55,9 @@ load_cluster_files <- function(){
   
   files <- map_chr(files, reverse_paste, "../../validation_experiment/Cluster_csv_files/")
   
-  myfiles <- map(files, load_cluster_df)
+  df_list <- map(files, load_cluster_df)
+  save(df_list, file = "../../validation")
   
-  
-  
-  for (file in files) {
-    basename <- gsub("\\.csv", "", file)
-    tryCatch({
-      df <- read_delim(paste0("../../validation_experiment/Cluster_csv_files/",file), delim = "\t",col_names = F)
-      colnames(df)[1] <- "barcodes"
-      colnames(df)[3] <- "counts"
-      df_sorted <- df %>% arrange(desc(counts))
-    
-      #df_sorted <- df[order(-df[, 3]), ] #Sort data frame for decreasing read counts
-      df_sorted <- df_sorted %>%
-        mutate(prop_col = counts/sum(counts), cumprop_col = cumsum(prop_col))
-      # Calculate the read proportion for each barcode and
-      # the cumulative proportion
-    
-      df_list[[basename]] <- df_sorted
-    }, error = function(e) {
-      cat("Error reading ", file, "- skipping\n")
-    })
-  }
-
 
 # create empty data frame to store summary information
 summary_df <- data.frame(basename = character(),
@@ -163,7 +149,7 @@ for (file in files) {
 summary_df$value[summary_df$basename %like% "^1000"] <- 1000
 summary_df$value[is.na(summary_df$value)] <- 10000
 
-summary_df$cluster_size <-            ifelse(grepl("_0_", summary_df$basename), "0",
+summary_df$cluster_size <-    ifelse(grepl("_0_", summary_df$basename), "0",
                                              ifelse(grepl("_1_", summary_df$basename), "1",
                                                     ifelse(grepl("_2_", summary_df$basename), "2",
                                                            ifelse(grepl("_3_", summary_df$basename), "3",
@@ -216,3 +202,4 @@ prop_comp <- summary_df_filter %>%
 
 y <- prop_comp$num_more_than_one
 z <- prop_comp$num_more_than_one + prop_comp$num_total
+

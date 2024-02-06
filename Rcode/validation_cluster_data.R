@@ -26,8 +26,12 @@ load_cluster_df <- function(filename){
 
 files <- list.files(path = "../../validation_experiment/Cluster_csv_files/", pattern = "\\.csv$")
 
-files <- map_chr(files, reverse_paste, "../../validation_experiment/Cluster_csv_files/")
+#files <- map_chr(files, reverse_paste, "../../validation_experiment/Cluster_csv_files/")
 
 myfiles <- map(files, load_cluster_df)
 
-save(myfiles, file = "../../validation_experiment/validation_cluster_data.R")
+
+names(myfiles)<- files
+save(myfiles, file = "../../validation_experiment/validation_cluster_data.Rdata")
+load("../../validation_experiment/validation_cluster_data.Rdata")
+names(myfiles)

@@ -1,0 +1,98 @@
+---
+title: "cluster_split_analysis_Br16"
+author: "Johannes Gawron"
+date: "2024-01-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Analysis of cluster splits for Br16
+
+This is an analysis of cluster splits based on posterior sampling of trees. The goal is for to determine for each CTC-cluster, whether it is monoclonal or oligoclonal. CTC-clusters can be used to infer phylogenetic trees, and the question can be answered based on the placement of the individual from a cluster on the tree. However, there is uncertainty in the tree inference and mutation placement. To account for this, we sample from the posterior distribution of trees and marginalise the trees out.
+
+### Configuration - To be adapted
+```{r config}
+inputFolder <- "../../input_folder"
+treeName <- "LM2"
+```
+
+Initialise variables, load the data and preprocess it:
+```{r init}
+source("ComputeSplittingStatistics.R")
+posteriorSamplingFile <-  sprintf("%s/%s/%s_postSampling.tsv", inputFolder, treeName,treeName)
+
+countFile <- sprintf("%s/%s/%s.txt", inputFolder, treeName,treeName)
+descriptionFile <- sprintf("%s/%s/%s_samples_nodeDescription.tsv", inputFolder, treeName, treeName)
+
+
+postSampling <- read_delim(posteriorSamplingFile,
+                           delim = "\t", col_names = c("LogScore", "SequencingErrorRate","DropoutRate", "LogTau", "Tree"))
+
+counts <- read_delim(countFile,
+                     delim = "\t", col_names = FALSE)
+description <- read_delim(descriptionFile,
+                          delim = "\t", col_names = c("Cluster", "CellCount", "TCs", "WBCs", "Description"))
+nCells <- sum(description$CellCount)
+nClusters <- nrow(description)  
+nMutations <- nrow(counts)
+alleleCount <- description$CellCount*2
+##The Cluster-ID maps cells identities to the cell-clusters they belong to.
+##The i-th entry having value x means that 
+## Cells i is in cluster description$Cluster[j]
+ClusterID <- vector()
+for(i in 1:nClusters) ClusterID <- c(ClusterID, rep.int(i-1,description$CellCount[i]))
+## Note that Cpp counts arrays from zero, so the cluster IDs are counted likewise
+## in order to be compatible with Cpp code.
+
+##Pull apart the count file into counts for mutated read and total counts respectively
+mutatedReadCounts <- matrix(0,nrow = nMutations, ncol = 0)
+for (j in 1:nClusters){
+  mutatedReadCounts <- cbind(mutatedReadCounts,counts[,4+2*j])
+}
+
+wildtypeReadCounts <- matrix(0,nrow = nMutations, ncol = 0)
+for (j in 1:nClusters){
+  wildtypeReadCounts <- cbind(wildtypeReadCounts,counts[,4+2*j-1])
+}
+
+
+totalReadCounts <- mutatedReadCounts + wildtypeReadCounts
+
+
+mutatedReadCounts <- mutatedReadCounts %>% t() %>% as.data.frame() %>% as.list()
+wildtypeReadCounts <- wildtypeReadCounts %>% t() %>% as.data.frame() %>% as.list()
+totalReadCounts <- totalReadCounts %>% t() %>% as.data.frame() %>% as.list()
+
+
+
+##wbc status indicates which of the cells is a white blood cells and which one isn't.
+##So far, the cells are arbitrary, and I will assign the fist cells from a cluster to be WBCs.
+wbcStatus <- rep(0, nCells)
+
+for(i in 1:nClusters){
+  j <- 1
+  while(j <= description$WBCs[i]){ #Iterating over the number of White blood cells of a cluster
+    wbcStatus[which(ClusterID == i-1)[1] + j-1] <- 1 # and identifying the first cell
+    # that belongs to a cluster and counting from then on
+    ## Note: The cluster IDs are counted from zero!  
+    j<- j+1
+  }
+}
+
+```
+
+## Main analyis
+ Go through all clusters and compare all pairs of cells within each cluster with
+each other. Note that the cells from the clusters are adjacent to each other by
+design, so incrementing the index j by 1 makes sense
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
