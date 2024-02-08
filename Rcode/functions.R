@@ -53,6 +53,8 @@ find_most_recent_common_ancestor <- function(treeParentVectorFormat, leaf1, leaf
 
 
 
+
+
 # Legacy:
 # Take a tree and a pair of mutations and do the following:
 compute_pairwise_distance_of_leaves <- function(treeData, leaf1, leaf2, nCells,
@@ -127,7 +129,7 @@ compute_pairwise_distance_of_leaves <- function(treeData, leaf1, leaf2, nCells,
 produce_Distance_Posterior <- function(leaf1, leaf2,postSampling, treeName,nCells,
                                        nMutations, nClusters,
                                        alleleCount,ClusterID,
-                                       mutatedReadCounts, totalReadCounts,wbcStatus, nSamplingEvents = 20){
+                                       mutatedReadCounts, totalReadCounts,wbcStatus, nSamplingEvents = 20, clusterName = ""){
   
   ## For each row in the posterior Sampling file, the distance of two leaves is computed
   
@@ -147,15 +149,15 @@ produce_Distance_Posterior <- function(leaf1, leaf2,postSampling, treeName,nCell
     ggplot(data.frame(HammingDistance = dist_histogram), aes(x = HammingDistance)) +
       geom_histogram(binwidth = 1, fill = "skyblue", color = "black", alpha = 0.7)+ 
       xlab(sprintf("genetic distance between leaf %d and leaf %d", leaf1, leaf2)) + ylab("total count") +
-      ggtitle(paste("Histogram of genetic distances of clusters cells in", treeName)) +
+      ggtitle("Posterior sampling of genetic distances") +
       geom_vline(xintercept = median_dist,color = "red", linetype = "dashed", linewidth = 1) +
-      labs(subtitle = "As sampled from the posterior distribution",caption = "median indicated by dashed red line") +
+      labs(subtitle = sprintf("Tree %s - %s", treeName, clusterName),caption = "median indicated by dashed red line") +
       theme_minimal() +
       theme(
-        plot.title = element_text(size = 24, face = "bold"),
-        axis.title.x = element_text(size = 20),
-        axis.title.y = element_text(size = 20),
-        plot.subtitle = element_text(size= 20),
+        plot.title = element_text(size = 20, face = "bold"),
+        axis.title.x = element_text(size = 18),
+        axis.title.y = element_text(size = 18),
+        plot.subtitle = element_text(size= 18),
         axis.text = element_text(size = 16) 
       )
   )
@@ -163,6 +165,86 @@ produce_Distance_Posterior <- function(leaf1, leaf2,postSampling, treeName,nCell
   
   return(median(dist_histogram))
 }
+
+
+
+
+#' This function identifies cells that belong to the same CTC cluster - also 
+#' those which have been physically split. For each pair of tumour cells from the 
+#' same CTC cluster, the distnace postior is computed.
+#'
+#' @param sampleDescription A data frame with the description of each sample.
+#' Expects the following columns:
+#' Cluster: numeric vector indicating the cluster identity. Physically separated
+#' clusters usually have different cluster identities, but this is not necessary.
+#' @param postSampling The loaded posterior sampling table.
+#' @param treeName A string with the name of the tree that is output to the plots.
+#' @param nCells The total number of cells in the experiment.
+#' @param nMutations The total number of mutations in the experiment.
+#' @param nClusters The total number of clusters in the experiment.
+#' @param alleleCount A numeric vector which indicates the number of alleles in
+#' each of the clusters.
+#' @param mutatedReadCounts A tibble containing the mutated reads. Rows are mutations
+#' and columns are samples (clusters).
+#' @param totalReadCounts A tibble containing the total read counts.
+#' @param nMutationSamplingEvents The number of mutation that should be sampled
+#' per tree.
+#' @param nTreeSamplingEvents The number of trees that should be sampled. 
+#'
+#' @return 
+#' @export
+#'
+#' @examples
+computeClusterSplits <- function(sampleDescription, postSampling, treeName, nCells,
+                                 nMutations, nClusters,
+                                 alleleCount,
+                                 mutatedReadCounts, totalReadCounts,
+                                 nMutationSamplingEvents = 1000, nTreeSamplingEvents = 500){
+  
+  desired_values <- sample(1:length(postSampling), size = nTreeSamplingEvents, replace = FALSE) %>% sort()
+  postSampling <- postSampling[desired_values]
+  
+  
+  CTCclusters <- unique(sampleDescription$color)
+  CTCclusters <- CTCclusters[!(CTCclusters %in% c("ghostwhite","gray93"))]
+  system.time(
+    for(it in CTCclusters){
+      cellsInCluster <- which(sampleDescription$color %in% it)-1 ## Make sure array indication is 
+      ## compatible with cpp
+      #cluster_done <- 0
+      for(i in cellsInCluster){
+        # if(cluster_done == 1){
+        #  cluster_done <- 0
+        #  break
+        #}
+        if(sampleDescription$WBC[i+1] == 1) next
+        j <- cellsInCluster[1]
+        while(j < i){
+          #if(cluster_done == 1){
+          #  break
+          #}
+          if(sampleDescription$WBC[j+1] == 1){
+            j <- j + 1
+            next
+          }
+          print(paste(paste("Computing genomic distances of leaves:", i, sep = " "), j, sep = " "))
+          distance <- c(distance, produce_Distance_Posterior(i,j,postSampling, treeName, nCells,
+                                                             nMutations, nClusters,
+                                                             alleleCount,sampleDescription$Cluster,
+                                                             mutatedReadCounts, totalReadCounts,sampleDescription$WBC, nSamplingEvents = nMutationSamplingEvents, clusterName = it))
+          clusterIdentityofdistance <- c(clusterIdentityofdistance, c-1)
+          j <- j + 1
+          #cluster_done <- 1
+        }
+      }
+      
+    }
+  )  
+}
+
+
+
+
 
 # Loads all necessary data for the CTC-project.
 # Specifically it return a named list as follows:
@@ -215,8 +297,10 @@ load_data <- function(inputFolder, treeName){
   alleleCount <- description$CellCount*2
   
   
-
+  description <- description %>%
+    mutate(color = regmatches(Description, regexpr("color=([a-zA-Z]+[0-9]*)", Description)) %>% substr(start = 7, stop = (nchar(.))))
   
+                         
   
   ClusterID <- vector()
   for(i in 1:nClusters) ClusterID <- c(ClusterID, rep.int(i-1,description$CellCount[i]))
@@ -260,16 +344,25 @@ load_data <- function(inputFolder, treeName){
   
   
 
-  
+  sample_description <- data.frame(Cluster  = ClusterID, ClusterName = description$Cluster[ClusterID + 1], WBC = wbcStatus, color = description$color[ClusterID + 1])
   
   
   return(list("postSampling" = postSampling, "nClusters" = nClusters,
               "clusterID" = ClusterID, "nCells" = nCells,
               "nMutations" = nMutations, "nClusters" = nClusters,
-              "alleleCount" = alleleCount, "ClusterID" = ClusterID,
+              "alleleCount" = alleleCount,
               "mutatedReadCounts" = mutatedReadCounts,
-              "totalReadCounts" = totalReadCounts, "wbcStatus" = wbcStatus))
+              "totalReadCounts" = totalReadCounts, "wbcStatus" = wbcStatus, "sample_description" = sample_description))
 }
+
+
+
+
+
+
+
+
+
 
 ####################
 ##Helper Functions##
@@ -304,12 +397,12 @@ load_data <- function(inputFolder, treeName){
 #' @export
 #'
 #' @examples
-mcsapply <- function (X, FUN, ..., simplify = TRUE, USE.NAMES = TRUE) {
-  FUN <- match.fun(FUN)
-  answer <- parallel::mclapply(X = X, FUN = FUN, ...)
-  if (USE.NAMES && is.character(X) && is.null(names(answer))) 
-    names(answer) <- X
-  if (!isFALSE(simplify) && length(answer)) 
-    simplify2array(answer, higher = (simplify == "array"))
-  else answer
-}
+#mcsapply <- function (X, FUN, ..., simplify = TRUE, USE.NAMES = TRUE) {
+#  FUN <- match.fun(FUN)
+#  answer <- parallel::mclapply(X = X, FUN = FUN, ...)
+#  if (USE.NAMES && is.character(X) && is.null(names(answer))) 
+#    names(answer) <- X
+#  if (!isFALSE(simplify) && length(answer)) 
+#    simplify2array(answer, higher = (simplify == "array"))
+#  else answer
+#}

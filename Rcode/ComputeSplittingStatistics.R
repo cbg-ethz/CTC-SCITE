@@ -21,10 +21,12 @@ nCells <- input$nCells
 nMutations <- input$nMutations
 nClusters <- input$nClusters
 alleleCount <- input$alleleCount
-ClustserID <- input$ClusterID
 mutatedReadCounts <- input$mutatedReadCounts
 totalReadCounts <- input$totalReadCounts
-wbcStatus <- input$wbcStatus
+sampleDescription <- input$sample_description
+
+
+
 
 
 
@@ -42,13 +44,26 @@ test_find_MRCA2()
 test_find_MRCA3()
 test_computePairwiseDistanceOfLeavesGivenTree()
 test_transposeMatrix()
+
+
 ############
 #Main Analysis
 ############
 
-desired_values <- sample(1:length(postSampling), size = 4000, replace = FALSE) %>% sort()
 
-postSampling <- postSampling[desired_values]
+
+
+
+
+
+computeClusterSplits(sampleDescription, postSampling, treeName, nCells,
+                     nMutations, nClusters,
+                     alleleCount,
+                     mutatedReadCounts, totalReadCounts,
+                     nMutationSamplingEvents = 1000, nTreeSamplingEvents = 500)
+
+
+
 
 ## Go through all clusters and compare all pairs of cells within each cluster with
 ## each other. Note that the cells from the clusters are adjacent to each other by
@@ -56,7 +71,59 @@ postSampling <- postSampling[desired_values]
 distance <- vector()
 clusterIdentityofdistance <- vector()
 system.time(for (c in 1:nClusters){
-  cellsInCluster <- which(ClusterID == (c-1))-1 ## Make sure array indication is 
+  cellsInCluster <- which(sampleDescription$Cluster == (c-1))-1 ## Make sure array indication is 
+  ## compatible with cpp
+  cluster_done <- 0
+  for(i in cellsInCluster){
+    if(cluster_done == 1){
+      cluster_done <- 0
+      break
+    }
+    if(sampleDescription$WBC[i+1] == 1) next
+    j <- cellsInCluster[1]
+    while(j < i){
+      if(cluster_done == 1){
+        break
+      }
+      if(sampleDescription$WBC[j+1] == 1){
+        j <- j + 1
+        next
+      }
+      print(paste(paste("Computing genomic distances of leaves:", i, sep = " "), j, sep = " "))
+      distance <- c(distance, produce_Distance_Posterior(i,j,postSampling, treeName, nCells,
+                                                         nMutations, nClusters,
+                                                         alleleCount,sampleDescription$Cluster,
+                                                         mutatedReadCounts, totalReadCounts,sampleDescription$WBC, nSamplingEvents = 1000))
+      clusterIdentityofdistance <- c(clusterIdentityofdistance, c-1)
+      j <- j + 1
+      cluster_done <- 1
+    }
+  }
+  
+})
+#########
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Go through all clusters and compare all pairs of cells within each cluster with
+## each other. Note that the cells from the clusters are adjacent to each other by
+## design, so incrementing the index j by 1 makes sense
+distance <- vector()
+clusterIdentityofdistance <- vector()
+system.time(for (c in 1:nClusters){
+  cellsInCluster <- which(sampleDescription$Cluster == (c-1))-1 ## Make sure array indication is 
                                                 ## compatible with cpp
   cluster_done <- 0
   for(i in cellsInCluster){
@@ -64,21 +131,21 @@ system.time(for (c in 1:nClusters){
       cluster_done <- 0
       break
     }
-    if(wbcStatus[i+1] == 1) next
+    if(sampleDescription$WBC[i+1] == 1) next
     j <- cellsInCluster[1]
     while(j < i){
       if(cluster_done == 1){
         break
       }
-      if(wbcStatus[j+1] == 1){
+      if(sampleDescription$WBC[j+1] == 1){
         j <- j + 1
         next
       }
       print(paste(paste("Computing genomic distances of leaves:", i, sep = " "), j, sep = " "))
       distance <- c(distance, produce_Distance_Posterior(i,j,postSampling, treeName, nCells,
                                                          nMutations, nClusters,
-                                                         alleleCount,ClusterID,
-                                                         mutatedReadCounts, totalReadCounts,wbcStatus, nSamplingEvents = 1000))
+                                                         alleleCount,sampleDescription$Cluster,
+                                                         mutatedReadCounts, totalReadCounts,sampleDescription$WBC, nSamplingEvents = 1000))
       clusterIdentityofdistance <- c(clusterIdentityofdistance, c-1)
       j <- j + 1
       cluster_done <- 1
