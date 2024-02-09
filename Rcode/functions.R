@@ -3,11 +3,10 @@
 #Function Definitions
 ############
 
-library(readr)
-library(dplyr)
 library(Rcpp)
-library(purrr)
-library(ggplot2)
+library(tidyverse)
+
+
 
 sourceCpp("mutations_placement.cpp")
 source('UnitTests.R')
@@ -190,8 +189,11 @@ produce_Distance_Posterior <- function(leaf1, leaf2,postSampling, treeName,nCell
 #' @param nMutationSamplingEvents The number of mutation that should be sampled
 #' per tree.
 #' @param nTreeSamplingEvents The number of trees that should be sampled. 
+#' @param cellPairSelection An optional parameter that takes a list of
+#' pairs of strings-valued names of cells that should be analysed (the names as in the 
+#' samples_nodeDescription.tsv file).
 #'
-#' @return 
+#' @return A vector of medians.
 #' @export
 #'
 #' @examples
@@ -199,48 +201,74 @@ computeClusterSplits <- function(sampleDescription, postSampling, treeName, nCel
                                  nMutations, nClusters,
                                  alleleCount,
                                  mutatedReadCounts, totalReadCounts,
-                                 nMutationSamplingEvents = 1000, nTreeSamplingEvents = 500){
+                                 nMutationSamplingEvents = 1000, nTreeSamplingEvents = 500,
+                                 cellPairSelection = NA){
   
   desired_values <- sample(1:length(postSampling), size = nTreeSamplingEvents, replace = FALSE) %>% sort()
   postSampling <- postSampling[desired_values]
-  
-  
-  CTCclusters <- unique(sampleDescription$color)
-  CTCclusters <- CTCclusters[!(CTCclusters %in% c("ghostwhite","gray93"))]
-  system.time(
-    for(it in CTCclusters){
-      cellsInCluster <- which(sampleDescription$color %in% it)-1 ## Make sure array indication is 
-      ## compatible with cpp
-      #cluster_done <- 0
-      for(i in cellsInCluster){
-        # if(cluster_done == 1){
-        #  cluster_done <- 0
-        #  break
-        #}
-        if(sampleDescription$WBC[i+1] == 1) next
-        j <- cellsInCluster[1]
-        while(j < i){
-          #if(cluster_done == 1){
-          #  break
-          #}
-          if(sampleDescription$WBC[j+1] == 1){
-            j <- j + 1
-            next
-          }
-          print(paste(paste("Computing genomic distances of leaves:", i, sep = " "), j, sep = " "))
-          distance <- c(distance, produce_Distance_Posterior(i,j,postSampling, treeName, nCells,
-                                                             nMutations, nClusters,
-                                                             alleleCount,sampleDescription$Cluster,
-                                                             mutatedReadCounts, totalReadCounts,sampleDescription$WBC, nSamplingEvents = nMutationSamplingEvents, clusterName = it))
-          clusterIdentityofdistance <- c(clusterIdentityofdistance, c-1)
-          j <- j + 1
-          #cluster_done <- 1
-        }
-      }
+  distance <- vector()
+  if(class(cellPairSelection) == "list"){
+    system.time(
+    for (it in cellPairSelection){
+      leaf1 <- which(sampleDescription$ClusterName == it[1])
+      leaf2 <- which(sampleDescription$ClusterName == it[2])
+      
+      print(paste(paste("Computing genomic distances of leaves:", leaf1, sep = " "), leaf2, sep = " "))
+      distance <- c(distance, produce_Distance_Posterior(leaf1,leaf2,postSampling, treeName, nCells,
+                                                         nMutations, nClusters,
+                                                         alleleCount,sampleDescription$Cluster,
+                                                         mutatedReadCounts, totalReadCounts,sampleDescription$WBC, nSamplingEvents = nMutationSamplingEvents))
       
     }
-  )  
+    )
+  }
+  
+  
+  
+  else{
+    CTCclusters <- unique(sampleDescription$color)
+    CTCclusters <- CTCclusters[!(CTCclusters %in% c("ghostwhite","gray93"))]
+    system.time(
+      for(it in CTCclusters){
+        cellsInCluster <- which(sampleDescription$color %in% it)-1 ## Make sure array indication is 
+        ## compatible with cpp
+        #cluster_done <- 0
+        for(i in cellsInCluster){
+          # if(cluster_done == 1){
+          #  cluster_done <- 0
+          #  break
+          #}
+          if(sampleDescription$WBC[i+1] == 1) next
+          j <- cellsInCluster[1]
+          while(j < i){
+            #if(cluster_done == 1){
+            #  break
+            #}
+            if(sampleDescription$WBC[j+1] == 1){
+              j <- j + 1
+              next
+            }
+            print(paste(paste("Computing genomic distances of leaves:", i, sep = " "), j, sep = " "))
+            distance <- c(distance, produce_Distance_Posterior(i,j,postSampling, treeName, nCells,
+                                                               nMutations, nClusters,
+                                                               alleleCount,sampleDescription$Cluster,
+                                                               mutatedReadCounts, totalReadCounts,sampleDescription$WBC, nSamplingEvents = nMutationSamplingEvents, clusterName = it))
+            j <- j + 1
+            #cluster_done <- 1
+          }
+        }
+        
+      }
+    )
+  }
+
+  
+  
+  return(distance)
 }
+
+
+
 
 
 
@@ -357,6 +385,105 @@ load_data <- function(inputFolder, treeName){
 
 
 
+
+
+
+
+#' Takes called genotypes in .ped format, computes a pairwise distance matrix
+#' and indentifies pairs of distinct cells (or cell clusters, needs a manual check)
+#' that are genetically similar to each other. Similar means that their genetic distance
+#' lies in the 1% quantile of the set of all pairwise genetic distances.
+#' As the distance the Hamming distance is chosen.
+#'
+#' @param inputFolder 
+#' @param treeName 
+#'
+#' @return
+#' monoclonal_pairs: A list of pairs of cell names that are similar to each other.
+#' distance_matrix: A matrix indicates all pairwise distnaces of suggested genotypes.
+#' full_distance_matrix: The full pairwise distance matrix of all genotypes.
+#' 
+#' 
+#' @export
+#'
+#' @examples
+load_monoclonal_pairs <- function(inputFolder, treeName){
+  data_file <- sprintf("%s/%s/%s_genotypes.ped", inputFolder, treeName,treeName)
+  
+  data <- read_delim(data_file, delim = '\t',col_names = FALSE)
+
+  data2 <- data %>% select(!2:6)
+  
+  distance_matrix <- matrix(0, nrow = nrow(data2), ncol = nrow(data2))
+  
+  
+  for(i in 1:nrow(data2)){
+    j <- 1
+    while(j < i){
+      row_i <- data2 %>% select(!1) %>% slice(i)
+      row_j <- data2 %>% select(!1) %>% slice(j)
+      
+      distance_matrix[i,j] <- sum(!(row_i == row_j))
+      j <- j+1
+    }
+  }
+  
+  
+  distance_vector <- as.vector(distance_matrix[lower.tri(distance_matrix)])
+  
+  monoclonal_candidate_cutoff <- quantile(distance_vector, probs = 0.01)
+  
+  sum(distance_vector <= monoclonal_candidate_cutoff)
+  which(distance_vector <= monoclonal_candidate_cutoff)
+  
+  print("1% quantile of genetic distances:")
+  print(monoclonal_candidate_cutoff)
+  
+  plot(
+    ggplot(data.frame(x = distance_vector),aes(x = x))+
+    geom_histogram(binwidth = 2) +
+    geom_vline(xintercept = monoclonal_candidate_cutoff, linetype = "dashed", color = "red")
+  )
+  
+  
+  candidates <- list()
+  candidate_index <- vector()
+  iterator <- 0
+  number_of_output_pairs <- 15
+  for (count in 0:monoclonal_candidate_cutoff){
+    all_elements <- which(distance_matrix == count)
+    all_elements_list <- list()
+    for (it in all_elements){
+      coordinates1 <- ((it-1) %% dim(distance_matrix)[2]) + 1
+      coordinates2 <- ((it-1) %/% dim(distance_matrix)[2]) + 1
+      all_elements_list <- append(all_elements_list, list(c(coordinates1, coordinates2)))
+    }
+    
+    for (it in all_elements_list){
+      if(it[1] <= it[2]) next
+      
+      
+      #Check whether the candidate pair of cells consists of single tumour cells:
+      
+      
+      
+      candidates <- c(candidates,list(c(as.character(data2[it[1],1]),as.character(data2[it[2],1]))))
+      candidate_index <- c(candidate_index, it[1], it[2])
+      iterator <- iterator + 1
+      
+      if(iterator == number_of_output_pairs) break
+    }
+    if(iterator == number_of_output_pairs) break
+  }
+  
+  distance_matrix2 <- distance_matrix[unique(sort(candidate_index)),unique(sort(candidate_index))]
+  colnames(distance_matrix2) <- data2[unique(sort(candidate_index)),1]$X1
+  
+  distance_matrix <- as.data.frame(distance_matrix)
+  colnames(distance_matrix) <- data2$X1
+  rownames(distance_matrix) <- data2$X1
+  return(list(monoclonal_pairs = candidates, distance_matrix = distance_matrix2, full_distance_matrix = distance_matrix))
+}
 
 
 
