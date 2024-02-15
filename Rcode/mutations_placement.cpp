@@ -46,9 +46,9 @@ std::vector< double > normalizeDistribution(std::vector< double >& probabilityWe
   std::vector< double > normalizedProbabilityWeights;
   
   for (int i = 0; i < lengthOfVector; i++) {
-    normalizedProbabilityWeights.push_back(probabilityWeights[i]/sum);
+    normalizedProbabilityWeights.push_back(exp(log(probabilityWeights[i])-log(sum)));
   }
-  return probabilityWeights;
+  return normalizedProbabilityWeights;
 }
 
 
@@ -103,8 +103,6 @@ std::vector< std::vector<int> > transposeMatrix(std::vector< std::vector<int> > 
   }
   return transposedMatrix;
 }
-
-
 
 
 
@@ -428,9 +426,9 @@ std::vector<int> getMutationPlacement(int m, int n, int sampleCount,
  *Since the mutation placements are assumed to be independent, the placement of
  *each mutation is optimised individually.
  *
- * @param m The total number of samples
+ * @param m The total number of cells
  * @param n The total number of mutations
- * @param sampleCount the total number of samples 
+ * @param sampleCount the total number of samples, i.e. CTC clusters 
  * @param ancMatrix tree in ancestor-matrix format
  * @param alleleCount the number of alleles in each of the samples
  * @param leafClusterID indicates, which cluster each of the leaves belongs to.
@@ -588,9 +586,9 @@ std::vector< std::vector<double> > computeMutationDistribution(int m, int n, int
  *Since the mutation placements are assumed to be independent, the placement of
  *each mutation is optimised individually.
  *
- * @param m The total number of samples
- * @param n The total number of mutations
- * @param sampleCount the total number of samples 
+ * @param nCells The total number of cells
+ * @param nMutations The total number of mutations
+ * @param sampleCount the total number of samples (i.e. clusters)
  * @param ancMatrix tree in ancestor-matrix format
  * @param alleleCount the number of alleles in each of the samples
  * @param leafClusterID indicates, which cluster each of the leaves belongs to.
@@ -609,26 +607,10 @@ std::vector< std::vector<double> > computeMutationDistribution(int m, int n, int
  * 
  */
 // [[Rcpp::export]]
-std::vector< std::vector<int> > sampleMutationsPlacement(int nSamplingEvents,int nClusters, int nMutations, int sampleCount,
-                                                         std::vector<std::vector<bool> > ancMatrix,
-                                                         std::vector<int> alleleCount,
-                                                         std::vector<int> leafClusterId,
-                                                         std::vector<std::vector<int> > mutReadCounts,
-                                                         std::vector<std::vector<int> > totalReadCounts,
-                                                         double dropoutRate, 
-                                                         double seqErr,
-                                                         double tau,
-                                                         std::vector<bool> wbcStatus){
-  std::vector< std::vector<double> > logMutationPlacementProbabilities = computeMutationDistribution(nClusters, nMutations, sampleCount,
-                                                                                                   ancMatrix,
-                                                                                                   alleleCount,
-                                                                                                   leafClusterId,
-                                                                                                   mutReadCounts,
-                                                                                                   totalReadCounts,
-                                                                                                   dropoutRate, 
-                                                                                                   seqErr,
-                                                                                                   tau,
-                                                                                                   wbcStatus);
+std::vector< std::vector<int> > sampleMutationsPlacement(int nSamplingEvents, int nMutations,
+                                                         std::vector< std::vector<double> > logMutationPlacementProbabilities){
+  
+
   
   std::vector< std::vector<int> > mutationPlacements;
 
@@ -724,7 +706,7 @@ std::vector<std::vector<bool>> parentVector2ancMatrix(std::vector<int> parent, i
  *  - The first is the lineage of leaf 1 encoded as
  *    a sequence of nodes starting with leaf 1 and ending with the root
  *  - The second is the lineage of leaf2 starting with leaf2 and ending at the 
- *    daugher of the most recent common ancestor (MRCA)
+ *    daughter of the most recent common ancestor (MRCA)
  *  - The third one is the MRCA
  *  - The fourth one is the shortest path between leaf1 and leaf 2. If leaf1==leaf2
  *    this will output leaf1.
@@ -903,6 +885,9 @@ int computePairwiseDistanceOfLeaves(Rcpp::DataFrame treeData, int leaf1, int lea
 
 
 
+
+
+
 /** For a given tree, pair of leaves and mutation placement on the tree,
  * the evolutionary distance of the leaves is computed by counting the number of
  *  mutations that are on the shortest path from one leaf to the other.
@@ -913,13 +898,14 @@ int computePairwiseDistanceOfLeaves(Rcpp::DataFrame treeData, int leaf1, int lea
  * @param leaf2 like leaf1
  * @param mutationPlacement a vector of tree node indices indicating the placement 
  * of the i'th mutation in its i'th entry
+ * @param pairwiseGenealogy: The output of findMostRecentCommonAncestor
  * 
  * @output the total number of mutations separating the genotypes of the two leaves.
  * 
  */
 // [[Rcpp::export]]
-int computePairwiseDistanceOfLeaves2(std::vector<int> treeParentVectorFormat, int leaf1, int leaf2,
-                                     std::vector<int> mutationPlacement) {
+std::vector< int > computePairwiseDistanceOfLeaves2(std::vector<int> treeParentVectorFormat, int leaf1, int leaf2,
+                                     std::vector<int> mutationPlacement, std::vector< std::vector<int> > pairwiseGenealogy) {
   
   //std::string tree = treeData["Tree"];
   
@@ -940,8 +926,7 @@ int computePairwiseDistanceOfLeaves2(std::vector<int> treeParentVectorFormat, in
   //                                                              dropoutRate, seqErrRate, 1, wbcStatus);
   
   
-  // Finding most recent common ancestor
-  std::vector< std::vector<int> > pairwiseGenealogy = findMostRecentCommonAncestor(treeParentVectorFormat, leaf1, leaf2);
+
   
   std::vector<int> firstLeafToMRCA = pairwiseGenealogy[0];
   std::vector<int> secondLeafToMRCA = pairwiseGenealogy[1];
@@ -950,16 +935,101 @@ int computePairwiseDistanceOfLeaves2(std::vector<int> treeParentVectorFormat, in
   std::vector<int> pathBetweenLeaves =pairwiseGenealogy[3];
   
   
-  int result = 0;
+  int distance = 0;
+  int mutationsOnFirstBranch = 0;
+  int mutationsOnSecondBranch = 0;
+  int split = 0;
   for (int i = 0; i < mutationPlacement.size(); ++i) {
     if ((std::find(pathBetweenLeaves.begin(), pathBetweenLeaves.end(), mutationPlacement[i]) != pathBetweenLeaves.end()) && (mutationPlacement[i] != MRCA)) {
         //pathBetweenLeaves.end() && mutationPlacement[i] != firstLeafToMRCA[positionOfMRCA]) {
-      result++;
+      distance++;
+      if((std::find(firstLeafToMRCA.begin(), firstLeafToMRCA.end(), mutationPlacement[i]) != firstLeafToMRCA.end())){
+        mutationsOnFirstBranch++;
+      }
+      else{
+        mutationsOnSecondBranch++;
+      }
     }
   }
+  if(mutationsOnFirstBranch != 0 & mutationsOnSecondBranch != 0){
+    split = 1;
+  }
   
-  return result;
+  std::vector<int> output;
+  
+  output.push_back(distance);
+  output.push_back(split);
+  return output;
 }
+
+
+
+
+
+
+/** This takes a tree and the mutation placement probabilites of all mutations.
+ * It computes for a pair of leaves (given by their pairwise genealogy) and their two
+ * branches connecting them
+ * the maximal probability of any mutation to land on either of the branches.
+ * It output the minimum of the two branaches. Intuitiely, if there is no branching
+ * evolution, then at least one of the branches should be populated with mutations
+ * with very low probability.
+ *
+ *
+ * @param pairwiseGenealogy as output by findMostRecentCommonAncestor
+ * 
+ * @param logMutationPlacementProbabilities As output by computeMutationDistribution
+ * @param nMutations The total number of mutations
+ * @param nCells The total number of cells.
+ * 
+ * @output The minimum (over the two branches) of the maximum (over all mutations)
+ * of the probability of a mutation to land on one of the branches
+ * 
+ */
+// [[Rcpp::export]]
+double ComputePerMutationProbabilityOfPolyclonality(std::vector< std::vector<int> > pairwiseGenealogy,
+                                                 std::vector< std::vector<double> > logMutationPlacementProbabilities,
+                                                 int nMutations, int nCells){
+  
+  std::vector<int> lineage1 = pairwiseGenealogy[0];
+  auto it = std::find(lineage1.begin(), lineage1.end(), pairwiseGenealogy[2][0]);
+  lineage1.erase(it, lineage1.end());
+  std::vector<int> lineage2 = pairwiseGenealogy[1];
+  
+
+  
+  double maxProbabilityOfMutationInLineage1 = 0;
+  double maxProbabilityOfMutationInLineage2 = 0;
+  
+  std::vector<double> mutationPlacementProbabilities;
+  for(int mut = 0; mut < nMutations; mut++){
+    double ProbabilityOfMutationInLineage1 = 0;
+    double ProbabilityOfMutationInLineage2 = 0;
+    std::vector<double> mutationPlacementProbabilityWeights;
+    
+    for(int it = 0; it < logMutationPlacementProbabilities[mut].size(); it++){
+      mutationPlacementProbabilityWeights.push_back(exp(logMutationPlacementProbabilities[mut][it]));
+    }
+    mutationPlacementProbabilities = normalizeDistribution(mutationPlacementProbabilityWeights);
+    for(int i = 0; i < 2*nCells-1; i++){
+      if(std::find(lineage1.begin(), lineage1.end(), i) != lineage1.end()){
+        ProbabilityOfMutationInLineage1 += mutationPlacementProbabilities[i];
+      }
+      if(std::find(lineage2.begin(), lineage2.end(), i) != lineage2.end()){
+
+        ProbabilityOfMutationInLineage2 += mutationPlacementProbabilities[i];
+      }
+    }
+    maxProbabilityOfMutationInLineage1 = std::max(maxProbabilityOfMutationInLineage1, ProbabilityOfMutationInLineage1);
+    maxProbabilityOfMutationInLineage2 = std::max(maxProbabilityOfMutationInLineage2, ProbabilityOfMutationInLineage2);
+
+  }
+
+  //return mutationPlacementProbabilities;
+  return std::min(maxProbabilityOfMutationInLineage1, maxProbabilityOfMutationInLineage2);
+}
+
+
 
 
 
@@ -990,7 +1060,7 @@ int computePairwiseDistanceOfLeaves2(std::vector<int> treeParentVectorFormat, in
  * 
  */
 // [[Rcpp::export]]
-std::vector<int> computePairwiseDistanceOfLeavesGivenTree(Rcpp::DataFrame treeData, int leaf1, int leaf2, int nCells,
+std::vector<std::vector<double> > computePairwiseDistanceOfLeavesGivenTree(Rcpp::DataFrame treeData, int leaf1, int leaf2, int nCells,
                                                            int nMutations, int nClusters,
                                                            std::vector<int> alleleCount, std::vector<int> ClusterID,
                                                            std::vector<std::vector<int> > mutatedReadCounts, std::vector<std::vector<int> > totalReadCounts,
@@ -1014,33 +1084,56 @@ std::vector<int> computePairwiseDistanceOfLeavesGivenTree(Rcpp::DataFrame treeDa
   std::vector<std::vector<bool> > ancestorMatrix = parentVector2ancMatrix(treeParentVectorFormat, treeParentVectorFormat.size());
   
   
-
+  
+  
+  std::vector< std::vector<double> > logMutationPlacementProbabilities = computeMutationDistribution(nCells, nMutations, nClusters,
+                                                                                                     ancestorMatrix,
+                                                                                                     alleleCount,
+                                                                                                     ClusterID,
+                                                                                                     mutatedReadCounts,
+                                                                                                     totalReadCounts,
+                                                                                                     dropoutRate, 
+                                                                                                     seqErrRate,
+                                                                                                     1,
+                                                                                                     wbcStatus);
   
   
   std::vector< std::vector<int> >mutationPlacements = sampleMutationsPlacement(nSamplingEvents,
-                                                                               nClusters, nMutations,
-                                                                               nClusters,ancestorMatrix,
-                                                                               alleleCount, ClusterID,
-                                                                               mutatedReadCounts, totalReadCounts,
-                                                                               dropoutRate, seqErrRate, 1,
-                                                                               wbcStatus);
+                                                                               nMutations,
+                                                                               logMutationPlacementProbabilities);
   
   
 
-  mutationPlacements.push_back(getMutationPlacement(nCells, nMutations, nClusters,
-                                                    ancestorMatrix, alleleCount, ClusterID,
-                                                    mutatedReadCounts, totalReadCounts,
-                                                    dropoutRate, seqErrRate, 1, wbcStatus));
+  //mutationPlacements.push_back(getMutationPlacement(nCells, nMutations, nClusters,
+  //                                                  ancestorMatrix, alleleCount, ClusterID,
+  //                                                  mutatedReadCounts, totalReadCounts,
+  //                                                  dropoutRate, seqErrRate, 1, wbcStatus));
   
+  
+  // Finding most recent common ancestor
+  std::vector< std::vector<int> > pairwiseGenealogy = findMostRecentCommonAncestor(treeParentVectorFormat, leaf1, leaf2);
   
   std::vector<int> distanceVector;
+  std::vector<int> splittingStats;
   for(int it = 0; it < mutationPlacements.size(); it++){
-    distanceVector.push_back(computePairwiseDistanceOfLeaves2(treeParentVectorFormat, leaf1, leaf2,
-                                         mutationPlacements[it]));
+    std::vector<int> output = computePairwiseDistanceOfLeaves2(treeParentVectorFormat, leaf1, leaf2,
+                                     mutationPlacements[it], pairwiseGenealogy);
+    
+    distanceVector.push_back(output[0]);
+    splittingStats.push_back(output[1]);
   }
   
-  return distanceVector;
+  std::vector<double> PerMutationProbabilityOfPolyclonality = {ComputePerMutationProbabilityOfPolyclonality(pairwiseGenealogy,
+                                               logMutationPlacementProbabilities,
+                                               nMutations, nCells)};
+  
+  std::vector<double> distanceVectorDouble(distanceVector.begin(), distanceVector.end());
+  std::vector<double> splittingStatsDouble(splittingStats.begin(), splittingStats.end());
+  
+  std::vector< std::vector<double> > result;
+  result.push_back(distanceVectorDouble);
+  result.push_back(splittingStatsDouble);
+  result.push_back(PerMutationProbabilityOfPolyclonality);
+  
+  return result;
 }
-
-
-

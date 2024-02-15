@@ -67,7 +67,7 @@ curve_data <- data.frame(x = x_values, y = y_values)
 
 data.frame(x = mutatedReadCounts %>% sapply(function(x){sum(x!=0)/length(x)})) %>%
   ggplot(aes(x = x)) + geom_histogram(binwidth = 0.01) +
-  geom_line(data = curve_data, aes(x = x, y = y), color = "red", size = 1) 
+  geom_line(data = curve_data, aes(x = x, y = y), color = "red", linewidth = 1) 
   
 ```
 
@@ -104,7 +104,6 @@ The Hamming distance is chosen.
 candidate_pairs <- load_monoclonal_pairs(inputFolder, treeName)
 print(candidate_pairs$monoclonal_pairs)
 print(candidate_pairs$distance_matrix)
-print(candidate_pairs$full_distance_matrix)
 ```
 
 
@@ -132,8 +131,8 @@ This computes baseline distance histograms for single cells in the tree.
 
 ```{r baseline distance distributions}
 
-nTreeSamplingEvents <- 1000
-nMutationSamplingEvents <- 1000
+nTreeSamplingEvents <- 100
+nMutationSamplingEvents <- 100
 
 
 distance <- computeClusterSplits(sampleDescription, postSampling, treeName, nCells,

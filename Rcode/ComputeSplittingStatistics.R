@@ -4,7 +4,7 @@ source("functions.R")
 #Config
 ############
 inputFolder <- "../../input_folder"
-treeName <- "Br7"
+treeName <- "LM2"
 
 
 
@@ -24,7 +24,8 @@ alleleCount <- input$alleleCount
 mutatedReadCounts <- input$mutatedReadCounts
 totalReadCounts <- input$totalReadCounts
 sampleDescription <- input$sample_description
-
+mutationDescription <- input$mutationDescription
+annotations <- input$annotations
 
 
 
@@ -44,6 +45,11 @@ test_find_MRCA2()
 test_find_MRCA3()
 test_computePairwiseDistanceOfLeavesGivenTree()
 test_transposeMatrix()
+test_mutation_distribution()
+test_sampleMutationPlacements()
+test_ComputePerMutationProbabilityOfPolyclonality()
+
+
 
 
 ############
@@ -53,17 +59,35 @@ test_transposeMatrix()
 
 
 
+mutationFilter <- apply(mutationDescription, 1, FUN = IsDriver, annotations)
 
 
 
-computeClusterSplits(sampleDescription, postSampling, treeName, nCells,
+readCounts <- read_delim('../../input_folder//LM2/LM2.txt', delim = '\t', col_names = FALSE)
+
+
+
+
+candidate_pairs <- load_monoclonal_pairs(inputFolder, treeName)
+print(candidate_pairs$monoclonal_pairs)
+print(candidate_pairs$distance_matrix)
+print(candidate_pairs$full_distance_matrix)
+
+
+
+
+
+
+
+
+splittingProbs <- computeClusterSplits(sampleDescription, postSampling, treeName, nCells,
                      nMutations, nClusters,
                      alleleCount,
                      mutatedReadCounts, totalReadCounts,
-                     nMutationSamplingEvents = 1000, nTreeSamplingEvents = 500)
+                     nMutationSamplingEvents = 20, nTreeSamplingEvents = 20)
 
 
-
+splittingProbs %>% group_by(Cluster) %>% summarize(meanSplittingProbability = mean(Splitting_probability))
 
 ## Go through all clusters and compare all pairs of cells within each cluster with
 ## each other. Note that the cells from the clusters are adjacent to each other by

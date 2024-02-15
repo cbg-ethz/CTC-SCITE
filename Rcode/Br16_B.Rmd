@@ -104,7 +104,6 @@ The Hamming distance is chosen.
 candidate_pairs <- load_monoclonal_pairs(inputFolder, treeName)
 print(candidate_pairs$monoclonal_pairs)
 print(candidate_pairs$distance_matrix)
-print(candidate_pairs$full_distance_matrix)
 ```
 
 
@@ -143,8 +142,8 @@ This computes baseline distance histograms for single cells in the tree.
 
 ```{r baseline distance distributions}
 
-nTreeSamplingEvents <- 1000
-nMutationSamplingEvents <- 1000
+nTreeSamplingEvents <- 100
+nMutationSamplingEvents <- 100
 
 
 distance <- computeClusterSplits(sampleDescription, postSampling, treeName, nCells,

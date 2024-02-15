@@ -10,16 +10,19 @@ test_compute_pairwise_distance_of_leaves1 <- function(){
   treeParentVectorFormat <- c(6,8,1,1,3,3,8,6)
   bestMutationPlacement <- c(5,8,6,0)
   
-  outcome <- 0
+  outcome <- c(0,0)
+  
+  
+  pairwiseGenealogy <- findMostRecentCommonAncestor(treeParentVectorFormat, 5, 5)
   
   
   dist <- computePairwiseDistanceOfLeaves2(treeParentVectorFormat, 5, 5,
-                                           bestMutationPlacement)
+                                           bestMutationPlacement, pairwiseGenealogy)
   
-  PASS <- FALSE
+  PASS <- TRUE
   
-  if (dist == outcome){
-    PASS = TRUE
+  if (sum(dist!= outcome)){
+    PASS = FALSE
   }
   return(PASS)
 }
@@ -29,16 +32,17 @@ test_compute_pairwise_distance_of_leaves2 <- function(){
   treeParentVectorFormat <- c(6,8,1,1,3,3,8,6)
   bestMutationPlacement <- c(5,8,6,0)
   
-  outcome <- 0
+  outcome <- c(0,0)
   
+  pairwiseGenealogy <- findMostRecentCommonAncestor(treeParentVectorFormat, 2, 4)
   
   dist <- computePairwiseDistanceOfLeaves2(treeParentVectorFormat, 2, 4,
-                                           bestMutationPlacement)
+                                           bestMutationPlacement,pairwiseGenealogy)
   
-  PASS <- FALSE
+  PASS <- TRUE
   
-  if (dist == outcome){
-    PASS = TRUE
+  if (sum(dist != outcome)){
+    PASS = FALSE
   }
   return(PASS)
 }
@@ -49,18 +53,22 @@ test_compute_pairwise_distance_of_leaves3 <- function(){
   
   treeParentVectorFormat <- c(6,8,1,1,3,3,8,6)
   bestMutationPlacement <- c(5,8,6,0)
-  outcome <- 3
+  outcome <- c(3,1)
+  
+  pairwiseGenealogy <- findMostRecentCommonAncestor(treeParentVectorFormat, 0, 5)
   
   dist <- computePairwiseDistanceOfLeaves2(treeParentVectorFormat, 0, 5,
-                                           bestMutationPlacement) 
+                                           bestMutationPlacement, pairwiseGenealogy) 
   
-  PASS <- FALSE
+  PASS <- TRUE
   
-  if (dist == outcome){
-    PASS = TRUE
+  if (sum(dist != outcome)){
+    PASS = FALSE
   }
   return(PASS)
 }
+
+
 
 
 
@@ -178,7 +186,7 @@ test_computePairwiseDistanceOfLeavesGivenTree <- function(){
                                            nCells, nMutations,nClusters, alleleCount,
                                            ClusterID, mutatedReadCounts, totalReadCounts, wbcStatus,
                                            nSamplingEvents = 10)
-  outcome <- c(4, 7, 3, 0, 0, 0, 0, 0, 2, 0, 5)
+  outcome <- c(4, 7, 3, 0, 0, 0, 0, 0, 2, 0)
   
   PASS <- TRUE
   
@@ -208,7 +216,6 @@ test_transposeMatrix <- function(){
 
 
 test_mutation_distribution <- function(){
- source("functions.R")
   
   nCells <- 24
   nMutations <- 10
@@ -247,27 +254,26 @@ test_mutation_distribution <- function(){
   ancestorMatrix <- parentVector2ancMatrix(tree, length(tree))
   
   
-  computeMutationDistribution(nClusters, nMutations, nCells, ancestorMatrix,
+  mutationDistributions <- computeMutationDistribution(nCells, nMutations, nClusters, ancestorMatrix,
                               alleleCount, ClusterID, mutatedReadCounts,
                               totalReadCounts,dropoutRate, seqErrRate, 1,
                               wbcStatus)
   
-  
-  
-  
-  
-  res <- computePairwiseDistanceOfLeavesGivenTree(postSampling$'1', 7,1,
-                                                  nCells, nMutations,nClusters, alleleCount,
-                                                  ClusterID, mutatedReadCounts, totalReadCounts, wbcStatus,
-                                                  nSamplingEvents = 10)
-  outcome <- c(4, 7, 3, 0, 0, 0, 0, 0, 2, 0, 5)
-  
   PASS <- TRUE
+  if(length(mutationDistributions) != nMutations) PASS <- FALSE
   
-  if(sum(res != outcome)>0) PASS <- FALSE
   
-  return(PASS)
+  numberOfNodesInTree <- 2*nCells-1
+  
+  for (i in 1:length(mutationDistributions)){
+    if(length(mutationDistributions[[i]]) != numberOfNodesInTree) PASS <- FALSE
+  }
+  
+
+  return(list("logMutationDistributions" = mutationDistributions, "PASS" = PASS))
 }
+
+
 
 
 
@@ -286,5 +292,69 @@ test_transposeMatrix <- function(){
   return(PASS)
 }
 
+
+test_sampleMutationPlacements <- function(){
+  
+  nSamplings <- 100000
+  nMutations <- 10
+  nCells <- 24
+  logProbs <- test_mutation_distribution()$logMutationDistributions
+  
+  mutationSampling <- transposeMatrix(sampleMutationsPlacement(nSamplings,
+                                                               nMutations, logProbs),
+                                      nSamplings, nMutations) 
+  
+  
+  PASS <- TRUE
+  for(mutation in 1:length(mutationSampling)){
+    sampledPlacement <- vector()
+    for(i in 0:(2*nCells-2)){
+      sampledPlacement <- c(sampledPlacement,sum(mutationSampling[[mutation]] == i))
+    }
+    sampledPlacement <- sampledPlacement/sum(sampledPlacement)
+    Probs <- logProbs[[mutation]] %>% exp()
+    Probs <- Probs/sum(Probs)
+    if(((Probs-sampledPlacement)^2 %>% sum()) > 10e-4) PASS <- FALSE
+  }
+  return(PASS)
+}
+
+
+test_ComputePerMutationProbabilityOfPolyclonality <- function(){
+  
+  treeParentVectorFormat <- c(6,8,1,1,3,3,8,6)
+  
+  
+  pairwiseGenealogy <- list(c(0,6,8), c(2,1), c(8), c(0,6,8,1,2))
+  nCells <- 5
+  nMutations <- 2
+  
+  
+  PASS <- TRUE
+  
+  logMutationPlacementProbs <- list(log(c(0.5,0.5,0,0,0,0,0,0,0)), log(c(0,0.5,0,0.5,0,0,0,0,0)))
+  outcome <- 0.5
+  res <- ComputePerMutationProbabilityOfPolyclonality(pairwiseGenealogy,
+                                               logMutationPlacementProbs,
+                                               nMutations, nCells)
+  if(res != outcome) PASS <- FALSE
+  
+  
+  logMutationPlacementProbs <- list(log(c(0,0.6,0.4,0,0,0,0,0,0)), log(c(0,0.4,0,0.6,0,0,0,0,0)))
+  outcome <- 0
+  res <- ComputePerMutationProbabilityOfPolyclonality(pairwiseGenealogy,
+                                                      logMutationPlacementProbs,
+                                                      nMutations, nCells)
+  if(res != outcome) PASS <- FALSE
+  
+  logMutationPlacementProbs <- list(log(c(0.4,0.6,00,0,0,0,0,0,0)), log(c(0,0.4,0,0.6,0,0,0,0,0)))
+  outcome <- 0.4
+  res <- ComputePerMutationProbabilityOfPolyclonality(pairwiseGenealogy,
+                                                      logMutationPlacementProbs,
+                                                      nMutations, nCells)
+  if(res != outcome) PASS <- FALSE
+  
+  return(PASS)
+}
 
 

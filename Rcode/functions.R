@@ -10,6 +10,46 @@ library(tidyverse)
 
 sourceCpp("mutations_placement.cpp")
 source('UnitTests.R')
+
+
+
+
+#' Takes a list of mutations and outputs which one of these is a driver.
+#' 
+#'
+#' @param mutations a names vector containing chromosomes in the format "chrN" in the first
+#' column and an integer chromosomal position on the second column 
+#' @param annotations an annotation data frame. Must contain the columns
+#'  - 'CGI-Oncogenic Summary': entry can be 'driver (oncodriveMUT)' or somerthing else
+#'  - 'CGI-Oncogenic Prediction': entry can be 'oncogenic (predicted)' or something ele
+#'  - 'CGI-External oncogenic annotation'
+#'
+#' @return a boolean vector with as many entries as there are rows in mutations
+#' @export
+#'
+#' @examples
+IsDriver <- function(mutations, annotations){
+  annotated_mutations <- annotations %>%
+    filter(annotations$'#CHROM' == as.character(mutations[1]) & annotations$POS == as.numeric(mutations[2]))
+  
+  check <- annotated_mutations %>%
+    select(c('CGI-Oncogenic Summary','CGI-Oncogenic Prediction', 'CGI-External oncogenic annotation')) %in%
+    c('oncogenic (predicted)', 'driver (oncodriveMUT)') %>%
+    sum()
+  
+  driver <- FALSE
+  if(check > 0){
+    driver <- TRUE
+  }
+  return(driver)
+}
+
+
+
+
+
+
+
 #Legacy
 #Input: a tree in parent vector format, meaning that the i'th entry of the vector
 # is te parent node of the entry i. Nodes are counted from zero and the root is 
@@ -19,7 +59,6 @@ source('UnitTests.R')
 #  - the second entry is a vector of nodes tracing back leaf2 to the descendant
 #    of the MRCA in the lineage
 #  - the thirs entry is the MRCA
-
 find_most_recent_common_ancestor <- function(treeParentVectorFormat, leaf1, leaf2){
   ##Trace back the lineage of the tree for one leaf.
   ##Then trace back the lineage of the tree for the other leaf and for every node
@@ -134,14 +173,33 @@ produce_Distance_Posterior <- function(leaf1, leaf2,postSampling, treeName,nCell
   
   
   
-  dist_histogram <- parallel::mclapply(postSampling,
+  distance_statistics <- parallel::mclapply(postSampling,
                            FUN = computePairwiseDistanceOfLeavesGivenTree, leaf1,leaf2,
                            nCells, nMutations,nClusters, alleleCount,
                            ClusterID, mutatedReadCounts, totalReadCounts, wbcStatus,
-                           nSamplingEvents) %>%
-    unlist()
+                           nSamplingEvents)
+  
+  
+  dist_histogram <- lapply(distance_statistics, FUN = function(input_list_elements){
+    return(input_list_elements[1])
+  }) %>% unlist()
+  
+  totalNumberOfSplits <- lapply(distance_statistics, FUN = function(input_list_elements){
+    return(input_list_elements[2])
+  }) %>% unlist %>% sum()
+  
+  StatisticsOfMutationPlacement <- lapply(distance_statistics, FUN = function(input_list_elements){
+    return(input_list_elements[3])
+  }) %>% unlist
+  
+  
+  totalNumberOfSamplingEvents <- nSamplingEvents * length(postSampling)
+  
+  
   
   median_dist <- median(dist_histogram)
+  
+  
   
   
   plot(
@@ -162,7 +220,32 @@ produce_Distance_Posterior <- function(leaf1, leaf2,postSampling, treeName,nCell
   )
   
   
-  return(median(dist_histogram))
+
+  
+  plot(
+    ggplot(data.frame(StatisticsOfMutationPlacement = StatisticsOfMutationPlacement), aes(x = StatisticsOfMutationPlacement)) +
+      geom_histogram(bins = 100, fill = "skyblue", color = "black", alpha = 0.7)+ 
+      xlab("Maximal probability of branching evolution") + ylab("total count") +
+      ggtitle("Posterior sampling of branching probabilites") +
+<<<<<<< Updated upstream
+      geom_vline(xintercept = mean(StatisticsOfMutationPlacement),color = "red", linetype = "dashed", linewidth = 1) +
+      labs(subtitle = sprintf("Tree %s - %s", treeName, clusterName),caption = "median indicated by dashed red line") +
+=======
+      geom_vline(xintercept = mean(StatisticsOfMutationPlacement),color = "blue", linetype = "dashed", linewidth = 1) +
+      labs(subtitle = sprintf("Tree %s - %s", treeName, clusterName),caption = "mean indicated by dashed red line") +
+>>>>>>> Stashed changes
+      theme_minimal() +
+      theme(
+        plot.title = element_text(size = 20, face = "bold"),
+        axis.title.x = element_text(size = 18),
+        axis.title.y = element_text(size = 18),
+        plot.subtitle = element_text(size= 18),
+        axis.text = element_text(size = 16) 
+      )
+  )
+  
+  
+  return(totalNumberOfSplits/totalNumberOfSamplingEvents)
 }
 
 
@@ -206,19 +289,23 @@ computeClusterSplits <- function(sampleDescription, postSampling, treeName, nCel
   
   desired_values <- sample(1:length(postSampling), size = nTreeSamplingEvents, replace = FALSE) %>% sort()
   postSampling <- postSampling[desired_values]
-  distance <- vector()
+  splittingProbs <- matrix(0, nrow = 0, ncol = 2) %>% as.data.frame()
+  colnames(splittingProbs) <- c("Cluster", "Splitting_probability")
+  
   if(class(cellPairSelection) == "list"){
+    counter <- 1
     system.time(
     for (it in cellPairSelection){
       leaf1 <- which(sampleDescription$ClusterName == it[1])
       leaf2 <- which(sampleDescription$ClusterName == it[2])
       
       print(paste(paste("Computing genomic distances of leaves:", leaf1, sep = " "), leaf2, sep = " "))
-      distance <- c(distance, produce_Distance_Posterior(leaf1,leaf2,postSampling, treeName, nCells,
+      splittingProbs <- rbind(splittingProbs, data.frame(Cluster = as.character(counter), Splitting_probability = produce_Distance_Posterior(leaf1,leaf2,postSampling, treeName, nCells,
                                                          nMutations, nClusters,
                                                          alleleCount,sampleDescription$Cluster,
-                                                         mutatedReadCounts, totalReadCounts,sampleDescription$WBC, nSamplingEvents = nMutationSamplingEvents))
+                                                         mutatedReadCounts, totalReadCounts,sampleDescription$WBC, nSamplingEvents = nMutationSamplingEvents)))
       
+    counter <- counter + 1
     }
     )
   }
@@ -249,10 +336,10 @@ computeClusterSplits <- function(sampleDescription, postSampling, treeName, nCel
               next
             }
             print(paste(paste("Computing genomic distances of leaves:", i, sep = " "), j, sep = " "))
-            distance <- c(distance, produce_Distance_Posterior(i,j,postSampling, treeName, nCells,
+            splittingProbs <- rbind(splittingProbs, data.frame(Cluster = it,Splitting_probability = produce_Distance_Posterior(i,j,postSampling, treeName, nCells,
                                                                nMutations, nClusters,
                                                                alleleCount,sampleDescription$Cluster,
-                                                               mutatedReadCounts, totalReadCounts,sampleDescription$WBC, nSamplingEvents = nMutationSamplingEvents, clusterName = it))
+                                                               mutatedReadCounts, totalReadCounts,sampleDescription$WBC, nSamplingEvents = nMutationSamplingEvents, clusterName = it)))
             j <- j + 1
             #cluster_done <- 1
           }
@@ -262,9 +349,14 @@ computeClusterSplits <- function(sampleDescription, postSampling, treeName, nCel
     )
   }
 
+  plot(
+  splittingProbs %>% group_by(Cluster) %>% summarize(meanSplittingProbability = mean(Splitting_probability)) %>%
+  ggplot(aes(x = Cluster, y = meanSplittingProbability)) +
+    geom_col() +
+    theme_minimal()
+  )
   
-  
-  return(distance)
+  return(splittingProbs)
 }
 
 
@@ -355,6 +447,7 @@ load_data <- function(inputFolder, treeName){
   totalReadCounts <- totalReadCounts %>% t() %>% as.data.frame() %>% as.list()
   
   
+  mutationDescription <- counts[,1:4]
   
   ##wbc status indicates which of the cells is a white blood cells and which one isn't.
   ##So far, the cells are arbitrary, and I will assign the fist cells from a cluster to be WBCs.
@@ -370,17 +463,18 @@ load_data <- function(inputFolder, treeName){
     }
   }
   
-  
+
 
   sample_description <- data.frame(Cluster  = ClusterID, ClusterName = description$Cluster[ClusterID + 1], WBC = wbcStatus, color = description$color[ClusterID + 1])
   
+  annotations <- read_delim('../../input_folder/filtered/CGI/LM2_cgi/alterations.tsv', delim = '\t')  
   
   return(list("postSampling" = postSampling, "nClusters" = nClusters,
               "clusterID" = ClusterID, "nCells" = nCells,
               "nMutations" = nMutations, "nClusters" = nClusters,
               "alleleCount" = alleleCount,
               "mutatedReadCounts" = mutatedReadCounts,
-              "totalReadCounts" = totalReadCounts, "wbcStatus" = wbcStatus, "sample_description" = sample_description))
+              "totalReadCounts" = totalReadCounts, "wbcStatus" = wbcStatus, "sample_description" = sample_description, "mutationDescription" = mutationDescription, "annotations" = annotations))
 }
 
 

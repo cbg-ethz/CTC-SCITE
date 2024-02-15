@@ -26,7 +26,6 @@ treeName <- "Br7"
 ```{r load}
 source("functions.R")
 
-
 input <- load_data(inputFolder, treeName)
 
 postSampling <- input$postSampling
@@ -39,7 +38,10 @@ alleleCount <- input$alleleCount
 mutatedReadCounts <- input$mutatedReadCounts
 totalReadCounts <- input$totalReadCounts
 sampleDescription <- input$sample_description
+mutationDescription <- input$mutationDescription
+annotations <- input$annotations
 ```
+
 
 
 ## Sample description 
@@ -68,7 +70,6 @@ To get a grasp of the null distribution of cluster splits, we will have a look a
 candidate_pairs <- load_monoclonal_pairs(inputFolder, treeName)
 print(candidate_pairs$monoclonal_pairs)
 print(candidate_pairs$distance_matrix)
-print(candidate_pairs$full_distance_matrix)
 ```
 
 By visual inspection of the pairwise distance matrix of genotypes (only the lower triangular matrix computed)
@@ -92,8 +93,8 @@ placements sampled for each of the trees.
 
 ```{r Compute the splitting statistics}
 
-nTreeSamplingEvents <- 1000
-nMutationSamplingEvents <- 1000
+nTreeSamplingEvents <- 100
+nMutationSamplingEvents <- 100
 
 distance <- computeClusterSplits(sampleDescription, postSampling, treeName, nCells,
                      nMutations, nClusters,
@@ -126,3 +127,16 @@ distance <- c(distance, produce_Distance_Posterior(20,21,postSampling2, treeName
 
 
 
+## Filtering driver mutations
+
+We classified mutations into driver mutations and mutations we are agnostic about.
+
+```{r filter out non-drivers}
+mutationFilter <- apply(mutationDescription, 1, FUN = IsDriver, annotations)
+nMutations <- mutationFilter %>% sum() 
+mutatedReadCounts <- mutatedReadCounts[mutationFilter]
+totalReadCounts <- totalReadCounts[mutationFilter]
+print(nMutations)
+```
+
+None of the mutations were annotated as oncogenic or driver.
