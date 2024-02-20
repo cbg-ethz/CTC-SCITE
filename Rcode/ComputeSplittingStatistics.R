@@ -29,6 +29,46 @@ annotations <- input$annotations
 
 
 
+totalReadCountVector <- totalReadCounts %>% unlist()
+
+fit1 <- glm(totalReadCountVector ~ 1, family = poisson(link = 'log'))
+fit2 <- glm.nb(totalReadCountVector ~ 1)
+fit3 <- zeroinfl(totalReadCountVector ~1, dist = 'negbin')
+fit4 <- zeroinfl(totalReadCountVector ~1, dist = 'poisson')
+
+summary(fit1)
+summary(fit2)
+exp(coef(fit))
+coef(fit2)
+
+coeficients <- exp(summary(fit3)$coefficients$count[,1])
+
+exp(coef(fit3))
+summary(fit4)
+
+
+simNew <- ifelse(rbinom(length(totalReadCountVector), size = 1, prob = exp(coef(fit3))[2]) > 0,
+                 0, rnegbin(length(totalReadCountVector), exp(coef(fit3))[1], theta = exp(-0.76961)))
+
+sim <- data.frame(sim = vector(), run = vector())
+
+for(i in 1:100){
+  
+  simNew <- ifelse(rbinom(length(totalReadCountVector), size = 1, prob = exp(coef(fit3))[2]) > 0,
+                   0, rnegbin(length(totalReadCountVector), exp(coef(fit3))[1], theta = exp(-0.76961)))
+  
+  sim <- rbind(sim, data.frame(sim = simNew, run = i))
+}
+
+
+sim <- rbind(sim, data.frame(sim = totalReadCountVector, run = 0))
+
+sim %>%
+  ggplot(aes(x = sim, group = run)) + 
+  geom_histogram(data = sim[sim$run == 0,], alpha = 0.4, color = 'darkseagreen', fill = 'darkseagreen') +
+  geom_freqpoly(data = sim[sim$run != 0,], aes(x = sim), color = 'red', position = 'identity', alpha = 0.4)
+
+
 
 
 ############
@@ -72,6 +112,7 @@ candidate_pairs <- load_monoclonal_pairs(inputFolder, treeName)
 print(candidate_pairs$monoclonal_pairs)
 print(candidate_pairs$distance_matrix)
 print(candidate_pairs$full_distance_matrix)
+
 
 
 
@@ -239,5 +280,7 @@ produce_Distance_Posterior(35,36, postSampling, "LM2")
     
 #  }  
 #}
+
+
 
 

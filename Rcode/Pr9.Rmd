@@ -68,7 +68,7 @@ Similar means that their genetic distance lies in the 1% quantile of the set of 
 The Hamming distance is chosen.
 
 ```{r identify candidates for monoclonal pairs}
-candidate_pairs <- load_monoclonal_pairs(inputFolder, treeName)
+candidate_pairs <- load_monoclonal_pairs(inputFolder, treeName, cutoff = 3)
 print(candidate_pairs$monoclonal_pairs)
 print(candidate_pairs$distance_matrix)
 ```

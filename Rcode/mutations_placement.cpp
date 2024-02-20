@@ -1137,3 +1137,111 @@ std::vector<std::vector<double> > computePairwiseDistanceOfLeavesGivenTree(Rcpp:
   
   return result;
 }
+
+
+
+
+
+
+/** Takes the posterior sampling of trees and computes bayesian genotype profiles
+ * for single cells. 
+ *
+ *
+ * @param treeData An arrayof data frames, each one of them having only one row
+ * cooresponding to the data from the posterior sampling
+ * @param nCells The total number of cells in the trees
+ * @param nMutations the total number of mutations in the dataset
+ * @param nCells the total number of cells in the experiment
+ * @param nMutations the total number of mutations in the experiment
+ * @param nClusters the total number of CTC-clusters (including single CTCs)
+ * in the experiment
+ * @param alleleCount A vector that counts the number of alleles for each of the 
+ * clusters
+ * @param ClusterID A vector of the length corresponding to the number of cells
+ * with entries denoting an index for the ClusterID. Corresponds to a number from
+ * 0 to number of Clusters -1.
+ * @param mutatedReadCounts A matrix with mutations as rows and clusters as columns
+ * @param totalReadCounts As mutatedReadCounts
+ * @param dropoutRateList An array of dropout rates matching the list of trees
+ * @param seqErrRateList An array of dropout rates matching the list of trees
+ * @param wbcStatus A binary vector with as many entries as there are cells. 1 stands
+ * for being a white blood cell.
+ * 
+ * @output An array that indicates the posterior probability for a mutation (column)
+ * to be there in a cell (row).
+ * 
+ */
+// [[Rcpp::export]]
+std::vector<std::vector<double>> getProbabilityOfBeingMutated(std::vector<Rcpp::DataFrame> treeData, int nCells, int nMutations, int nClusters,
+                                    std::vector<int> alleleCount, std::vector<int> ClusterID, std::vector< std::vector<int>> mutatedReadCounts,
+                                    std::vector< std::vector<int>>  totalReadCounts, std::vector<bool> wbcStatus){
+  
+  
+  
+  
+  
+  
+  
+  
+  std::vector<std::vector<double>> logCellGenotypeMatrix(nCells, std::vector<double>(nMutations, 0.0));
+  
+  int nTrees =  treeData.size();
+  
+  for (int treeIndex = 0; treeIndex < nTrees; treeIndex ++){
+    
+    std::string tree = treeData[treeIndex]["Tree"];
+    
+    //Now need to split the string into single numbers and turn them into integers
+    // Using a stringstream to split the string
+    std::istringstream iss(tree);
+    std::vector<int> treeParentVectorFormat;
+    // Iterate over each substring and convert to integer
+    int num;
+    while (iss >> num) {
+      treeParentVectorFormat.push_back(num);
+    }
+    
+    double dropoutRate = Rcpp::as<double>(treeData[treeIndex]["DropoutRate"]);
+    double seqErrRate = Rcpp::as<double>(treeData[treeIndex]["SequencingErrorRate"]);
+    
+
+    
+    std::vector< std::vector<bool> > ancestorMatrix = parentVector2ancMatrix(treeParentVectorFormat, treeParentVectorFormat.size());
+    std::vector< std::vector<double> > logMutationDistribution = computeMutationDistribution(nCells, nMutations, nClusters, ancestorMatrix,
+                                                                                        alleleCount, ClusterID, mutatedReadCounts, totalReadCounts,
+                                                                                        dropoutRate, seqErrRate, 1, wbcStatus);
+    
+    
+    std::vector<std::vector<double>> mutationDistribution;
+    for(int mutIndex = 0; mutIndex < nMutations; mutIndex++){
+      mutationDistribution.push_back(std::vector<double>());
+      for (int nodeIndex = 0; nodeIndex < 2*nCells-1; nodeIndex ++){
+        mutationDistribution.back().push_back(exp(logMutationDistribution[mutIndex][nodeIndex]));
+      }
+      mutationDistribution.back() = normalizeDistribution(mutationDistribution.back());
+    }
+    
+    
+    for(int cellIndex = 0; cellIndex < nCells; cellIndex++){
+      std::vector<int> lineage = findMostRecentCommonAncestor(treeParentVectorFormat, cellIndex, cellIndex)[0];
+      
+      std::vector<double> mutationProbabilitiesVector;
+      for(int mutIndex = 0; mutIndex < nMutations; mutIndex++){
+        
+        double mutationProbabilityTemp = 0;
+        for(int lineageIndex = 0; lineageIndex < lineage.size(); lineageIndex ++){
+          mutationProbabilityTemp +=  mutationDistribution[mutIndex][lineage[lineageIndex]];
+        }
+        
+        logCellGenotypeMatrix[cellIndex][mutIndex] = log(exp(logCellGenotypeMatrix[cellIndex][mutIndex]) + mutationProbabilityTemp);
+      }
+    }
+  }
+  
+  for(int cellIndex = 0; cellIndex < nCells; cellIndex++){
+    for(int mutIndex = 0; mutIndex < nMutations; mutIndex++){
+      logCellGenotypeMatrix[cellIndex][mutIndex] = logCellGenotypeMatrix[cellIndex][mutIndex] - log(nTrees);
+    }
+  }
+  return logCellGenotypeMatrix;
+}

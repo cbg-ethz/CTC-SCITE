@@ -227,13 +227,9 @@ produce_Distance_Posterior <- function(leaf1, leaf2,postSampling, treeName,nCell
       geom_histogram(bins = 100, fill = "skyblue", color = "black", alpha = 0.7)+ 
       xlab("Maximal probability of branching evolution") + ylab("total count") +
       ggtitle("Posterior sampling of branching probabilites") +
-<<<<<<< Updated upstream
-      geom_vline(xintercept = mean(StatisticsOfMutationPlacement),color = "red", linetype = "dashed", linewidth = 1) +
-      labs(subtitle = sprintf("Tree %s - %s", treeName, clusterName),caption = "median indicated by dashed red line") +
-=======
+
       geom_vline(xintercept = mean(StatisticsOfMutationPlacement),color = "blue", linetype = "dashed", linewidth = 1) +
       labs(subtitle = sprintf("Tree %s - %s", treeName, clusterName),caption = "mean indicated by dashed red line") +
->>>>>>> Stashed changes
       theme_minimal() +
       theme(
         plot.title = element_text(size = 20, face = "bold"),
@@ -296,8 +292,8 @@ computeClusterSplits <- function(sampleDescription, postSampling, treeName, nCel
     counter <- 1
     system.time(
     for (it in cellPairSelection){
-      leaf1 <- which(sampleDescription$ClusterName == it[1])
-      leaf2 <- which(sampleDescription$ClusterName == it[2])
+      leaf1 <- which(sampleDescription$ClusterName == it[1])-1
+      leaf2 <- which(sampleDescription$ClusterName == it[2])-1
       
       print(paste(paste("Computing genomic distances of leaves:", leaf1, sep = " "), leaf2, sep = " "))
       splittingProbs <- rbind(splittingProbs, data.frame(Cluster = as.character(counter), Splitting_probability = produce_Distance_Posterior(leaf1,leaf2,postSampling, treeName, nCells,
@@ -465,7 +461,14 @@ load_data <- function(inputFolder, treeName){
   
 
 
-  sample_description <- data.frame(Cluster  = ClusterID, ClusterName = description$Cluster[ClusterID + 1], WBC = wbcStatus, color = description$color[ClusterID + 1])
+  sample_description <- data.frame(Cluster  = ClusterID,
+                                   ClusterName = description$Cluster[ClusterID + 1],
+                                   WBC = wbcStatus,
+                                   color = description$color[ClusterID + 1])
+  
+  sample_description <- sample_description %>%
+    mutate(single_cell = !(duplicated(Cluster)) & !(duplicated(Cluster, fromLast = TRUE)))
+  
   
   annotations <- read_delim('../../input_folder/filtered/CGI/LM2_cgi/alterations.tsv', delim = '\t')  
   
@@ -474,7 +477,11 @@ load_data <- function(inputFolder, treeName){
               "nMutations" = nMutations, "nClusters" = nClusters,
               "alleleCount" = alleleCount,
               "mutatedReadCounts" = mutatedReadCounts,
-              "totalReadCounts" = totalReadCounts, "wbcStatus" = wbcStatus, "sample_description" = sample_description, "mutationDescription" = mutationDescription, "annotations" = annotations))
+              "totalReadCounts" = totalReadCounts, "wbcStatus" = wbcStatus,
+              "sample_description" = sample_description,
+              "mutationDescription" = mutationDescription,
+              "annotations" = annotations,
+              "sampleName" = treeName, "directory" = inputFolder))
 }
 
 
@@ -501,7 +508,7 @@ load_data <- function(inputFolder, treeName){
 #' @export
 #'
 #' @examples
-load_monoclonal_pairs <- function(inputFolder, treeName){
+load_monoclonal_pairs <- function(inputFolder, treeName, cutoff = ""){
   data_file <- sprintf("%s/%s/%s_genotypes.ped", inputFolder, treeName,treeName)
   
   data <- read_delim(data_file, delim = '\t',col_names = FALSE)
@@ -525,7 +532,15 @@ load_monoclonal_pairs <- function(inputFolder, treeName){
   
   distance_vector <- as.vector(distance_matrix[lower.tri(distance_matrix)])
   
-  monoclonal_candidate_cutoff <- quantile(distance_vector, probs = 0.01)
+  
+  
+  if(class(cutoff) == "numeric"){
+    monoclonal_candidate_cutoff <- cutoff 
+  }
+  else{
+    monoclonal_candidate_cutoff <- quantile(distance_vector, probs = 0.01)
+  }
+  
   
   sum(distance_vector <= monoclonal_candidate_cutoff)
   which(distance_vector <= monoclonal_candidate_cutoff)
@@ -579,6 +594,12 @@ load_monoclonal_pairs <- function(inputFolder, treeName){
   return(list(monoclonal_pairs = candidates, distance_matrix = distance_matrix2, full_distance_matrix = distance_matrix))
 }
 
+
+
+
+callGenotypes <- function(){
+  
+}
 
 
 

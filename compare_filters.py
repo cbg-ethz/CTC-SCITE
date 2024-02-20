@@ -17,7 +17,7 @@ def compare_files(file1_path, file2_path):
 
 # Replace 'file1.txt' and 'file2.txt' with the actual paths to your files
 file1_path = 'dna_samples_nofilter.txt'
-file2_path = 'Br16_notAllMissingValues.txt'
+file2_path = 'dna_samples_passing_francesco_filters_181112.txt'
 
 unique_words_file1, unique_words_file2 = compare_files(file1_path, file2_path)
 

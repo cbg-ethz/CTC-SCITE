@@ -18,7 +18,7 @@ and samples mutations placements for each of the trees.
 
 ## Configure the script
 ```{r config}
-inputFolder <- "../../input_folder"
+inputFolder <- "../../input_folder/filtered"
 treeName <- "Br61"
 ```
 
@@ -92,6 +92,11 @@ monoclonal_pairs <- list(c("Br61_CTC_8", "Br61_CTC_17"))
 ```
 
 
+The next pairs were selected based on visual inspection of the trees:
+
+```{r find genetically identical cells}
+monoclonal_pairs <- c(monoclonal_pairs, list(c("Br61_CTC_12", "Br61_CTC_32"), c("Br61_CTC_1","Br61_CTC_46"),c("Br61_CTC_1","Br61_CTC_40"),c("Br61_CTC_46","Br61_CTC_40")))
+```
 
 This computes baseline distance histograms for single cells in the tree.
 
