@@ -3,12 +3,13 @@ library(viridis)
 library(VGAM)
 library(pscl)
 library(MASS)
+library(boot)
 
 ############
 #Config
 ############
 inputFolder <- "../../input_folder"
-treeName <- "Br7"
+treeName <- "Br16_B"
 
 
 input <- load_data(inputFolder, treeName)
@@ -89,10 +90,8 @@ fitReadCountDistribution <- function(input){
   sampleDescription <- input$sample_description
   totalReadCountVector <- totalReadCounts %>% unlist()
   fit <- zeroinfl(totalReadCountVector ~1, dist = 'negbin')
-  return(list(zeroProb = exp(summary(fit)$coefficients$zero[1]), theta = exp(summary(fit)$coefficients$count[2,1]), expValue = exp(summary(fit)$coefficients$count[1,1]) ))
+  return(list(zeroProb = inv.logit(summary(fit)$coefficients$zero[1]), theta = exp(summary(fit)$coefficients$count[2,1]), expValue = exp(summary(fit)$coefficients$count[1,1]) ))
 }
-
-
 
 
 
@@ -249,7 +248,7 @@ getGenotypeMatrix <- function(nTreeSamplingEvents = 100, input){
 #' @examples
 simulateCTCclusters <- function(samplingSize, clusterSizeVector, input, output_directory, dropoutRate = 0.3, errorRate = 0.001, seed = 123){
   set.seed(seed)
-  color_palette <- list("orchid", "orchid1", "orchid2", "orchid3", "orchid4", "darkorchid1","darkorchid2", "darkorchid3", "darkorchid4", "purple", "purple1", "purple2", "purple3", "purple4")
+  color_palette <- list("orchid", "orchid1", "orchid2", "orchid3", "orchid4", "darkorchid", "darkorchid1","darkorchid2", "darkorchid3", "darkorchid4", "purple", "purple1", "purple2", "purple3", "purple4")
   
   
   fit <- fitReadCountDistribution(input)
@@ -295,7 +294,7 @@ simulateCTCclusters <- function(samplingSize, clusterSizeVector, input, output_d
                         total_number_cells = clusterSize, tumor_cells = clusterSize,
                         WBCs = 0,
                         description = 
-                          paste0('[color=', color_palette[[iterator+1]], ',label=', input$sampleName, '_sim', iterator , ',fillcolor=', color_palette[[iterator+1]], ',image="../CTC-cluster-icons/cluster_', clusterSize,'-0.png"]') )
+                          paste0('[color=', color_palette[[iterator+1]], ',label="', input$sampleName, '_sim', iterator , '",fillcolor=', color_palette[[iterator+1]], ',image="../CTC-cluster-icons/cluster_', clusterSize,'-0.png"]') )
       sampleDescriptionOutputFormat <- rbind(sampleDescriptionOutputFormat, newSample)
       
       iterator <- iterator + 1
@@ -315,9 +314,13 @@ simulateCTCclusters <- function(samplingSize, clusterSizeVector, input, output_d
 
 
 
+   
+#c("Br11",  "Br16_AC_max2",  "Br16_AC_max3",  "Br16_AC_max4",  "Br16_B_max1",  "Br16_B_max2",  "Br16_B_max3",  "Br16_B_max4",  "Br16_C_max1",  "Br16_C_max2",  "Br16_C_max3",  "Br23",  "Br26",  "Br30",  "Br37",  "Br38",  "Br39",  "Br44",  "Br45",  "Br46",  "Br53", "Br57", "Brx50", "Lu2", "Lu7", "Ov8", "Pr6", "Pr9")
+tree <- "Ov8"
+  treeName <- tree
+  print(paste("Running simulation for",tree))
+  input <- load_data(inputFolder, treeName)
+  simulateCTCclusters(samplingSize = 100, clusterSizeVector = c(0,0,3, 0, 0), input, output_directory = "../../input_folder/test", dropoutRate =  0.35, errorRate = 0.0015, seed = 123)
 
 
-
-simulateCTCclusters(samplingSize = 100, clusterSizeVector = c(0,2,1), input, output_directory = "../../input_folder/test", dropoutRate =  0.35, errorRate = 0.0015, seed = 123)
-  
   
