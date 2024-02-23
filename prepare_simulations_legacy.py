@@ -6,8 +6,8 @@ import argparse
 import os
 
 
-sample_name = 'Br16_C'
-all_tuples = [["Br16_C33","Br16_C34"]]
+sample_name = 'Br16_B'
+all_tuples = [["Br11_17", "Br11_15"],["Br11_19", "Br11_15"], ["Br11_5", "Br11_16"]]
 
 
 

@@ -1,7 +1,7 @@
 ---
-title: "${sample}"
+title: "Br16_AC_max4"
 author: "Johannes Gawron"
-date: "2024-02-23"
+date: "2024-03-07"
 output: html_document
 ---
 
@@ -19,12 +19,15 @@ The analysis takes a list of trees sampled from its posterior distribution as in
 ## Configure the script
 ```{r config}
 inputFolder <- "../../../input_folder"
-treeName <- ${sample}
+simulationInputFolder <- "../../../simulations/simulations2"
+treeName <- "Br16_AC_max4"
+nTreeSamplingEvents <- 100
+nMutationSamplingEvents <- 100
 ```
 
 ## Loading data
 ```{r load}
-source("functions.R")
+source("../functions.R")
 
 
 input <- load_data(inputFolder, treeName)
@@ -41,6 +44,7 @@ totalReadCounts <- input$totalReadCounts
 sampleDescription <- input$sample_description
 ```
 
+
 ## Sample description 
 
 Each row corresponds to a cell.
@@ -56,112 +60,120 @@ print(sampleDescription)
 ```
 
 
-Some of the mutations are mutated in none of the samples.
 
-(This applies to the splitted Br16 samples.)
-
-
-```{r filter out mutations that are not present in the dataset}
-totalReadCounts <- totalReadCounts[(mutatedReadCounts %>% sapply(function(x){sum(x!=0)})) > 0]
-mutatedReadCounts <- mutatedReadCounts[(mutatedReadCounts %>% sapply(function(x){sum(x!=0)})) > 0]
-nMutations <- length(totalReadCounts)
-```
-
-
-
-
-
-## Null distributions
-
-To get a grasp of the null distribution of cluster splits, we will have a look at 
-  - the splitting statistics for single cells
-  - simulated CTC clusters that contain the aggregated read counts of the single cells
-  where these single cells have the same or a similar genotype according to the mutation
-  call using the genotype calls from Monovar.
-Similar means that their genetic distance does not exceed the threshold (which is chosen to be 1).
-
-The plot shows a histogram of all genetic distances and draws a vertical line for
-the 1%-quantile. This was the original (but now discarded) threshold, and the plot
-is only kept for legacy reasons.
-
-The Hamming distance is chosen.
-
-```{r identify candidates for monoclonal pairs}
-candidate_pairs <- load_monoclonal_pairs(inputFolder, treeName, cutoff = 1)
-print(candidate_pairs$monoclonal_pairs)
-print(candidate_pairs$distance_matrix)
-```
-
-
-```{r identify genetically identical cells}
-monoclonal_pairs <- lapply(candidate_pairs$monoclonal_pairs, FUN = function(x){return(c(substr(x[1], start = 1, stop = nchar(x[1])-14),  substr(x[2], start = 1, stop = nchar(x[2])-14)))})
-```
-
-Filter out sample identities that refer to white blood cells or CTC clusters instead of cells.
-
-
+Get null distributions of relevant statistics, stratified by sample:
 ```{r}
-KEEP <- vector()
-for(pair in monoclonal_pairs){
-  keep <- TRUE
-  for (i in 1:2){
-    if(nrow(sampleDescription[sampleDescription$ClusterName == pair[i],])>1){
-      keep <- FALSE
-    }
-    else{
-      if(sampleDescription$WBC[1] == TRUE){
-          keep <- FALSE
-        }
-      }
-  }
-  KEEP <- c(KEEP,keep)
+cutoffsSplittingProbs <- data.frame(clusterSize = vector(), Cutoff = vector())
+cutoffsBranchingProbabilities <- data.frame(clusterSize = vector(), Cutoff = vector())
+
+for (clusterSize in 2:5){
+  try(
+  {treeNameSimulated <- paste(treeName, clusterSize, sep = '_')
+
+
+  inputSimulated <- load_data(simulationInputFolder, treeNameSimulated)
+
+  postSamplingSimulated <- inputSimulated$postSampling
+  nClustersSimulated <- inputSimulated$nClusters
+  ClusterIDSimulated <- inputSimulated$clusterID
+  nCellsSimulated <- inputSimulated$nCells  
+  nMutationsSimulated <- inputSimulated$nMutations
+  nClustersSimulated <- inputSimulated$nClusters
+  alleleCountSimulated <- inputSimulated$alleleCount
+  mutatedReadCountsSimulated <- inputSimulated$mutatedReadCounts
+  totalReadCountsSimulated <- inputSimulated$totalReadCounts
+  sampleDescriptionSimulated <- inputSimulated$sample_description
+  
+  distance <- computeClusterSplits(sampleDescriptionSimulated, postSamplingSimulated, treeNameSimulated, nCellsSimulated,
+                     nMutationsSimulated, nClustersSimulated,
+                     alleleCountSimulated,
+                     mutatedReadCountsSimulated, totalReadCountsSimulated,
+                     nMutationSamplingEvents = nMutationSamplingEvents, nTreeSamplingEvents = nTreeSamplingEvents,
+                     cellPairSelection = c("orchid", "orchid1", "orchid2",
+                                           "orchid3", "orchid4", "darkorchid",
+                                           "darkorchid1","darkorchid2", "darkorchid3",
+                                           "darkorchid4", "purple", "purple1",
+                                           "purple2", "purple3", "purple4"))
+
+  
+
+  plot(ggplot(distance$splittingProbs, aes(x = "Values", y = Splitting_probability, fill = 'Splitting_probability')) +
+    geom_boxplot())
+  cutoffsSplittingProbs <- rbind(cutoffsSplittingProbs, data.frame(clusterSize = clusterSize, Cutoff = mean(distance$splittingProbs$Splitting_probability) + 2 * sd(distance$splittingProbs$Splitting_probability) ))
+  
+  ##Note that the way the aggregatedBranchingProbabilities are computed all pairs of cells from the same cluster are
+  ## taken into account. This has the effect that clusters with more cells would be counted more often and contribute more
+  ## to the shape of the final distribution. This is no problem right now as we only aggregate counts from clusters
+  ## of the same size, it is however the potential source of a future bug!!
+  
+  plot(ggplot(data.frame(x = distance$aggregatedBranchingProbabilities), aes(x = x)) +
+    geom_histogram(binwidth = 0.01))
+  print(data.frame(clusterSize = clusterSize, Cutoff = quantile(distance$aggregatedBranchingProbabilities, probs = 0.95, names = FALSE)[1] ))
+  cutoffsBranchingProbabilities <- rbind(cutoffsBranchingProbabilities, data.frame(clusterSize = clusterSize, Cutoff = quantile(distance$aggregatedBranchingProbabilities, probs = 0.95, names = FALSE)[1] ))
+  })
 }
-monoclonal_pairs <- monoclonal_pairs[KEEP]
-```
-
-
-The following computes baseline distance histograms for single cells in the tree.
-Note that the list of monoclonal pairs might be empty in which case an empty
-plot is depicted.
-
-```{r baseline distance distributions}
-
-nTreeSamplingEvents <- 100
-nMutationSamplingEvents <- 100
-
-
-distance <- computeClusterSplits(sampleDescription, postSampling, treeName, nCells,
-                     nMutations, nClusters,
-                     alleleCount,
-                     mutatedReadCounts, totalReadCounts,
-                     nMutationSamplingEvents = nMutationSamplingEvents, nTreeSamplingEvents = nTreeSamplingEvents, cellPairSelection = monoclonal_pairs)
-
 ```
 
 
 
-## Splitting statistics
-Now I am going through all clusters and comparing all tumour cells within a cluster
-with each other.
-This is done by
-  - going through all sampled tree
-  - for each of the trees sample mutation placements from the posterior distribution
-  - for each tree with mutation placement compute the evolutionary distance of the two 
-    cells
-  - This will result in a histogram of evolutionary distances for each pair of
-    sampled cells. We report the median of this histogram.
+Get the relevant statistics for each of the clusters of a dataset and output numbers of oligoclonal clusters:
+```{r}
+nTumorClusters <- 0
+nOligoclonalClusters1 <- 0
+nOligoclonalClusters2 <- 0
+splittingSummary1 <- data.frame(Color = vector(), Oligoclonal = vector(), ClusterSize = vector())
+splittingSummary2 <- data.frame(Color = vector(), Oligoclonal = vector(), ClusterSize = vector())
+
+for(clusterSize in 2:5){
+  try({
+    clusterColor <- sampleDescription %>%
+    filter(WBC ==0 &  color != 'gray93') %>%
+    group_by(color) %>%
+    filter(n() == clusterSize) %>%
+    pull(color) %>%
+    unique() 
     
-Two parameters can be tuned: The number of sampled trees and the number of mutation
-placements sampled for each of the trees.
-
-```{r Compute the splitting statistics}
-
-
-distance <- computeClusterSplits(sampleDescription, postSampling, treeName, nCells,
+    for(color in clusterColor){
+      distance <- computeClusterSplits(sampleDescription, postSampling, treeName, nCells,
                      nMutations, nClusters,
                      alleleCount,
                      mutatedReadCounts, totalReadCounts,
-                     nMutationSamplingEvents = nMutationSamplingEvents, nTreeSamplingEvents = nTreeSamplingEvents)
+                     nMutationSamplingEvents = nMutationSamplingEvents, nTreeSamplingEvents = nTreeSamplingEvents,
+                     cellPairSelection = c(color))
+
+      splittingProbs <- mean(distance$splittingProbs$Splitting_probability)
+      branchingProbs <- mean(distance$aggregatedBranchingProbabilities)
+    
+      nTumorClusters <- nTumorClusters + 1
+      oligoclonal <- FALSE
+      print(clusterSize)
+      print(cutoffsSplittingProbs[(cutoffsSplittingProbs$clusterSize == clusterSize), 2])
+      if(splittingProbs > (cutoffsSplittingProbs[(cutoffsSplittingProbs$clusterSize == clusterSize), 2])){
+        nOligoclonalClusters1 <- nOligoclonalClusters1 + 1
+        oligoclonal <- TRUE
+      }
+      if(branchingProbs > cutoffsBranchingProbabilities[(cutoffsBranchingProbabilities$clusterSize == clusterSize), 2]){
+        nOligoclonalClusters2 <- nOligoclonalClusters2 + 1
+        oligoclonal <- TRUE
+      }
+      splittingSummary1 <- rbind(splittingSummary1, data.frame(Color = color, Oligoclonal = oligoclonal, ClusterSize = clusterSize))
+      splittingSummary2 <- rbind(splittingSummary2, data.frame(Color = color, Oligoclonal = oligoclonal, ClusterSize = clusterSize))
+    }
+  })
+}
+
+
+numberOfCancerClusters <- sampleDescription %>%
+    filter(WBC ==0 &  color != 'gray93') %>%
+    group_by(color) %>%
+    filter(n() > 1) %>%
+    pull(color) %>%
+    unique() %>% length() 
+
+print(sprintf('%d out of %d clusters were found to be oligoclonal in %s, using method 1', nOligoclonalClusters1, numberOfCancerClusters, treeName))
+print(sprintf('%d out of %d clusters were found to be oligoclonal in %s, using method 2', nOligoclonalClusters2, numberOfCancerClusters, treeName))
+print(splittingSummary1)
+print(splittingSummary2)
 ```
 
 

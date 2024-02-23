@@ -13,8 +13,8 @@ PATH_TO_EXECUTABLE  =  "./CTC_SCITE_katharina/CTC_SCITE" # path to CTC-SCITE exe
 
 lengths =[1000000] # [500000] #, 1000000]
 lengthNames = {'500000': '500K', '1000000': '1M'}
-pathName = "../simulations/simulations2/filtered"
-caseList = ['Br11', 'Br16_AC_max2',  'Br16_AC_max3',  'Br16_AC_max4', 'Br16_B_max2', 'Br16_B_max3',  'Br16_B_max4', 'Br16_C_max1',  'Br16_C_max2', 'Br16_C_max3', 'Br23',  'Br26',  'Br30',  'Br38',  'Br39',  'Br57', 'Brx50', 'Lu2',  'Lu7', 'Ov8', 'Pr6', 'Br16_AC', 'Br16_B', 'Br16_C', 'Pr9', 'LM2', 'Br61', 'Br7']
+pathName = "../simulations"
+caseList = ['Br11']#, 'Br16_AC_max2',  'Br16_AC_max3',  'Br16_AC_max4', 'Br16_B_max2', 'Br16_B_max3',  'Br16_B_max4', 'Br16_C_max1',  'Br16_C_max2', 'Br16_C_max3', 'Br23',  'Br26',  'Br30',  'Br38',  'Br39',  'Br57', 'Brx50', 'Lu2',  'Lu7', 'Ov8', 'Pr6', 'Br16_AC', 'Br16_B', 'Br16_C', 'Pr9', 'LM2', 'Br61', 'Br7']
 #caseList = ['Ov8']
 
 

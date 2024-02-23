@@ -863,14 +863,14 @@ string getNodeColor(string s){
 int readParameters(int argc, char* argv[]){
 	for (int i = 1; i < argc; ++i) {
 
-		if (strcmp(argv[i], "-i") == 0) {                      // name of data file
+		if (strcmp(argv[i], "-i") == 0) {                      // name of data count file
 			if (i + 1 < argc) {
 				dataFileName = argv[++i];
 				cout << dataFileName << endl;
 			}
-		}else if (strcmp(argv[i], "-description")==0) {           // name of file describing the samples
+		}else if (strcmp(argv[i], "-description")==0) {           // name of file describing the samples (i.e. sample_nodeDescription.tsv)
 			if (i + 1 < argc) { descriptionFileName = argv[++i];}
-		}else if (strcmp(argv[i], "-samples")==0) {           // name of file describing the samples
+		}else if (strcmp(argv[i], "-samples")==0) {           // name of file containing the MCMC samples
 					if (i + 1 < argc) { sampleFileName = argv[++i];}
 		}
 	}

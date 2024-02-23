@@ -125,7 +125,7 @@ fitReadCountDistribution <- function(input, zeroInfl = TRUE){
 #' of read counts.
 #' 3. The multiple-displacement amplification is modelled using a beta-binomial
 #' model, given the total read counts sampled in step 2.
-#' 4. Each allele mayflip its genotype at rate "errorRate".
+#' 4. Each allele may flip its genotype at rate "errorRate".
 #'
 #' @param nWildtypeAlleles 
 #' @param nMutatedAlleles 
@@ -134,7 +134,8 @@ fitReadCountDistribution <- function(input, zeroInfl = TRUE){
 #' @param mu 
 #' @param theta 
 #'
-#' @return
+#' @return A pair of read counts; the first one being the total number of reads
+#' and the second one being the number of mutated reads. 
 #' @export
 #'
 #' @examples
@@ -158,7 +159,9 @@ simulateReads <- function(nWildtypeAlleles,nMutatedAlleles, dropoutRate, errorRa
   
   #draw from a beta-binomial to simulate overdispersion through multiple-
   #displacement amplification
-  nMutatedReads <- rbetabinom.ab(n = 1, size = nReads, shape1 = nWildtypeAlleles, shape2 = nMutatedAlleles)
+  nWildtypeReads <- rbetabinom.ab(n = 1, size = nReads, shape1 = nWildtypeAlleles, shape2 = nMutatedAlleles)
+  
+  nMutatedReads <- nReads - nWildtypeReads
   
   #randomly flip the genotypes of reads with a certain error rate
   falsePositives <- rbinom(1, size = nReads-nMutatedReads, prob = errorRate)
@@ -166,7 +169,7 @@ simulateReads <- function(nWildtypeAlleles,nMutatedAlleles, dropoutRate, errorRa
   
   nMutatedReads <- nMutatedReads + falsePositives - falseNegatives
   
-  return(list(read_counts = c(nReads- nMutatedReads, nMutatedReads)))
+  return(list(read_counts = c(nReads, nMutatedReads)))
 }
 
 
@@ -247,9 +250,8 @@ getGenotypeMatrix <- function(nTreeSamplingEvents = 100, input){
 #'
 #' @param samplingSize number of trees to determine the genotype of individual cells.
 #' To be passed to getGenotypeMatrix.
-#' @param clusterSizeVector A numeric vector that indicates how many clusters of which size
-#' are to be simulated. number i at position j means that i many clusters with j
-#' cells are to be simulated.
+#' @param clusterSizeVector A number that indicates the cluster complexity to by simulated
+#' (i.e. the number of cells in the cluster)
 #' @param input the loaded dataset
 #' @param output_directory Directory to write the simulated input files for
 #' the CTC-SCITE run to.
@@ -264,7 +266,7 @@ getGenotypeMatrix <- function(nTreeSamplingEvents = 100, input){
 #' @export
 #'
 #' @examples
-simulateCTCclusters <- function(samplingSize, clusterSizeVector, input, output_directory, dropoutRate = 0.3, errorRate = 0.001, seed = 123, zeroInflated = TRUE){
+simulateCTCclusters <- function(samplingSize, clusterSizeVector, input, output_directory, output_label, dropoutRate = 0.3, errorRate = 0.001, seed = 123, zeroInflated = TRUE){
   set.seed(seed)
   color_palette <- list("orchid", "orchid1", "orchid2", "orchid3", "orchid4", "darkorchid", "darkorchid1","darkorchid2", "darkorchid3", "darkorchid4", "purple", "purple1", "purple2", "purple3", "purple4")
   
@@ -320,25 +322,49 @@ simulateCTCclusters <- function(samplingSize, clusterSizeVector, input, output_d
     }
   }
   print("Writing output files")
+  
+  
+  dir.create(file.path(output_directory,paste(input$sampleName, output_label, sep = '_')), recursive = TRUE)
   description_data <- read_delim(file.path(input$directory, input$sampleName, paste0(input$sampleName, '_samples_nodeDescription.tsv')), delim = '\t', col_names = FALSE, quote = "none")
   colnames(description_data) <- c("sample_name", "total_number_cells", "tumor_cells", "WBCs", "description") 
   description_data <- rbind(description_data, sampleDescriptionOutputFormat)
-  write_delim(x = description_data, file = file.path(output_directory,input$sampleName, paste0(input$sampleName, '_samples_nodeDescription.tsv')), delim = '\t', col_names = FALSE, quote = "none", escape = "none")
+  write_delim(x = description_data, file = file.path(output_directory,paste(input$sampleName, output_label, sep = '_'), paste0(input$sampleName, '_', output_label, '_samples_nodeDescription.tsv')), delim = '\t', col_names = FALSE, quote = "none", escape = "none")
   
   read_data <- read_delim(file.path(input$directory, input$sampleName, paste0(input$sampleName, '.txt')), delim = '\t', col_names = FALSE, escape_backslash	= TRUE)
   read_data <- cbind(read_data, genotypesOutputFormat)
-  write_delim(x = read_data, file = file.path(output_directory,input$sampleName, paste0(input$sampleName, '.txt')), delim = '\t', col_names = FALSE, quote = "none", escape = "none")
+  write_delim(x = read_data, file = file.path(output_directory,paste(input$sampleName, output_label, sep = '_'), paste0(input$sampleName,'_', output_label ,'.txt')), delim = '\t', col_names = FALSE, quote = "none", escape = "none")
 }
 
 
 
    
 #c("Br11",  "Br16_AC_max2",  "Br16_AC_max3",  "Br16_AC_max4",  "Br16_B_max1",  "Br16_B_max2",  "Br16_B_max3",  "Br16_B_max4",  "Br16_C_max1",  "Br16_C_max2",  "Br16_C_max3",  "Br23",  "Br26",  "Br30",  "Br37",  "Br38",  "Br39",  "Br44",  "Br45",  "Br46",  "Br53", "Br57", "Brx50", "Lu2", "Lu7", "Ov8", "Pr6", "Pr9")
-tree <- "Br44"
-  treeName <- tree
-  print(paste("Running simulation for",tree))
-  input <- load_data(inputFolder, treeName)
-  simulateCTCclusters(samplingSize = 100, clusterSizeVector = c(0,0,3, 0, 0), input, output_directory = "../../simulations/simulations2", dropoutRate =  0.35, errorRate = 0.0015, seed = 124, zeroInflated = TRUE)
 
-
+for(tree in c("Br11",  "Br16_AC_max2",  "Br16_AC_max3",  "Br16_AC_max4",  "Br16_B_max1",  "Br16_B_max2",  "Br16_B_max3",  "Br16_B_max4",  "Br16_C_max1",  "Br16_C_max2",  "Br16_C_max3",  "Br23",  "Br26",  "Br30",  "Br37",  "Br38",  "Br39",  "Br44",  "Br45",  "Br46",  "Br53", "Br57", "Brx50", "Lu2", "Lu7", "Ov8", "Pr6", "Pr9")){
   
+}
+
+simulation_metadata <- list("Br11" = c(0,4,0,0,0),  "Br16_AC_max2", 
+                                           "Br16_AC_max3",  "Br16_AC_max4",
+                                           "Br16_B_max1",  "Br16_B_max2",
+                                           "Br16_B_max3",  "Br16_B_max4",
+                                           "Br16_C_max1",  "Br16_C_max2",
+                                           "Br16_C_max3",  "Br23",  "Br26",
+                                           "Br30",  "Br37",  "Br38",  "Br39",
+                                           "Br44",  "Br45",  "Br46",  "Br53",
+                                           "Br57", "Brx50", "Lu2", "Lu7", "Ov8",
+                                           "Pr6", "Pr9")
+
+
+tree <- "Pr9"
+output_label <- 3
+clusterSizeVector <- c(0,0,3,0,0)
+treeName <- tree
+print(paste("Running simulation for",tree))
+input <- load_data(inputFolder, treeName)
+
+simulateCTCclusters(samplingSize = 100, clusterSizeVector = clusterSizeVector, input,
+                    output_directory = "../../simulations/simulations2",output_label = output_label,
+                    dropoutRate =  0.35, errorRate = 0.0015, seed = 124,
+                    zeroInflated = TRUE)
+

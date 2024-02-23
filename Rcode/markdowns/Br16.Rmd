@@ -1,7 +1,7 @@
 ---
-title: "${sample}"
+title: "Br16"
 author: "Johannes Gawron"
-date: "2024-02-23"
+date: "2024-02-26"
 output: html_document
 ---
 
@@ -19,12 +19,12 @@ The analysis takes a list of trees sampled from its posterior distribution as in
 ## Configure the script
 ```{r config}
 inputFolder <- "../../../input_folder"
-treeName <- ${sample}
+treeName <- "Br16"
 ```
 
 ## Loading data
 ```{r load}
-source("functions.R")
+source("../functions.R")
 
 
 input <- load_data(inputFolder, treeName)
@@ -105,7 +105,7 @@ KEEP <- vector()
 for(pair in monoclonal_pairs){
   keep <- TRUE
   for (i in 1:2){
-    if(nrow(sampleDescription[sampleDescription$ClusterName == pair[i],])>1){
+    if(nrow(sampleDescription[sampleDescription$ClusterName == pair[i],])!=1){
       keep <- FALSE
     }
     else{
@@ -117,6 +117,7 @@ for(pair in monoclonal_pairs){
   KEEP <- c(KEEP,keep)
 }
 monoclonal_pairs <- monoclonal_pairs[KEEP]
+print(monoclonal_pairs)
 ```
 
 

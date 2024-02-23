@@ -159,8 +159,9 @@ compute_pairwise_distance_of_leaves <- function(treeData, leaf1, leaf2, nCells,
 #' @param wbcStatus boolean vector of length nCells indicating for each cell if
 #' it is a white blood cell (TRUE) or not (FALSE)
 #'
-#' @return a double which is the median evolutionary distance of two leaves as
-#' sampled from the posterior distribution.
+#' @return splittingFraction: The fraction of sampling events for which the pair of cells
+#' shows branching evolution
+#' 
 #' @export
 #'
 #' @examples
@@ -171,7 +172,7 @@ produce_Distance_Posterior <- function(leaf1, leaf2,postSampling, treeName,nCell
   
   ## For each row in the posterior Sampling file, the distance of two leaves is computed
   
-  
+  print("Computing the posterior distribution")
   
   distance_statistics <- parallel::mclapply(postSampling,
                            FUN = computePairwiseDistanceOfLeavesGivenTree, leaf1,leaf2,
@@ -197,51 +198,83 @@ produce_Distance_Posterior <- function(leaf1, leaf2,postSampling, treeName,nCell
   
   
   
-  median_dist <- median(dist_histogram)
+#  median_dist <- median(dist_histogram)
   
   
   
   
-  plot(
-    ggplot(data.frame(HammingDistance = dist_histogram), aes(x = HammingDistance)) +
-      geom_histogram(binwidth = 1, fill = "skyblue", color = "black", alpha = 0.7)+ 
-      xlab(sprintf("genetic distance between leaf %d and leaf %d", leaf1, leaf2)) + ylab("total count") +
-      ggtitle("Posterior sampling of genetic distances") +
-      geom_vline(xintercept = median_dist,color = "red", linetype = "dashed", linewidth = 1) +
-      labs(subtitle = sprintf("Tree %s - %s", treeName, clusterName),caption = "median indicated by dashed red line") +
-      theme_minimal() +
-      theme(
-        plot.title = element_text(size = 20, face = "bold"),
-        axis.title.x = element_text(size = 18),
-        axis.title.y = element_text(size = 18),
-        plot.subtitle = element_text(size= 18),
-        axis.text = element_text(size = 16) 
+#  plot(
+#    ggplot(data.frame(HammingDistance = dist_histogram), aes(x = HammingDistance)) +
+#      geom_histogram(binwidth = 1, fill = "skyblue", color = "skyblue", alpha = 0.7)+ 
+#      xlab(sprintf("genetic distance between leaf %d and leaf %d", leaf1, leaf2)) + ylab("total count") +
+#      ggtitle("Posterior sampling of genetic distances") +
+#      geom_vline(xintercept = median_dist,color = "red", linetype = "dashed", linewidth = 1) +
+#      labs(subtitle = sprintf("Tree %s - %s", treeName, clusterName),caption = "median indicated by dashed red line") +
+#      theme_minimal() +
+#      theme(
+#        plot.title = element_text(size = 20, face = "bold"),
+#        axis.title.x = element_text(size = 18),
+#        axis.title.y = element_text(size = 18),
+#        plot.subtitle = element_text(size= 18),
+#        axis.text = element_text(size = 16) 
+#      )
+#  )
+  
+  
+  data <- data.frame(StatisticsOfMutationPlacement = StatisticsOfMutationPlacement)
+  
+  
+  sum(is.na(data$StatisticsOfMutationPlacement))
+  class(data$StatisticsOfMutationPlacement)
+  
+  
+  ggplot(data = data, aes(x = StatisticsOfMutationPlacement, y = 1)) +
+    geom_point()
+  
+  
+  tryCatch(
+    expr = {
+      plot(
+        ggplot(data, aes(x = StatisticsOfMutationPlacement)) +
+          geom_histogram(bins = 10, fill = "skyblue", color = "skyblue", alpha = 0.7)+ 
+          xlab("Maximal probability of branching evolution") + ylab("total count") +
+          ggtitle("Posterior sampling of branching probabilites") +
+          geom_vline(xintercept = mean(StatisticsOfMutationPlacement),color = "blue", linetype = "dashed", linewidth = 1) +
+          labs(subtitle = sprintf("Tree %s - %s", treeName, clusterName),caption = "mean indicated by dashed red line") +
+          theme_minimal() +
+          theme(
+            plot.title = element_text(size = 20, face = "bold"),
+            axis.title.x = element_text(size = 18),
+            axis.title.y = element_text(size = 18),
+            plot.subtitle = element_text(size= 18),
+            axis.text = element_text(size = 16) 
+          )
+      ) 
+    },
+    error = function(e){
+      plot(
+        ggplot(data, aes(x = log(StatisticsOfMutationPlacement))) +
+          geom_histogram(bins = 10, fill = "skyblue", color = "skyblue", alpha = 0.7)+ 
+          xlab("Maximal probability of branching evolution") + ylab("total count") +
+          ggtitle("Posterior sampling of branching probabilites - Logarithmic Scale") +
+          geom_vline(xintercept = log(mean(StatisticsOfMutationPlacement)),color = "blue", linetype = "dashed", linewidth = 1) +
+          labs(subtitle = sprintf("Tree %s - %s", treeName, clusterName),caption = "mean indicated by dashed red line") +
+          theme_minimal() +
+          theme(
+            plot.title = element_text(size = 20, face = "bold"),
+            axis.title.x = element_text(size = 18),
+            axis.title.y = element_text(size = 18),
+            plot.subtitle = element_text(size= 18),
+            axis.text = element_text(size = 16) 
+          )
       )
+    }
   )
   
   
-
-  
-  plot(
-    ggplot(data.frame(StatisticsOfMutationPlacement = StatisticsOfMutationPlacement), aes(x = StatisticsOfMutationPlacement)) +
-      geom_histogram(bins = 100, fill = "skyblue", color = "black", alpha = 0.7)+ 
-      xlab("Maximal probability of branching evolution") + ylab("total count") +
-      ggtitle("Posterior sampling of branching probabilites") +
-
-      geom_vline(xintercept = mean(StatisticsOfMutationPlacement),color = "blue", linetype = "dashed", linewidth = 1) +
-      labs(subtitle = sprintf("Tree %s - %s", treeName, clusterName),caption = "mean indicated by dashed red line") +
-      theme_minimal() +
-      theme(
-        plot.title = element_text(size = 20, face = "bold"),
-        axis.title.x = element_text(size = 18),
-        axis.title.y = element_text(size = 18),
-        plot.subtitle = element_text(size= 18),
-        axis.text = element_text(size = 16) 
-      )
-  )
   
   
-  return(totalNumberOfSplits/totalNumberOfSamplingEvents)
+  return(list(splittingFraction = totalNumberOfSplits/totalNumberOfSamplingEvents, branchingStatistics = StatisticsOfMutationPlacement))
 }
 
 
@@ -271,8 +304,14 @@ produce_Distance_Posterior <- function(leaf1, leaf2,postSampling, treeName,nCell
 #' @param cellPairSelection An optional parameter that takes a list of
 #' pairs of strings-valued names of cells that should be analysed (the names as in the 
 #' samples_nodeDescription.tsv file).
+#' It can also take a character vector, in which case the entries should be the color coded
+#' names of the clusters.
 #'
-#' @return A vector of medians.
+#' @return splittinProbs a vector that gives for each pair of cells the fraction of 
+#' trees for which they split
+#' aggregatedBranchingProbabilities: a vector of aggregated probabilities for all considered
+#' pairs of leaves and all sampled trees. At the moment only implement if  cellPairSelection
+#' parameter is passed to the function.
 #' @export
 #'
 #' @examples
@@ -287,7 +326,7 @@ computeClusterSplits <- function(sampleDescription, postSampling, treeName, nCel
   postSampling <- postSampling[desired_values]
   splittingProbs <- matrix(0, nrow = 0, ncol = 2) %>% as.data.frame()
   colnames(splittingProbs) <- c("Cluster", "Splitting_probability")
-  
+  aggregatedProbabilities <- vector()
   if(class(cellPairSelection) == "list"){
     counter <- 1
     system.time(
@@ -296,16 +335,55 @@ computeClusterSplits <- function(sampleDescription, postSampling, treeName, nCel
       leaf2 <- which(sampleDescription$ClusterName == it[2])-1
       
       print(paste(paste("Computing genomic distances of leaves:", leaf1, sep = " "), leaf2, sep = " "))
-      splittingProbs <- rbind(splittingProbs, data.frame(Cluster = as.character(counter), Splitting_probability = produce_Distance_Posterior(leaf1,leaf2,postSampling, treeName, nCells,
-                                                         nMutations, nClusters,
-                                                         alleleCount,sampleDescription$Cluster,
-                                                         mutatedReadCounts, totalReadCounts,sampleDescription$WBC, nSamplingEvents = nMutationSamplingEvents)))
-      
+      posterior <- produce_Distance_Posterior(leaf1,leaf2,postSampling, treeName, nCells,
+                                              nMutations, nClusters,
+                                              alleleCount,sampleDescription$Cluster,
+                                              mutatedReadCounts, totalReadCounts,sampleDescription$WBC, nSamplingEvents = nMutationSamplingEvents)
+      splittingProbs <- rbind(splittingProbs, data.frame(Cluster = as.character(counter), Splitting_probability = posterior$splittingFraction))
+      aggregatedProbabilities <- c(aggregatedProbabilities, posterior$branchingStatistics)
     counter <- counter + 1
     }
     )
   }
-  
+
+  else if(class(cellPairSelection) == 'character'){
+      CTCclusters <- unique(cellPairSelection)
+      CTCclusters <- CTCclusters[!(CTCclusters %in% c("ghostwhite","gray93"))]
+      system.time(
+        for(it in CTCclusters){
+          cellsInCluster <- which(sampleDescription$color %in% it)-1 ## Make sure array indication is 
+          ## compatible with cpp
+          cluster_done <- 0
+          for(i in cellsInCluster){
+             if(cluster_done == 1){
+              cluster_done <- 0
+              break
+            }
+            if(sampleDescription$WBC[i+1] == 1) next
+            j <- cellsInCluster[1]
+            while(j < i){
+              if(cluster_done == 1){
+                break
+              }
+              if(sampleDescription$WBC[j+1] == 1){
+                j <- j + 1
+                next
+              }
+              print(paste(paste("Computing genomic distances of leaves:", i, sep = " "), j, sep = " "))
+              posterior <- produce_Distance_Posterior(i,j,postSampling, treeName, nCells,
+                                                      nMutations, nClusters,
+                                                      alleleCount,sampleDescription$Cluster,
+                                                      mutatedReadCounts, totalReadCounts,sampleDescription$WBC, nSamplingEvents = nMutationSamplingEvents, clusterName = it)
+              splittingProbs <- rbind(splittingProbs, data.frame(Cluster = it,Splitting_probability = posterior$splittingFraction))
+              aggregatedProbabilities <- c(aggregatedProbabilities, posterior$branchingStatistics)
+              j <- j + 1
+              cluster_done <- 1
+            }
+          }
+          
+        }
+      )
+  }
   
   
   else{
@@ -332,10 +410,11 @@ computeClusterSplits <- function(sampleDescription, postSampling, treeName, nCel
               next
             }
             print(paste(paste("Computing genomic distances of leaves:", i, sep = " "), j, sep = " "))
-            splittingProbs <- rbind(splittingProbs, data.frame(Cluster = it,Splitting_probability = produce_Distance_Posterior(i,j,postSampling, treeName, nCells,
-                                                               nMutations, nClusters,
-                                                               alleleCount,sampleDescription$Cluster,
-                                                               mutatedReadCounts, totalReadCounts,sampleDescription$WBC, nSamplingEvents = nMutationSamplingEvents, clusterName = it)))
+            posterior <- produce_Distance_Posterior(i,j,postSampling, treeName, nCells,
+                                                    nMutations, nClusters,
+                                                    alleleCount,sampleDescription$Cluster,
+                                                    mutatedReadCounts, totalReadCounts,sampleDescription$WBC, nSamplingEvents = nMutationSamplingEvents, clusterName = it)
+            splittingProbs <- rbind(splittingProbs, data.frame(Cluster = it,Splitting_probability = posterior$splittingFraction))
             j <- j + 1
             #cluster_done <- 1
           }
@@ -352,7 +431,7 @@ computeClusterSplits <- function(sampleDescription, postSampling, treeName, nCel
     theme_minimal()
   )
   
-  return(splittingProbs)
+  return(list(splittingProbs = splittingProbs, aggregatedBranchingProbabilities = aggregatedProbabilities))
 }
 
 
@@ -429,13 +508,13 @@ load_data <- function(inputFolder, treeName){
     mutatedReadCounts <- cbind(mutatedReadCounts,counts[,4+2*j])
   }
   
-  wildtypeReadCounts <- matrix(0,nrow = nMutations, ncol = 0)
+  totalReadCounts <- matrix(0,nrow = nMutations, ncol = 0)
   for (j in 1:nClusters){
-    wildtypeReadCounts <- cbind(wildtypeReadCounts,counts[,4+2*j-1])
+    totalReadCounts <- cbind(totalReadCounts,counts[,4+2*j-1])
   }
   
   
-  totalReadCounts <- mutatedReadCounts + wildtypeReadCounts
+  wildtypeReadCounts <-  totalReadCounts - mutatedReadCounts
   
   
   mutatedReadCounts <- mutatedReadCounts %>% t() %>% as.data.frame() %>% as.list()
@@ -470,7 +549,7 @@ load_data <- function(inputFolder, treeName){
     mutate(single_cell = !(duplicated(Cluster)) & !(duplicated(Cluster, fromLast = TRUE)))
   
   
-  annotations <- read_delim('../../input_folder/filtered/CGI/LM2_cgi/alterations.tsv', delim = '\t')  
+#  annotations <- read_delim('../../input_folder/filtered/CGI/LM2_cgi/alterations.tsv', delim = '\t')  
   
   return(list("postSampling" = postSampling, "nClusters" = nClusters,
               "clusterID" = ClusterID, "nCells" = nCells,
@@ -480,7 +559,7 @@ load_data <- function(inputFolder, treeName){
               "totalReadCounts" = totalReadCounts, "wbcStatus" = wbcStatus,
               "sample_description" = sample_description,
               "mutationDescription" = mutationDescription,
-              "annotations" = annotations,
+#              "annotations" = annotations,
               "sampleName" = treeName, "directory" = inputFolder))
 }
 
@@ -584,9 +663,14 @@ load_monoclonal_pairs <- function(inputFolder, treeName, cutoff = ""){
     }
     if(iterator == number_of_output_pairs) break
   }
+  if(length(unique(sort(candidate_index)))!=0){
+    distance_matrix2 <- distance_matrix[unique(sort(candidate_index)),unique(sort(candidate_index))]  
+    colnames(distance_matrix2) <- data2[unique(sort(candidate_index)),1]$X1
+  }
+  else{
+    distance_matrix2 <- 0
+  }
   
-  distance_matrix2 <- distance_matrix[unique(sort(candidate_index)),unique(sort(candidate_index))]
-  colnames(distance_matrix2) <- data2[unique(sort(candidate_index)),1]$X1
   
   distance_matrix <- as.data.frame(distance_matrix)
   colnames(distance_matrix) <- data2$X1
