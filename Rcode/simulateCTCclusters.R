@@ -9,7 +9,7 @@ library(boot)
 #Config
 ############
 inputFolder <- "../../input_folder"
-treeName <- "Br16_B"
+treeName <- "Br46"
 
 
 input <- load_data(inputFolder, treeName)
@@ -30,14 +30,17 @@ input <- load_data(inputFolder, treeName)
 #totalReadCountVector <- totalReadCounts %>% unlist()
 
 
+sum(totalReadCountVector == 0)/length(totalReadCountVector)
 
 #fit1 <- glm(totalReadCountVector ~ 1, family = poisson(link = 'log'))
-#fit2 <- glm.nb(totalReadCountVector ~ 1)
-#fit3 <- zeroinfl(totalReadCountVector ~1, dist = 'negbin')
+fit2 <- glm.nb(totalReadCountVector ~ 1)
+fit3 <- zeroinfl(totalReadCountVector ~1, dist = 'negbin')
 #fit4 <- zeroinfl(totalReadCountVector ~1, dist = 'poisson')
 
 #summary(fit1)
-#summary(fit2)
+summary(fit2)
+summary(fit3)
+#summary(fit4)
 #exp(coef(fit))
 #coef(fit2)
 
@@ -52,26 +55,29 @@ input <- load_data(inputFolder, treeName)
 #summary(fit4)
 
 
-#simNew <- ifelse(rbinom(length(totalReadCountVector), size = 1, prob = exp(coef(fit3))[2]) > 0,
-#                 0, rnegbin(length(totalReadCountVector), exp(coef(fit3))[1], theta = exp(-0.76961)))
+#sim() <- 
 
-#sim <- data.frame(sim = vector(), run = vector())
 
-#for(i in 1:100){
+simNew <- ifelse(rbinom(length(totalReadCountVector), size = 1, prob = exp(coef(fit3))[2]) > 0,
+                 0, rnegbin(length(totalReadCountVector), exp(coef(fit3))[1], theta = exp(-0.76961)))
+
+sim <- data.frame(sim = vector(), run = vector())
+
+for(i in 1:100){
+  simNew <- ifelse(rbinom(length(totalReadCountVector), size = 1, prob = exp(coef(fit3))[2]) > 0,
+                   0, rnegbin(length(totalReadCountVector), exp(coef(fit3))[1], theta = exp(-0.76961)))
   
-#  simNew <- ifelse(rbinom(length(totalReadCountVector), size = 1, prob = exp(coef(fit3))[2]) > 0,
-#                   0, rnegbin(length(totalReadCountVector), exp(coef(fit3))[1], theta = exp(-0.76961)))
-  
-#  sim <- rbind(sim, data.frame(sim = simNew, run = i))
-#}
+  #simNew <- rnegbin(length(totalReadCountVector), exp(coef(fit2)), theta = 0.9222)
+  sim <- rbind(sim, data.frame(sim = simNew, run = i))
+}
 
 
-#sim <- rbind(sim, data.frame(sim = totalReadCountVector, run = 0))
+sim <- rbind(sim, data.frame(sim = totalReadCountVector, run = 0))
 
-#sim %>%
- # ggplot(aes(x = sim, group = run)) + 
-  #geom_histogram(data = sim[sim$run == 0,], alpha = 0.4, color = 'darkseagreen', fill = 'darkseagreen') +
-#  geom_freqpoly(data = sim[sim$run != 0,], aes(x = sim), color = 'red', position = 'identity', alpha = 0.4)
+sim %>%
+  ggplot(aes(x = sim, group = run)) + 
+  geom_histogram(data = sim[sim$run == 0,], alpha = 0.4, color = 'darkseagreen', fill = 'darkseagreen') +
+  geom_freqpoly(data = sim[sim$run != 0,], aes(x = sim), color = 'red', position = 'identity', alpha = 0.4)
 
 
 
@@ -80,17 +86,27 @@ input <- load_data(inputFolder, treeName)
 #' Fits a zero inflated negative binomial distribution to the total read count data.
 #'
 #' @param input The loaded dataset
+#' @param zeroInfl If this boolean value is FALSE, then a negative binomial is fit to the data
+#' 
 #'
-#' @return The parameters of the distribution.
+#' @return The parameters of the distribution. If zeroInfl is false, then the zero probability
+#' is set to 0.
 #' @export
 #'
 #' @examples
-fitReadCountDistribution <- function(input){
+fitReadCountDistribution <- function(input, zeroInfl = TRUE){
   totalReadCounts <- input$totalReadCounts
   sampleDescription <- input$sample_description
   totalReadCountVector <- totalReadCounts %>% unlist()
-  fit <- zeroinfl(totalReadCountVector ~1, dist = 'negbin')
-  return(list(zeroProb = inv.logit(summary(fit)$coefficients$zero[1]), theta = exp(summary(fit)$coefficients$count[2,1]), expValue = exp(summary(fit)$coefficients$count[1,1]) ))
+  
+  if(zeroInfl == TRUE){
+    fit <- zeroinfl(totalReadCountVector ~ 1, dist = 'negbin')  
+    return(list(zeroProb = inv.logit(summary(fit)$coefficients$zero[1]), theta = exp(summary(fit)$coefficients$count[2,1]), expValue = exp(summary(fit)$coefficients$count[1,1]) ))
+  }
+  else{
+   fit <-  glm.nb(totalReadCountVector ~ 1)
+   return(list(zeroProb = 0, theta = summary(fit)$theta, expValue = exp(coef(fit))) )
+  }
 }
 
 
@@ -132,7 +148,7 @@ simulateReads <- function(nWildtypeAlleles,nMutatedAlleles, dropoutRate, errorRa
   
   #draw from a negative-binomial to simulate the total read count
   isZero <- rbinom(1, size = 1, p = readCountFit$zeroProb)
-  if(isZero == 0){
+  if(isZero == TRUE){
     nReads <- 0
   }
   else{
@@ -240,18 +256,20 @@ getGenotypeMatrix <- function(nTreeSamplingEvents = 100, input){
 #' @param dropoutRate The dropout rate to assume for the simulation
 #' @param errorRate The error rate to assume for the simulation
 #' @param seed Set a seed for reproducibility
+#' @param zeroInflated If this boolean vector is false, then the total read count will be
+#' sampled from a negative binomial and not a zero-inflated negative binomial
 #'
 #' @return No return, but a "samples_nodeDescription.tsv and .txt file are written to
 #' disk.
 #' @export
 #'
 #' @examples
-simulateCTCclusters <- function(samplingSize, clusterSizeVector, input, output_directory, dropoutRate = 0.3, errorRate = 0.001, seed = 123){
+simulateCTCclusters <- function(samplingSize, clusterSizeVector, input, output_directory, dropoutRate = 0.3, errorRate = 0.001, seed = 123, zeroInflated = TRUE){
   set.seed(seed)
   color_palette <- list("orchid", "orchid1", "orchid2", "orchid3", "orchid4", "darkorchid", "darkorchid1","darkorchid2", "darkorchid3", "darkorchid4", "purple", "purple1", "purple2", "purple3", "purple4")
   
   
-  fit <- fitReadCountDistribution(input)
+  fit <- fitReadCountDistribution(input, zeroInfl = zeroInflated)
   
   print("Calling genotypes")
   genotypes <- getGenotypeMatrix(nTreeSamplingEvents = samplingSize, input = input)
@@ -316,11 +334,11 @@ simulateCTCclusters <- function(samplingSize, clusterSizeVector, input, output_d
 
    
 #c("Br11",  "Br16_AC_max2",  "Br16_AC_max3",  "Br16_AC_max4",  "Br16_B_max1",  "Br16_B_max2",  "Br16_B_max3",  "Br16_B_max4",  "Br16_C_max1",  "Br16_C_max2",  "Br16_C_max3",  "Br23",  "Br26",  "Br30",  "Br37",  "Br38",  "Br39",  "Br44",  "Br45",  "Br46",  "Br53", "Br57", "Brx50", "Lu2", "Lu7", "Ov8", "Pr6", "Pr9")
-tree <- "Ov8"
+tree <- "Br44"
   treeName <- tree
   print(paste("Running simulation for",tree))
   input <- load_data(inputFolder, treeName)
-  simulateCTCclusters(samplingSize = 100, clusterSizeVector = c(0,0,3, 0, 0), input, output_directory = "../../input_folder/test", dropoutRate =  0.35, errorRate = 0.0015, seed = 123)
+  simulateCTCclusters(samplingSize = 100, clusterSizeVector = c(0,0,3, 0, 0), input, output_directory = "../../simulations/simulations2", dropoutRate =  0.35, errorRate = 0.0015, seed = 124, zeroInflated = TRUE)
 
 
   
