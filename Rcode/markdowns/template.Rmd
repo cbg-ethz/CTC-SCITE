@@ -1,0 +1,168 @@
+---
+title: "__tree__"
+author: "Johannes Gawron"
+date: "2024-02-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Splitting statistics
+
+This code analyses splitting statistics for CTC-clusters.
+
+The analysis takes a list of trees sampled from its posterior distribution as input and samples mutations placements for each of the trees.
+
+
+## Configure the script
+```{r config}
+inputFolder <- "../../../input_folder"
+treeName <- __tree__
+```
+
+## Loading data
+```{r load}
+source("functions.R")
+
+
+input <- load_data(inputFolder, treeName)
+
+postSampling <- input$postSampling
+nClusters <- input$nClusters
+ClusterID <- input$clusterID
+nCells <- input$nCells  
+nMutations <- input$nMutations
+nClusters <- input$nClusters
+alleleCount <- input$alleleCount
+mutatedReadCounts <- input$mutatedReadCounts
+totalReadCounts <- input$totalReadCounts
+sampleDescription <- input$sample_description
+```
+
+## Sample description 
+
+Each row corresponds to a cell.
+Column description:
+  - Cluster: An number indicating which sample the cell belongs to.
+  - ClusterName: The name of the sample in the nodeDescription.tsv file
+  - WBC: a binary vector indicating whether the cell is a white blood cell (1) or not (0).
+  - color: Indicates the color of the cluster in the tree, as described in the nodeDescription.tsv
+          file.
+  
+```{r Describe samples}
+print(sampleDescription)
+```
+
+
+Some of the mutations are mutated in none of the samples.
+
+(This applies to the splitted Br16 samples.)
+
+
+```{r filter out mutations that are not present in the dataset}
+totalReadCounts <- totalReadCounts[(mutatedReadCounts %>% sapply(function(x){sum(x!=0)})) > 0]
+mutatedReadCounts <- mutatedReadCounts[(mutatedReadCounts %>% sapply(function(x){sum(x!=0)})) > 0]
+nMutations <- length(totalReadCounts)
+```
+
+
+
+
+
+## Null distributions
+
+To get a grasp of the null distribution of cluster splits, we will have a look at 
+  - the splitting statistics for single cells
+  - simulated CTC clusters that contain the aggregated read counts of the single cells
+  where these single cells have the same or a similar genotype according to the mutation
+  call using the genotype calls from Monovar.
+Similar means that their genetic distance does not exceed the threshold (which is chosen to be 1).
+
+The plot shows a histogram of all genetic distances and draws a vertical line for
+the 1%-quantile. This was the original (but now discarded) threshold, and the plot
+is only kept for legacy reasons.
+
+The Hamming distance is chosen.
+
+```{r identify candidates for monoclonal pairs}
+candidate_pairs <- load_monoclonal_pairs(inputFolder, treeName, cutoff = 1)
+print(candidate_pairs$monoclonal_pairs)
+print(candidate_pairs$distance_matrix)
+```
+
+
+```{r identify genetically identical cells}
+monoclonal_pairs <- lapply(candidate_pairs$monoclonal_pairs, FUN = function(x){return(c(substr(x[1], start = 1, stop = nchar(x[1])-14),  substr(x[2], start = 1, stop = nchar(x[2])-14)))})
+```
+
+Filter out sample identities that refer to white blood cells or CTC clusters instead of cells.
+
+
+```{r}
+KEEP <- vector()
+for(pair in monoclonal_pairs){
+  keep <- TRUE
+  for (i in 1:2){
+    if(nrow(sampleDescription[sampleDescription$ClusterName == pair[i],])>1){
+      keep <- FALSE
+    }
+    else{
+      if(sampleDescription$WBC[1] == TRUE){
+          keep <- FALSE
+        }
+      }
+  }
+  KEEP <- c(KEEP,keep)
+}
+monoclonal_pairs <- monoclonal_pairs[KEEP]
+```
+
+
+The following computes baseline distance histograms for single cells in the tree.
+Note that the list of monoclonal pairs might be empty in which case an empty
+plot is depicted.
+
+```{r baseline distance distributions}
+
+nTreeSamplingEvents <- 100
+nMutationSamplingEvents <- 100
+
+
+distance <- computeClusterSplits(sampleDescription, postSampling, treeName, nCells,
+                     nMutations, nClusters,
+                     alleleCount,
+                     mutatedReadCounts, totalReadCounts,
+                     nMutationSamplingEvents = nMutationSamplingEvents, nTreeSamplingEvents = nTreeSamplingEvents, cellPairSelection = monoclonal_pairs)
+
+```
+
+
+
+## Splitting statistics
+Now I am going through all clusters and comparing all tumour cells within a cluster
+with each other.
+This is done by
+  - going through all sampled tree
+  - for each of the trees sample mutation placements from the posterior distribution
+  - for each tree with mutation placement compute the evolutionary distance of the two 
+    cells
+  - This will result in a histogram of evolutionary distances for each pair of
+    sampled cells. We report the median of this histogram.
+    
+Two parameters can be tuned: The number of sampled trees and the number of mutation
+placements sampled for each of the trees.
+
+```{r Compute the splitting statistics}
+
+
+distance <- computeClusterSplits(sampleDescription, postSampling, treeName, nCells,
+                     nMutations, nClusters,
+                     alleleCount,
+                     mutatedReadCounts, totalReadCounts,
+                     nMutationSamplingEvents = nMutationSamplingEvents, nTreeSamplingEvents = nTreeSamplingEvents)
+```
+
+
+
