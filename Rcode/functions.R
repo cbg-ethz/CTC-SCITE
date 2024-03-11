@@ -237,10 +237,10 @@ produce_Distance_Posterior <- function(leaf1, leaf2,postSampling, treeName,nCell
       plot(
         ggplot(data, aes(x = StatisticsOfMutationPlacement)) +
           geom_histogram(bins = 10, fill = "skyblue", color = "skyblue", alpha = 0.7)+ 
-          xlab("Maximal probability of branching evolution") + ylab("total count") +
+          xlab("S") + ylab("total count") +
           ggtitle("Posterior sampling of branching probabilites") +
           geom_vline(xintercept = mean(StatisticsOfMutationPlacement),color = "blue", linetype = "dashed", linewidth = 1) +
-          labs(subtitle = sprintf("Tree %s - %s", treeName, clusterName),caption = "mean indicated by dashed red line") +
+          labs(subtitle = sprintf("Tree %s - %s", treeName, clusterName),caption = "mean indicated by dashed blue line") +
           theme_minimal() +
           theme(
             plot.title = element_text(size = 20, face = "bold"),

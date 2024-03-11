@@ -1,2 +1,5 @@
 slurm*
 .Rproj.user
+Rcode/markdowns/*
+!Rcode/markdowns/template.Rmd
+

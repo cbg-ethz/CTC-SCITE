@@ -9,13 +9,16 @@ import argparse
 
 PATH_TO_EXECUTABLE  =  "./CTC_SCITE_katharina/CTC_SCITE" # path to CTC-SCITE executable
 
+parser = argparse.ArgumentParser(description="Run CTC-SCITE of the specified samples")
+parser.add_argument('-i','--input', nargs='+', help='Add one or more input names', required=True)
+args = parser.parse_args()
 
 
 lengths =[1000000] # [500000] #, 1000000]
 lengthNames = {'500000': '500K', '1000000': '1M'}
-pathName = "../simulations"
-caseList = ['Br11']#, 'Br16_AC_max2',  'Br16_AC_max3',  'Br16_AC_max4', 'Br16_B_max2', 'Br16_B_max3',  'Br16_B_max4', 'Br16_C_max1',  'Br16_C_max2', 'Br16_C_max3', 'Br23',  'Br26',  'Br30',  'Br38',  'Br39',  'Br57', 'Brx50', 'Lu2',  'Lu7', 'Ov8', 'Pr6', 'Br16_AC', 'Br16_B', 'Br16_C', 'Pr9', 'LM2', 'Br61', 'Br7']
-#caseList = ['Ov8']
+pathName = "../simulations/simulations2/"
+#caseList = ['Br11', 'Br16_AC', 'Br16_AC_max2',  'Br16_AC_max3',  'Br16_AC_max4', 'Br16_B', 'Br16_B_max2', 'Br16_B_max3',  'Br16_B_max4', 'Br16_C',  'Br16_C_max2', 'Br16_C_max3', 'Br23',  'Br26',  'Br38',  'Br39',  'Br57', 'Brx50', 'Lu2', 'Pr6', 'Pr9', 'LM2', 'Br61', 'Br7']
+caseList = args.input
 
 
 baseList = [os.path.join(pathName, x, x) for x in caseList]
@@ -27,7 +30,7 @@ for i in [1,2,3,4,5,6,7,8,9,10]:
     for l in lengths:
         for base in baseList:
             seed = random.randint(0, 32767)
-            run_command ="sbatch --time=96:00:00  --mem-per-cpu=20G --wrap='"
+            run_command ="sbatch --time=96:00:00  --mem-per-cpu=2G --wrap='"
             run_command += PATH_TO_EXECUTABLE + " "
             run_command += "-i "   + base   + ".txt" + " "
             run_command += "-r 1 "
