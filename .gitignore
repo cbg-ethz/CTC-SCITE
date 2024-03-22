@@ -1,5 +1,6 @@
 slurm*
 .Rproj.user
 Rcode/markdowns/*
+Rcode/*.html
 !Rcode/markdowns/template.Rmd
 

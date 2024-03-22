@@ -152,11 +152,12 @@ for(clusterSize in 2:5){
         nOligoclonalClusters1 <- nOligoclonalClusters1 + 1
         oligoclonal <- TRUE
       }
+      splittingSummary1 <- rbind(splittingSummary1, data.frame(Color = color, Oligoclonal = oligoclonal, ClusterSize = clusterSize))
+      oligoclonal <- FALSE
       if(branchingProbs > cutoffsBranchingProbabilities[(cutoffsBranchingProbabilities$clusterSize == clusterSize), 2]){
         nOligoclonalClusters2 <- nOligoclonalClusters2 + 1
         oligoclonal <- TRUE
       }
-      splittingSummary1 <- rbind(splittingSummary1, data.frame(Color = color, Oligoclonal = oligoclonal, ClusterSize = clusterSize))
       splittingSummary2 <- rbind(splittingSummary2, data.frame(Color = color, Oligoclonal = oligoclonal, ClusterSize = clusterSize))
     }
   })

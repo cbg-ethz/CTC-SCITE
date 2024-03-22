@@ -210,7 +210,7 @@ std::string runMCMCnew(int noOfReps, int noOfLoops, double gamma_, vector<double
         	}
 
         	bool isAcceptedMove = false;                               // Is the MCMC move accepted?
-        	bool moveChangesParams = changeSeqErr(moveProbs[0]);        // true if this move changes beta, not the tree
+        	bool moveChangesParams = changeSeqErr(moveProbs[0]);        // true if this move changes theta, not the tree
 
         	if(moveChangesParams){                     // new theta is proposed, log scores change, tree is copy of current tree
         		//cout << "change params\n";

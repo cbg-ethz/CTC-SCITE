@@ -8,8 +8,8 @@ library(boot)
 ############
 #Config
 ############
-inputFolder <- "../../input_folder"
-treeName <- "Br46"
+inputFolder <- "../../projects/CTC_backup/input_folder"
+treeName <- "Br23"
 
 
 input <- load_data(inputFolder, treeName)
@@ -247,6 +247,18 @@ getGenotypeMatrix <- function(nTreeSamplingEvents = 100, input){
 
 
 #' Creates the input dataset for CTC-SCITE run with simulated CTC-clusters.
+#'  
+#' For the simulation, the follwing steps were performed:
+#' 1. A zero-inflated negative binomial distribution is fit to the total read counts of a sample.
+#' 2. For a new cell cluster, total read counts for each genomic position are sampled from the distribution fit in (1).
+#' 3. For each mutation size:
+#'    a) the total number of alleles is set to 2*(the number of cells in simulated cluster). The number of
+#'       of mutated alleles is set to 0 (unmutated) or number of cells in the clustser (one mutated allele in each cell)
+#'    b) Each of the alleles is removed at the dropout rate.
+#'    c) The number of mutated reads are drawn from a beta-binomial distribution with alpha=mutated alleles, beta=non-mutated alleles, and n = total read count
+#'    d) Each of the mutated reads is changed to non-mutated and vice versa at the error rate.
+#'
+#'
 #'
 #' @param samplingSize number of trees to determine the genotype of individual cells.
 #' To be passed to getGenotypeMatrix.
