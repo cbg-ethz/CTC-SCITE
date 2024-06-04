@@ -3,4 +3,4 @@ slurm*
 Rcode/markdowns/*
 Rcode/*.html
 !Rcode/markdowns/template.Rmd
-
+workflow/.snakemake

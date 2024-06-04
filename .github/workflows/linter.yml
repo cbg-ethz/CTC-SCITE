@@ -1,0 +1,55 @@
+---
+name: Lint Code Base
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  linter:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash -l {0}
+    
+    permissions:
+      contents: read
+      packages: read
+      # To report GitHub Actions status checks
+      statuses: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+     
+          #      - name: Install conda environment dependencies
+          #        uses: conda-incubator/setup-miniconda@v2
+          #        with:
+          #          miniforge-version: latest
+          #          miniforge-variant: Mambaforge
+          #          mamba-version: "*"
+          #          channels: conda-forge,bioconda
+          #          channel-priority: strict
+          #          activate-environment: JupyText
+          #          auto-update-conda: true
+          #          environment-file: tests/conda_snk_env.yaml
+
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.12'
+  #         architecture: 'x64'
+
+      - name: Super-linter
+        uses: super-linter/super-linter@v6.4.1 
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          DEFAULT_BRANCH: main
+
+          VALIDATE_SNAKEMAKE_SNAKEFMT: true
+          #VALIDATE_SNAKEMAKE_LINT: true
+          VALIDATE_R: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
