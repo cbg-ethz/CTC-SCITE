@@ -1,0 +1,22 @@
+from pathlib import Path
+
+SAMPLES = config['sample']
+PROJECT_DIR = Path(workflow.basedir).parent
+SCRIPT_DIR = Path(workflow.basedir) / 'scripts'
+RESOURCES_DIR = Path(workflow.basedir) / 'resources'
+markdown_helper_functions = (RESOURCES_DIR / 'functions.R').resolve().as_posix().replace('/', '\\/')
+print(markdown_helper_functions)
+
+######Rules######
+include: 'rules/base.smk'
+
+
+
+all_files = []
+for sample in SAMPLES:
+    all_files.append((PROJECT_DIR / 'data' / 'htmls' / f'{sample}.html').resolve())
+
+
+rule all:
+    input:
+        all_files

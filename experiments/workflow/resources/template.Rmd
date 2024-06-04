@@ -1,0 +1,157 @@
+---
+title: "__tree__"
+author: "__author__"
+date: "__date__"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Splitting statistics
+
+This code analyses splitting statistics for CTC-clusters.
+
+The analysis takes a list of trees sampled from its posterior distribution as input and samples mutations placements for each of the trees.
+
+
+## Configure the script
+```{r config}
+inputFolder <- "/Users/jgawron/Documents/projects/CTC_backup/input_folder"
+simulationInputFolder <- "/Users/jgawron/Documents/projects/CTC_backup/simulations/simulations2"
+treeName <- "__tree__"
+nTreeSamplingEvents <- __nSamplingEvents__
+nMutationSamplingEvents <- __nSamplingEvents__
+```
+
+## Loading data
+```{r load}
+quiet(source("__functionsScript__"))
+
+
+input <- quiet(load_data(inputFolder, treeName))
+```
+
+
+## Sample description 
+
+Each row corresponds to a cell.
+Column description:
+  - Cluster: An number indicating the sample the cell belongs to.
+  - ClusterName: The name of the sample in the nodeDescription.tsv file
+  - WBC: a binary vector indicating whether the cell is a white blood cell (1) or not (0).
+  - color: Indicates the color of the cluster in the tree, as described in the nodeDescription.tsv
+          file.
+  
+```{r Describe samples}
+print(sampleDescription)
+```
+
+
+
+## General overview
+We sample __nSamplingEvents__ many trees.
+
+For each pair of cells in the same cluster and each sampled tree we compute the splitting score, that is, the probability that the two cells have experienced divergent evolution. A low splitting score (close to 0) indicates that the two cells are likely genealogically closely related, while a high splitting score (close to 1) indicates that the two cells have evolved in a divergent manner.
+
+Throughout the sampling of trees, this gives rise to an empirical distribution of splitting scores for each pair of cells in the same cluster. Intuitively, this distribution takes into account the uncertainty in the tree estimation.
+To be able to interpret the splitting score appropriately (e.g. to answer the question when is a splitting score is high enough to call oligo-clonality) we need to calibrate our expectations.
+
+We do this by assessing the distributions of splitting scores when we know that the clusters is mono-clonal.
+To this end, we simulate reference and alternative read count data of monoclonal clusters of different sizes (2,3,4 and 5-cell clusters) and add these to the original dataset, run the tree inference algorithm and compute the splitting score distributions for all pairs of cells in the same cluster. To ensure that the simulated data does not confound the tree inference too much, we do this one cluster at a time.
+
+For each simulated cluster we pick one pair of cells and printed the splitting score distribution below. With high number of sampled trees, the distributions of all pairs of cells from the same cluster are very similar, since the model treats all cells from the same cluster as interchangeable.
+
+Finally, we print the empirical distribution of the the splitting scores for all clusters of the same size.
+
+The latter is used to specify the cutoff for oligo-clonality: It is defined as the 95%-percentile of the aggregated distribution of splitting scores.
+
+
+```{r}
+cutoffsSplittingProbs <- data.frame(clusterSize = vector(), Cutoff = vector())
+cutoffsBranchingProbabilities <- data.frame(clusterSize = vector(), Cutoff = vector())
+
+for (clusterSize in 2:5){
+  try(
+  {treeNameSimulated <- paste(treeName, clusterSize, sep = '_')
+
+
+  inputSimulated <- quiet(load_data(simulationInputFolder, treeNameSimulated))
+
+  sampleDescriptionSimulated <- inputSimulated$sample_description
+  
+  distance <- computeClusterSplits(inputSimulated$sample_description, inputSimulated$postSampling, treeNameSimulated, inputSimulated$nCells,
+                     inputSimulated$nMutations, inputSimulated$nClusters,
+                     inputSimulated$alleleCount,
+                     inputSimulated$mutatedReadCounts, inputSimulated$totalReadCounts,
+                     nMutationSamplingEvents = nMutationSamplingEvents, nTreeSamplingEvents = nTreeSamplingEvents,
+                     cellPairSelection = c("orchid", "orchid1", "orchid2",
+                                           "orchid3", "orchid4", "darkorchid",
+                                           "darkorchid1","darkorchid2", "darkorchid3",
+                                           "darkorchid4", "purple", "purple1",
+                                           "purple2", "purple3", "purple4"))
+
+  
+  cutoffsSplittingProbs <- rbind(cutoffsSplittingProbs, data.frame(clusterSize = clusterSize, Cutoff = mean(distance$splittingProbs$Splitting_probability) + 2 * sd(distance$splittingProbs$Splitting_probability) ))
+
+  plot(ggplot(data.frame(x = distance$aggregatedBranchingProbabilities), aes(x = x)) +
+    geom_histogram(binwidth = 0.01))
+  cutoffsBranchingProbabilities <- rbind(cutoffsBranchingProbabilities, data.frame(clusterSize = clusterSize, Cutoff = quantile(distance$aggregatedBranchingProbabilities, probs = 0.95, names = FALSE)[1] ))
+  })
+}
+print(cutoffsBranchingProbabilities)
+```
+
+
+
+Now we can compute the aggregated splitting score distributions for each cluster. The distribution's mean is compared to the cutoffs computed above, and if it is higher than the cutoff, we call the cluster oligo-clonal.
+
+```{r}
+nTumorClusters <- 0
+nOligoclonalClusters2 <- 0
+splittingSummary2 <- data.frame(Color = vector(), Oligoclonal = vector(), ClusterSize = vector())
+
+for(clusterSize in 2:5){
+  try({
+    clusterColor <- sampleDescription %>%
+    filter(WBC ==0 &  color != 'gray93') %>%
+    group_by(color) %>%
+    filter(n() == clusterSize) %>%
+    pull(color) %>%
+    unique() 
+    
+    for(color in clusterColor){
+      distance <- computeClusterSplits(input$sample_description, input$postSampling, treeName, input$nCells,
+                     input$nMutations, input$nClusters,
+                     input$alleleCount,
+                     input$mutatedReadCounts, input$totalReadCounts,
+                     nMutationSamplingEvents = nMutationSamplingEvents, nTreeSamplingEvents = nTreeSamplingEvents,
+                     cellPairSelection = c(color))
+
+      splittingProbs <- mean(distance$splittingProbs$Splitting_probability)
+      branchingProbs <- mean(distance$aggregatedBranchingProbabilities)
+    
+      nTumorClusters <- nTumorClusters + 1
+      oligoclonal <- FALSE
+
+      if(branchingProbs > cutoffsBranchingProbabilities[(cutoffsBranchingProbabilities$clusterSize == clusterSize), 2]){
+        nOligoclonalClusters2 <- nOligoclonalClusters2 + 1
+        oligoclonal <- TRUE
+      }
+      splittingSummary2 <- rbind(splittingSummary2, data.frame(Color = color, Oligoclonal = oligoclonal, ClusterSize = clusterSize))
+    }
+  })
+}
+
+
+numberOfCancerClusters <- sampleDescription %>%
+    filter(WBC ==0 &  color != 'gray93') %>%
+    group_by(color) %>%
+    filter(n() > 1) %>%
+    pull(color) %>%
+    unique() %>% length() 
+
+print(sprintf('%d out of %d clusters were found to be oligoclonal in %s, using method 2', nOligoclonalClusters2, numberOfCancerClusters, treeName))
+print(splittingSummary2)
+```
