@@ -7,3 +7,5 @@ experiments/.snakemake/*
 .Rapp.history
 *.Rhistory
 experiments/data/markdowns/
+experiments/data/htmls/*files
+experiments/logs/

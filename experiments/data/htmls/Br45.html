@@ -11,7 +11,7 @@
 
 <meta name="author" content="Johannes Gawron" />
 
-<meta name="date" content="2024-05-10" />
+<meta name="date" content="2024-06-06" />
 
 <title>Br45</title>
 
@@ -352,7 +352,7 @@ display: none;
 
 <h1 class="title toc-ignore">Br45</h1>
 <h4 class="author">Johannes Gawron</h4>
-<h4 class="date">2024-05-10</h4>
+<h4 class="date">2024-06-06</h4>
 
 </div>
 
@@ -361,8 +361,10 @@ display: none;
 <h2>Splitting statistics</h2>
 <p>This code analyses splitting statistics for CTC-clusters.</p>
 <p>The analysis takes a list of trees sampled from its posterior
-distribution as input and samples mutations placements for each of the
-trees.</p>
+distribution as input and computes the mutations placement probability
+distribution for each oneof them. From this distribution we derive a
+score that quantifies the probability that two cells have experienced
+divergent evolution. This score is called the splitting score.</p>
 </div>
 <div id="configure-the-script" class="section level2">
 <h2>Configure the script</h2>
@@ -375,19 +377,19 @@ nMutationSamplingEvents &lt;- 1000</code></pre>
 <div id="loading-data" class="section level2">
 <h2>Loading data</h2>
 <pre class="r"><code>source(&quot;/Users/jgawron/Documents/projects/CTC-SCITE/CTC-SCITE/experiments/workflow/resources/functions.R&quot;)</code></pre>
-<pre><code>## ── Attaching core tidyverse packages ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──
+<pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
 ## ✔ dplyr     1.1.4     ✔ readr     2.1.5
 ## ✔ forcats   1.0.0     ✔ stringr   1.5.1
 ## ✔ ggplot2   3.5.1     ✔ tibble    3.2.1
 ## ✔ lubridate 1.9.3     ✔ tidyr     1.3.1
 ## ✔ purrr     1.0.2     
-## ── Conflicts ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 ## ✖ dplyr::filter() masks stats::filter()
 ## ✖ dplyr::lag()    masks stats::lag()
 ## ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
 <pre class="r"><code>input &lt;- load_data(inputFolder, treeName)</code></pre>
 <pre><code>## Rows: 40000 Columns: 5
-## ── Column specification ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;\t&quot;
 ## chr (1): Tree
 ## dbl (4): LogScore, SequencingErrorRate, DropoutRate, LogTau
@@ -395,7 +397,7 @@ nMutationSamplingEvents &lt;- 1000</code></pre>
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 ## Rows: 4 Columns: 16
-## ── Column specification ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;\t&quot;
 ## chr  (3): X1, X3, X4
 ## dbl (13): X2, X5, X6, X7, X8, X9, X10, X11, X12, X13, X14, X15, X16
@@ -403,33 +405,23 @@ nMutationSamplingEvents &lt;- 1000</code></pre>
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 ## Rows: 6 Columns: 5
-## ── Column specification ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;\t&quot;
 ## chr (2): Cluster, Description
 ## dbl (3): CellCount, TCs, WBCs
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>postSampling &lt;- input$postSampling
-nClusters &lt;- input$nClusters
-ClusterID &lt;- input$clusterID
-nCells &lt;- input$nCells  
-nMutations &lt;- input$nMutations
-nClusters &lt;- input$nClusters
-alleleCount &lt;- input$alleleCount
-mutatedReadCounts &lt;- input$mutatedReadCounts
-totalReadCounts &lt;- input$totalReadCounts
-sampleDescription &lt;- input$sample_description</code></pre>
 </div>
 <div id="sample-description" class="section level2">
 <h2>Sample description</h2>
 <p>Each row corresponds to a cell. Column description: - Cluster: An
-number indicating which sample the cell belongs to. - ClusterName: The
+number indicating the sample the cell belongs to. - ClusterName: The
 name of the sample in the nodeDescription.tsv file - WBC: a binary
 vector indicating whether the cell is a white blood cell (1) or not (0).
 - color: Indicates the color of the cluster in the tree, as described in
 the nodeDescription.tsv file.</p>
-<pre class="r"><code>print(sampleDescription)</code></pre>
+<pre class="r"><code>print(input$sample_description)</code></pre>
 <pre><code>##   Cluster ClusterName WBC      color single_cell
 ## 1       0  Br45_CTC_1   0     gray93        TRUE
 ## 2       1  Br45_CTC_2   0     gray93        TRUE
@@ -437,8 +429,41 @@ the nodeDescription.tsv file.</p>
 ## 4       3  Br45_CTC_4   0     gray93        TRUE
 ## 5       4  Br45_CTC_5   1 ghostwhite        TRUE
 ## 6       5  Br45_CTC_6   1 ghostwhite        TRUE</code></pre>
-<p>Get null distributions of relevant statistics, stratified by
-sample:</p>
+</div>
+<div id="general-overview" class="section level2">
+<h2>General overview</h2>
+<p>We sample 1000 trees.</p>
+<p>For each pair of cells in the same cluster and each sampled tree we
+compute the splitting score, that is, the probability that the two cells
+have experienced divergent evolution. A low splitting score (close to 0)
+indicates that the two cells are likely genealogically closely related,
+while a high splitting score (close to 1) indicates that the two cells
+have evolved in a divergent manner.</p>
+<p>Throughout the sampling of trees, this gives rise to an empirical
+distribution of splitting scores for each pair of cells in the same
+cluster. Intuitively, this distribution takes into account the
+uncertainty in the tree estimation. To be able to interpret the
+splitting score appropriately (e.g. to answer the question when is a
+splitting score is high enough to call oligo-clonality) we need to
+calibrate our expectations.</p>
+<p>We do this by assessing the distributions of splitting scores when we
+know that the clusters is mono-clonal. To this end, we simulate
+reference and alternative read count data of monoclonal clusters of
+different sizes (2,3,4 and 5-cell clusters) and add these to the
+original dataset, run the tree inference algorithm and compute the
+splitting score distributions for all pairs of cells in the same
+cluster. To ensure that the simulated data does not confound the tree
+inference too much, we do this one cluster at a time.</p>
+<p>For each simulated cluster we pick one pair of cells and printed the
+splitting score distribution below. With high number of sampled trees,
+the distributions of all pairs of cells from the same cluster are very
+similar, since the model treats all cells from the same cluster as
+interchangeable.</p>
+<p>Finally, we print the empirical distribution of the the splitting
+scores for all clusters of the same size.</p>
+<p>The latter is used to specify the cutoff for oligo-clonality: It is
+defined as the 95%-percentile of the aggregated distribution of
+splitting scores.</p>
 <pre class="r"><code>cutoffsSplittingProbs &lt;- data.frame(clusterSize = vector(), Cutoff = vector())
 cutoffsBranchingProbabilities &lt;- data.frame(clusterSize = vector(), Cutoff = vector())
 
@@ -449,21 +474,12 @@ for (clusterSize in 2:5){
 
   inputSimulated &lt;- load_data(simulationInputFolder, treeNameSimulated)
 
-  postSamplingSimulated &lt;- inputSimulated$postSampling
-  nClustersSimulated &lt;- inputSimulated$nClusters
-  ClusterIDSimulated &lt;- inputSimulated$clusterID
-  nCellsSimulated &lt;- inputSimulated$nCells  
-  nMutationsSimulated &lt;- inputSimulated$nMutations
-  nClustersSimulated &lt;- inputSimulated$nClusters
-  alleleCountSimulated &lt;- inputSimulated$alleleCount
-  mutatedReadCountsSimulated &lt;- inputSimulated$mutatedReadCounts
-  totalReadCountsSimulated &lt;- inputSimulated$totalReadCounts
   sampleDescriptionSimulated &lt;- inputSimulated$sample_description
   
-  distance &lt;- computeClusterSplits(sampleDescriptionSimulated, postSamplingSimulated, treeNameSimulated, nCellsSimulated,
-                     nMutationsSimulated, nClustersSimulated,
-                     alleleCountSimulated,
-                     mutatedReadCountsSimulated, totalReadCountsSimulated,
+  distance &lt;- computeClusterSplits(inputSimulated$sample_description, inputSimulated$postSampling, treeNameSimulated, inputSimulated$nCells,
+                     inputSimulated$nMutations, inputSimulated$nClusters,
+                     inputSimulated$alleleCount,
+                     inputSimulated$mutatedReadCounts, inputSimulated$totalReadCounts,
                      nMutationSamplingEvents = nMutationSamplingEvents, nTreeSamplingEvents = nTreeSamplingEvents,
                      cellPairSelection = c(&quot;orchid&quot;, &quot;orchid1&quot;, &quot;orchid2&quot;,
                                            &quot;orchid3&quot;, &quot;orchid4&quot;, &quot;darkorchid&quot;,
@@ -472,19 +488,10 @@ for (clusterSize in 2:5){
                                            &quot;purple2&quot;, &quot;purple3&quot;, &quot;purple4&quot;))
 
   
-
-  plot(ggplot(distance$splittingProbs, aes(x = &quot;Values&quot;, y = Splitting_probability, fill = &#39;Splitting_probability&#39;)) +
-    geom_boxplot())
   cutoffsSplittingProbs &lt;- rbind(cutoffsSplittingProbs, data.frame(clusterSize = clusterSize, Cutoff = mean(distance$splittingProbs$Splitting_probability) + 2 * sd(distance$splittingProbs$Splitting_probability) ))
-  
-  ##Note that the way the aggregatedBranchingProbabilities are computed all pairs of cells from the same cluster are
-  ## taken into account. This has the effect that clusters with more cells would be counted more often and contribute more
-  ## to the shape of the final distribution. This is no problem right now as we only aggregate counts from clusters
-  ## of the same size, it is however the potential source of a future bug!!
-  
+
   plot(ggplot(data.frame(x = distance$aggregatedBranchingProbabilities), aes(x = x)) +
     geom_histogram(binwidth = 0.01))
-  print(data.frame(clusterSize = clusterSize, Cutoff = quantile(distance$aggregatedBranchingProbabilities, probs = 0.95, names = FALSE)[1] ))
   cutoffsBranchingProbabilities &lt;- rbind(cutoffsBranchingProbabilities, data.frame(clusterSize = clusterSize, Cutoff = quantile(distance$aggregatedBranchingProbabilities, probs = 0.95, names = FALSE)[1] ))
   })
 }</code></pre>
@@ -492,17 +499,20 @@ for (clusterSize in 2:5){
 ## Error : &#39;/Users/jgawron/Documents/projects/CTC_backup/simulations/simulations2/Br45_3/Br45_3_postSampling.tsv&#39; does not exist.
 ## Error : &#39;/Users/jgawron/Documents/projects/CTC_backup/simulations/simulations2/Br45_4/Br45_4_postSampling.tsv&#39; does not exist.
 ## Error : &#39;/Users/jgawron/Documents/projects/CTC_backup/simulations/simulations2/Br45_5/Br45_5_postSampling.tsv&#39; does not exist.</code></pre>
-<p>Get the relevant statistics for each of the clusters of a dataset and
-output numbers of oligoclonal clusters:</p>
+<pre class="r"><code>print(cutoffsBranchingProbabilities)</code></pre>
+<pre><code>## [1] clusterSize Cutoff     
+## &lt;0 Zeilen&gt; (oder row.names mit Länge 0)</code></pre>
+<p>Now we can compute the aggregated splitting score distributions for
+each cluster. The distribution’s mean is compared to the cutoffs
+computed above, and if it is higher than the cutoff, we call the cluster
+oligo-clonal.</p>
 <pre class="r"><code>nTumorClusters &lt;- 0
-nOligoclonalClusters1 &lt;- 0
 nOligoclonalClusters2 &lt;- 0
-splittingSummary1 &lt;- data.frame(Color = vector(), Oligoclonal = vector(), ClusterSize = vector())
 splittingSummary2 &lt;- data.frame(Color = vector(), Oligoclonal = vector(), ClusterSize = vector())
 
 for(clusterSize in 2:5){
   try({
-    clusterColor &lt;- sampleDescription %&gt;%
+    clusterColor &lt;- input$sample_description %&gt;%
     filter(WBC ==0 &amp;  color != &#39;gray93&#39;) %&gt;%
     group_by(color) %&gt;%
     filter(n() == clusterSize) %&gt;%
@@ -510,26 +520,19 @@ for(clusterSize in 2:5){
     unique() 
     
     for(color in clusterColor){
-      distance &lt;- computeClusterSplits(sampleDescription, postSampling, treeName, nCells,
-                     nMutations, nClusters,
-                     alleleCount,
-                     mutatedReadCounts, totalReadCounts,
+      distance &lt;- computeClusterSplits(input$sample_description, input$postSampling, treeName, input$nCells,
+                     input$nMutations, input$nClusters,
+                     input$alleleCount,
+                     input$mutatedReadCounts, input$totalReadCounts,
                      nMutationSamplingEvents = nMutationSamplingEvents, nTreeSamplingEvents = nTreeSamplingEvents,
                      cellPairSelection = c(color))
 
       splittingProbs &lt;- mean(distance$splittingProbs$Splitting_probability)
       branchingProbs &lt;- mean(distance$aggregatedBranchingProbabilities)
-    
+      
       nTumorClusters &lt;- nTumorClusters + 1
       oligoclonal &lt;- FALSE
-      print(clusterSize)
-      print(cutoffsSplittingProbs[(cutoffsSplittingProbs$clusterSize == clusterSize), 2])
-      if(splittingProbs &gt; (cutoffsSplittingProbs[(cutoffsSplittingProbs$clusterSize == clusterSize), 2])){
-        nOligoclonalClusters1 &lt;- nOligoclonalClusters1 + 1
-        oligoclonal &lt;- TRUE
-      }
-      splittingSummary1 &lt;- rbind(splittingSummary1, data.frame(Color = color, Oligoclonal = oligoclonal, ClusterSize = clusterSize))
-      oligoclonal &lt;- FALSE
+
       if(branchingProbs &gt; cutoffsBranchingProbabilities[(cutoffsBranchingProbabilities$clusterSize == clusterSize), 2]){
         nOligoclonalClusters2 &lt;- nOligoclonalClusters2 + 1
         oligoclonal &lt;- TRUE
@@ -540,20 +543,15 @@ for(clusterSize in 2:5){
 }
 
 
-numberOfCancerClusters &lt;- sampleDescription %&gt;%
+numberOfCancerClusters &lt;- input$sample_description %&gt;%
     filter(WBC ==0 &amp;  color != &#39;gray93&#39;) %&gt;%
     group_by(color) %&gt;%
     filter(n() &gt; 1) %&gt;%
     pull(color) %&gt;%
     unique() %&gt;% length() 
 
-print(sprintf(&#39;%d out of %d clusters were found to be oligoclonal in %s, using method 1&#39;, nOligoclonalClusters1, numberOfCancerClusters, treeName))</code></pre>
-<pre><code>## [1] &quot;0 out of 0 clusters were found to be oligoclonal in Br45, using method 1&quot;</code></pre>
-<pre class="r"><code>print(sprintf(&#39;%d out of %d clusters were found to be oligoclonal in %s, using method 2&#39;, nOligoclonalClusters2, numberOfCancerClusters, treeName))</code></pre>
+print(sprintf(&#39;%d out of %d clusters were found to be oligoclonal in %s, using method 2&#39;, nOligoclonalClusters2, numberOfCancerClusters, treeName))</code></pre>
 <pre><code>## [1] &quot;0 out of 0 clusters were found to be oligoclonal in Br45, using method 2&quot;</code></pre>
-<pre class="r"><code>print(splittingSummary1)</code></pre>
-<pre><code>## [1] Color       Oligoclonal ClusterSize
-## &lt;0 Zeilen&gt; (oder row.names mit Länge 0)</code></pre>
 <pre class="r"><code>print(splittingSummary2)</code></pre>
 <pre><code>## [1] Color       Oligoclonal ClusterSize
 ## &lt;0 Zeilen&gt; (oder row.names mit Länge 0)</code></pre>

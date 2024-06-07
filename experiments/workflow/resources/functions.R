@@ -234,40 +234,44 @@ produce_Distance_Posterior <- function(leaf1, leaf2,postSampling, treeName,nCell
   
   tryCatch(
     expr = {
-      plot(
-        ggplot(data, aes(x = StatisticsOfMutationPlacement)) +
-          geom_histogram(bins = 10, fill = "skyblue", color = "skyblue", alpha = 0.7)+ 
-          xlab("S") + ylab("total count") +
-          ggtitle("Posterior sampling of branching probabilites") +
-          geom_vline(xintercept = mean(StatisticsOfMutationPlacement),color = "blue", linetype = "dashed", linewidth = 1) +
-          labs(subtitle = sprintf("Tree %s - %s", treeName, clusterName),caption = "mean indicated by dashed blue line") +
-          theme_minimal() +
-          theme(
-            plot.title = element_text(size = 20, face = "bold"),
-            axis.title.x = element_text(size = 18),
-            axis.title.y = element_text(size = 18),
-            plot.subtitle = element_text(size= 18),
-            axis.text = element_text(size = 16) 
-          )
-      ) 
+      histo <- ggplot(data, aes(x = StatisticsOfMutationPlacement)) +
+        geom_histogram(bins = 10, fill = "skyblue", color = "skyblue", alpha = 0.7)+ 
+        xlab("Splitting score") + ylab("total count") +
+        ggtitle("Posterior sampling of branching probabilites") +
+        geom_vline(xintercept = mean(StatisticsOfMutationPlacement),color = "blue", linetype = "dashed", linewidth = 1) +
+        labs(subtitle = sprintf("Tree %s - %s", treeName, clusterName)) +
+        theme_minimal() +
+        theme(
+          plot.title = element_text(size = 20, face = "bold"),
+          axis.title.x = element_text(size = 18),
+          axis.title.y = element_text(size = 18),
+          plot.subtitle = element_text(size= 18),
+          axis.text = element_text(size = 16) 
+        )
+      hist_data <- ggplot_build(histo)$data[[1]]
+      max_y <- max(hist_data$count)
+      histo <- histo + annotate("text", x = mean(StatisticsOfMutationPlacement) + 0.08, y = 0.9 * max_y, label="mean",  color = "blue", size = 7)
+      print(histo)
     },
     error = function(e){
-      plot(
-        ggplot(data, aes(x = log(StatisticsOfMutationPlacement))) +
-          geom_histogram(bins = 10, fill = "skyblue", color = "skyblue", alpha = 0.7)+ 
-          xlab("Maximal probability of branching evolution") + ylab("total count") +
-          ggtitle("Posterior sampling of branching probabilites - Logarithmic Scale") +
-          geom_vline(xintercept = log(mean(StatisticsOfMutationPlacement)),color = "blue", linetype = "dashed", linewidth = 1) +
-          labs(subtitle = sprintf("Tree %s - %s", treeName, clusterName),caption = "mean indicated by dashed red line") +
-          theme_minimal() +
-          theme(
-            plot.title = element_text(size = 20, face = "bold"),
-            axis.title.x = element_text(size = 18),
-            axis.title.y = element_text(size = 18),
-            plot.subtitle = element_text(size= 18),
-            axis.text = element_text(size = 16) 
-          )
-      )
+      histo <- ggplot(data, aes(x = log(StatisticsOfMutationPlacement))) +
+        geom_histogram(bins = 10, fill = "skyblue", color = "skyblue", alpha = 0.7)+ 
+        xlab("log(Splitting Score") + ylab("total count") +
+        ggtitle("Posterior sampling of branching probabilites - Logarithmic Scale") +
+        geom_vline(xintercept = log(mean(StatisticsOfMutationPlacement)),color = "blue", linetype = "dashed", linewidth = 1) +
+        labs(subtitle = sprintf("Tree %s - %s", treeName, clusterName),caption = "mean indicated by dashed red line") +
+        theme_minimal() +
+        theme(
+          plot.title = element_text(size = 20, face = "bold"),
+          axis.title.x = element_text(size = 18),
+          axis.title.y = element_text(size = 18),
+          plot.subtitle = element_text(size= 18),
+          axis.text = element_text(size = 16) 
+        )
+      hist_data <- ggplot_build(histo)$data[[1]]
+      max_y <- max(hist_data$count)
+      histo <- histo + annotate("text", x = log(mean(StatisticsOfMutationPlacement)) + 0.08, y = 0.9 * max_y, label="log(mean)",  color = "blue", size = 7)
+      print(histo)
     }
   )
   
@@ -424,12 +428,12 @@ computeClusterSplits <- function(sampleDescription, postSampling, treeName, nCel
     )
   }
 
-  plot(
-  splittingProbs %>% group_by(Cluster) %>% summarize(meanSplittingProbability = mean(Splitting_probability)) %>%
-  ggplot(aes(x = Cluster, y = meanSplittingProbability)) +
-    geom_col() +
-    theme_minimal()
-  )
+ # plot(
+#  splittingProbs %>% group_by(Cluster) %>% summarize(meanSplittingProbability = mean(Splitting_probability)) %>%
+#  ggplot(aes(x = Cluster, y = meanSplittingProbability)) +
+#    geom_col() +
+#    theme_minimal()
+ # )
   
   return(list(splittingProbs = splittingProbs, aggregatedBranchingProbabilities = aggregatedProbabilities))
 }

@@ -2,7 +2,9 @@
 title: "__tree__"
 author: "__author__"
 date: "__date__"
-output: html_document
+output:
+  html_document:
+    keep_md: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -13,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This code analyses splitting statistics for CTC-clusters.
 
-The analysis takes a list of trees sampled from its posterior distribution as input and samples mutations placements for each of the trees.
+The analysis takes a list of trees sampled from its posterior distribution as input and computes the mutations placement probability distribution for each oneof them. From this distribution we derive a score that quantifies the probability that two cells have experienced divergent evolution. This score is called the splitting score.
 
 
 ## Configure the script
@@ -26,11 +28,11 @@ nMutationSamplingEvents <- __nSamplingEvents__
 ```
 
 ## Loading data
-```{r load}
-quiet(source("__functionsScript__"))
+```{r load, results="hide"}
+source("__functionsScript__")
 
 
-input <- quiet(load_data(inputFolder, treeName))
+input <- load_data(inputFolder, treeName)
 ```
 
 
@@ -44,14 +46,14 @@ Column description:
   - color: Indicates the color of the cluster in the tree, as described in the nodeDescription.tsv
           file.
   
-```{r Describe samples}
-print(sampleDescription)
+```{r sample-description}
+print(input$sample_description)
 ```
 
 
 
 ## General overview
-We sample __nSamplingEvents__ many trees.
+We sample __nSamplingEvents__ trees.
 
 For each pair of cells in the same cluster and each sampled tree we compute the splitting score, that is, the probability that the two cells have experienced divergent evolution. A low splitting score (close to 0) indicates that the two cells are likely genealogically closely related, while a high splitting score (close to 1) indicates that the two cells have evolved in a divergent manner.
 
@@ -68,7 +70,7 @@ Finally, we print the empirical distribution of the the splitting scores for all
 The latter is used to specify the cutoff for oligo-clonality: It is defined as the 95%-percentile of the aggregated distribution of splitting scores.
 
 
-```{r}
+```{r computing-simulated-clusters, results="hide", dev='png'}
 cutoffsSplittingProbs <- data.frame(clusterSize = vector(), Cutoff = vector())
 cutoffsBranchingProbabilities <- data.frame(clusterSize = vector(), Cutoff = vector())
 
@@ -77,7 +79,7 @@ for (clusterSize in 2:5){
   {treeNameSimulated <- paste(treeName, clusterSize, sep = '_')
 
 
-  inputSimulated <- quiet(load_data(simulationInputFolder, treeNameSimulated))
+  inputSimulated <- load_data(simulationInputFolder, treeNameSimulated)
 
   sampleDescriptionSimulated <- inputSimulated$sample_description
   
@@ -107,14 +109,14 @@ print(cutoffsBranchingProbabilities)
 
 Now we can compute the aggregated splitting score distributions for each cluster. The distribution's mean is compared to the cutoffs computed above, and if it is higher than the cutoff, we call the cluster oligo-clonal.
 
-```{r}
+```{r computing-real-clusters}
 nTumorClusters <- 0
 nOligoclonalClusters2 <- 0
 splittingSummary2 <- data.frame(Color = vector(), Oligoclonal = vector(), ClusterSize = vector())
 
 for(clusterSize in 2:5){
   try({
-    clusterColor <- sampleDescription %>%
+    clusterColor <- input$sample_description %>%
     filter(WBC ==0 &  color != 'gray93') %>%
     group_by(color) %>%
     filter(n() == clusterSize) %>%
@@ -131,7 +133,7 @@ for(clusterSize in 2:5){
 
       splittingProbs <- mean(distance$splittingProbs$Splitting_probability)
       branchingProbs <- mean(distance$aggregatedBranchingProbabilities)
-    
+      
       nTumorClusters <- nTumorClusters + 1
       oligoclonal <- FALSE
 
@@ -145,7 +147,7 @@ for(clusterSize in 2:5){
 }
 
 
-numberOfCancerClusters <- sampleDescription %>%
+numberOfCancerClusters <- input$sample_description %>%
     filter(WBC ==0 &  color != 'gray93') %>%
     group_by(color) %>%
     filter(n() > 1) %>%

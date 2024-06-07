@@ -34,5 +34,5 @@ rule render_markdown_file:
         PROJECT_DIR / 'logs' / 'render_markdown_file.{SAMPLE}.log',
     shell:
         """
-        ( Rscript -e "rmarkdown::render('{input}', output_file = '{output}')" ) %> {log}
+        ( Rscript -e "rmarkdown::render('{input}', output_file = '{output}')" ) &> {log}
         """
