@@ -5,6 +5,10 @@ PROJECT_DIR = Path(workflow.basedir).parent
 SCRIPT_DIR = Path(workflow.basedir) / 'scripts'
 RESOURCES_DIR = Path(workflow.basedir) / 'resources'
 markdown_helper_functions = (RESOURCES_DIR / 'functions.R').resolve().as_posix().replace('/', '\\/')
+input_folder = Path(config['input']).resolve().as_posix().replace('/','\\/')
+simulations_folder = Path(config['simulations']).resolve().as_posix().replace('/','\\/')
+
+
 print(markdown_helper_functions)
 
 ######Rules######

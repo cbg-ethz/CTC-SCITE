@@ -20,8 +20,8 @@ The analysis takes a list of trees sampled from its posterior distribution as in
 
 ## Configure the script
 ```{r config}
-inputFolder <- "/Users/jgawron/Documents/projects/CTC_backup/input_folder"
-simulationInputFolder <- "/Users/jgawron/Documents/projects/CTC_backup/simulations/simulations2"
+inputFolder <- "__input_dir__"
+simulationInputFolder <- "__sim_dir__"
 treeName <- "__tree__"
 nTreeSamplingEvents <- __nSamplingEvents__
 nMutationSamplingEvents <- __nSamplingEvents__

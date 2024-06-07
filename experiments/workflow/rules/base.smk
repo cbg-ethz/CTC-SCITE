@@ -9,7 +9,9 @@ rule prepare_markdown_file:
     params:
         sampling_depth = 1000,
         script_dir =  {markdown_helper_functions},
-        author = config['author']
+        author = config['author'],
+        input_dir = input_folder,
+        simulation_dir = simulations_folder,
     log:
         PROJECT_DIR / 'logs' / 'prepare_markdown_file.{SAMPLE}.log',
     shell:
@@ -19,6 +21,8 @@ rule prepare_markdown_file:
         -e "s/__date__/$(date +'%Y-%m-%d')/g" \
         -e "s/__functionsScript__/{params.script_dir}/g" \
         -e "s/__author__/{params.author}/g" \
+        -e "s/__input_dir__/{params.input_dir}/g" \
+        -e "s/__sim_dir__/{params.simulation_dir}/g" \
         {input} > {output} ) &> {log}
         """
 
@@ -27,7 +31,7 @@ rule render_markdown_file:
         PROJECT_DIR / 'data' / 'markdowns' / '{SAMPLE}.Rmd',
     output:
         PROJECT_DIR / 'data' / 'htmls' / '{SAMPLE}.html',
-    threads: 8
+    threads: 16
     conda:
         Path(workflow.basedir) / 'envs' / 'R.yml',
     log:
