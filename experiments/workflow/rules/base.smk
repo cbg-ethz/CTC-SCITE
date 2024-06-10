@@ -47,6 +47,8 @@ rule render_topSeparators_markdowns:
     output:
         PROJECT_DIR / 'data' / 'htmls' / '{SAMPLE}_top_Separators.html',
     threads: 4
+    conda:
+        Path(workflow.basedir) / 'envs' / 'R.yml',
     log:
         PROJECT_DIR / 'logs' / 'render_topSeparators_markdowns.{SAMPLE}.log',
     shell:
@@ -54,4 +56,3 @@ rule render_topSeparators_markdowns:
         ( Rscript -e "rmarkdown::render('{input}', output_file = '{output}')" ) &> {log}
         """
 
-        
