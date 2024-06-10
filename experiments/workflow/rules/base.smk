@@ -40,3 +40,18 @@ rule render_markdown_file:
         """
         ( Rscript -e "rmarkdown::render('{input}', output_file = '{output}')" ) &> {log}
         """
+
+rule render_topSeparators_markdowns:
+    input:
+        PROJECT_DIR / 'data' / 'markdowns' / '{SAMPLE}_top_Separators.Rmd',
+    output:
+        PROJECT_DIR / 'data' / 'htmls' / '{SAMPLE}_top_Separators.html',
+    threads: 4
+    log:
+        PROJECT_DIR / 'logs' / 'render_topSeparators_markdowns.{SAMPLE}.log',
+    shell:
+        """
+        ( Rscript -e "rmarkdown::render('{input}', output_file = '{output}')" ) &> {log}
+        """
+
+        
