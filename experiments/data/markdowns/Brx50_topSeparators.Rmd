@@ -17,9 +17,9 @@ output:
 ## Data 
 
 ```{r initialization, message = FALSE}
-source('../software/Rcode/annotateVariants.R')
-sampleName <- 'Brx50'
-inputFolder <- file.path('..','input_folder')
+source("../software/Rcode/annotateVariants.R")
+sampleName <- "Brx50"
+inputFolder <- file.path("..", "input_folder")
 
 annotations <- annotate_variants(sampleName, inputFolder)
 ```
@@ -38,10 +38,10 @@ This is a generalization of the earlier method to find the top seperating mutati
 # lightcoral
 
 ```{r}
-clusterName <- 'lightcoral'
+clusterName <- "lightcoral"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, '_postSampling_',clusterName,'.txt') ),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
-mat<-as.matrix(d)
+d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
 
@@ -49,12 +49,11 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage<-read.table(file.path(inputFolder, sampleName, paste(sampleName, 'covScore.txt', sep = '_')),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
+coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
 coverage <- inner_join(coverage, annotations, by = "variantName")
-
 ```
 
 ## Method
@@ -81,7 +80,7 @@ heatmaply(mat)
 mat2 <- mat
 diag(mat2) <- 1
 min_dist <- apply(mat2, 1, min) # find minimum distance to other mutations
-selected_muts <- which(min_dist<0.5) # select those below 0.5 say
+selected_muts <- which(min_dist < 0.5) # select those below 0.5 say
 mat3 <- mat[selected_muts, selected_muts]
 ```
 
@@ -98,8 +97,8 @@ To cluster mutations, we create a dendrogram based on the pairwise distances:
 ```{r}
 mat <- mat3
 d_mat <- as.dist(mat)
-hc <- hclust(d_mat, "average")                   ## hierarchical clustering of mutations based on distance matrix
-par(cex=0.6)
+hc <- hclust(d_mat, "average") ## hierarchical clustering of mutations based on distance matrix
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
 ```
 No apparent clustering structure visible.
@@ -108,10 +107,10 @@ No apparent clustering structure visible.
 # sandybrown 
 
 ```{r}
-clusterName <- 'sandybrown'
+clusterName <- "sandybrown"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, '_postSampling_',clusterName,'.txt') ),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
-mat<-as.matrix(d)
+d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
 
@@ -119,12 +118,11 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage<-read.table(file.path(inputFolder, sampleName, paste(sampleName, 'covScore.txt', sep = '_')),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
+coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
 coverage <- inner_join(coverage, annotations, by = "variantName")
-
 ```
 
 ## Method
@@ -151,7 +149,7 @@ heatmaply(mat)
 mat2 <- mat
 diag(mat2) <- 1
 min_dist <- apply(mat2, 1, min) # find minimum distance to other mutations
-selected_muts <- which(min_dist<0.8) # select those below 0.5 say
+selected_muts <- which(min_dist < 0.8) # select those below 0.5 say
 mat3 <- mat[selected_muts, selected_muts]
 ```
 
@@ -168,8 +166,8 @@ To cluster mutations, we create a dendrogram based on the pairwise distances:
 ```{r}
 mat <- mat3
 d_mat <- as.dist(mat)
-hc <- hclust(d_mat, "average")                   ## hierarchical clustering of mutations based on distance matrix
-par(cex=0.6)
+hc <- hclust(d_mat, "average") ## hierarchical clustering of mutations based on distance matrix
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
 ```
 No apparent clustering structure visible.

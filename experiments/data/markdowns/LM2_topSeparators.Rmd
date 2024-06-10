@@ -17,9 +17,9 @@ output:
 ## Data 
 
 ```{r initialization, message = FALSE}
-source('../software/Rcode/annotateVariants.R')
-sampleName <- 'LM2'
-inputFolder <- '../input_folder/'
+source("../software/Rcode/annotateVariants.R")
+sampleName <- "LM2"
+inputFolder <- "../input_folder/"
 
 annotations <- annotate_variants(sampleName, inputFolder)
 ```
@@ -38,10 +38,10 @@ This is a generalization of the earlier method to find the top seperating mutati
 # thistle 
 
 ```{r}
-clusterName <- 'thistle'
+clusterName <- "thistle"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, '_postSampling_',clusterName,'.txt') ),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
-mat<-as.matrix(d)
+d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
 
@@ -49,12 +49,11 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage<-read.table(file.path(inputFolder, sampleName, paste(sampleName, 'covScore.txt', sep = '_')),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
+coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
 coverage <- inner_join(coverage, annotations, by = "variantName")
-
 ```
 
 ## Method
@@ -81,7 +80,7 @@ ggheatmap(mat)
 mat2 <- mat
 diag(mat2) <- 1
 min_dist <- apply(mat2, 1, min) # find minimum distance to other mutations
-selected_muts <- which(min_dist<0.85) # select those below 0.5 say
+selected_muts <- which(min_dist < 0.85) # select those below 0.5 say
 mat3 <- mat[selected_muts, selected_muts]
 ```
 
@@ -100,8 +99,8 @@ To cluster mutations, we create a dendrogram based on the pairwise distances:
 ```{r}
 mat <- mat3
 d_mat <- as.dist(mat)
-hc <- hclust(d_mat, "average")                   ## hierarchical clustering of mutations based on distance matrix
-par(cex=0.6)
+hc <- hclust(d_mat, "average") ## hierarchical clustering of mutations based on distance matrix
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
 ```
 No apparent clustering visible.
@@ -111,10 +110,10 @@ No apparent clustering visible.
 # violetred3 
 
 ```{r}
-clusterName <- 'violetred3'
+clusterName <- "violetred3"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, '_postSampling_',clusterName,'.txt') ),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
-mat<-as.matrix(d)
+d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
 
@@ -122,12 +121,11 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage<-read.table(file.path(inputFolder, sampleName, paste(sampleName, 'covScore.txt', sep = '_')),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
+coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
 coverage <- inner_join(coverage, annotations, by = "variantName")
-
 ```
 
 ## Method
@@ -152,7 +150,7 @@ ggheatmap(mat)
 mat2 <- mat
 diag(mat2) <- 1
 min_dist <- apply(mat2, 1, min) # find minimum distance to other mutations
-selected_muts <- which(min_dist<0.5) # select those below 0.5 say
+selected_muts <- which(min_dist < 0.5) # select those below 0.5 say
 mat3 <- mat[selected_muts, selected_muts]
 ```
 
@@ -172,8 +170,8 @@ To cluster mutations, we create a dendrogram based on the pairwise distances:
 ```{r}
 mat <- mat3
 d_mat <- as.dist(mat)
-hc <- hclust(d_mat, "average")                   ## hierarchical clustering of mutations based on distance matrix
-par(cex=0.6)
+hc <- hclust(d_mat, "average") ## hierarchical clustering of mutations based on distance matrix
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
 ```
 No apparent clustering visible.
@@ -183,10 +181,10 @@ No apparent clustering visible.
 # lightslateblue 
 
 ```{r}
-clusterName <- 'lightslateblue'
+clusterName <- "lightslateblue"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, '_postSampling_',clusterName,'.txt') ),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
-mat<-as.matrix(d)
+d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
 
@@ -194,12 +192,11 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage<-read.table(file.path(inputFolder, sampleName, paste(sampleName, 'covScore.txt', sep = '_')),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
+coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
 coverage <- inner_join(coverage, annotations, by = "variantName")
-
 ```
 
 ## Method
@@ -224,7 +221,7 @@ ggheatmap(mat)
 mat2 <- mat
 diag(mat2) <- 1
 min_dist <- apply(mat2, 1, min) # find minimum distance to other mutations
-selected_muts <- which(min_dist<0.5) # select those below 0.5 say
+selected_muts <- which(min_dist < 0.5) # select those below 0.5 say
 mat3 <- mat[selected_muts, selected_muts]
 ```
 
@@ -246,8 +243,8 @@ To cluster mutations, we create a dendrogram based on the pairwise distances:
 ```{r}
 mat <- mat3
 d_mat <- as.dist(mat)
-hc <- hclust(d_mat, "average")                   ## hierarchical clustering of mutations based on distance matrix
-par(cex=0.6)
+hc <- hclust(d_mat, "average") ## hierarchical clustering of mutations based on distance matrix
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
 ```
 No apparent clustering visible.
@@ -256,10 +253,10 @@ No apparent clustering visible.
 # paleturquoise3 
 
 ```{r}
-clusterName <- 'paleturquoise3'
+clusterName <- "paleturquoise3"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, '_postSampling_',clusterName,'.txt') ),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
-mat<-as.matrix(d)
+d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
 
@@ -267,12 +264,11 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage<-read.table(file.path(inputFolder, sampleName, paste(sampleName, 'covScore.txt', sep = '_')),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
+coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
 coverage <- inner_join(coverage, annotations, by = "variantName")
-
 ```
 
 ## Method
@@ -297,7 +293,7 @@ ggheatmap(mat)
 mat2 <- mat
 diag(mat2) <- 1
 min_dist <- apply(mat2, 1, min) # find minimum distance to other mutations
-selected_muts <- which(min_dist<0.5) # select those below 0.5 say
+selected_muts <- which(min_dist < 0.5) # select those below 0.5 say
 mat3 <- mat[selected_muts, selected_muts]
 ```
 
@@ -317,8 +313,8 @@ To cluster mutations, we create a dendrogram based on the pairwise distances:
 ```{r}
 mat <- mat3
 d_mat <- as.dist(mat)
-hc <- hclust(d_mat, "average")                   ## hierarchical clustering of mutations based on distance matrix
-par(cex=0.6)
+hc <- hclust(d_mat, "average") ## hierarchical clustering of mutations based on distance matrix
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
 ```
 No apparent clustering visible.
@@ -328,10 +324,10 @@ No apparent clustering visible.
 # khaki3 
 
 ```{r}
-clusterName <- 'khaki3'
+clusterName <- "khaki3"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, '_postSampling_',clusterName,'.txt') ),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
-mat<-as.matrix(d)
+d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
 
@@ -339,12 +335,11 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage<-read.table(file.path(inputFolder, sampleName, paste(sampleName, 'covScore.txt', sep = '_')),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
+coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
 coverage <- inner_join(coverage, annotations, by = "variantName")
-
 ```
 
 ## Method
@@ -369,7 +364,7 @@ ggheatmap(mat)
 mat2 <- mat
 diag(mat2) <- 1
 min_dist <- apply(mat2, 1, min) # find minimum distance to other mutations
-selected_muts <- which(min_dist<0.5) # select those below 0.5 say
+selected_muts <- which(min_dist < 0.5) # select those below 0.5 say
 mat3 <- mat[selected_muts, selected_muts]
 ```
 
@@ -390,8 +385,8 @@ To cluster mutations, we create a dendrogram based on the pairwise distances:
 ```{r}
 mat <- mat3
 d_mat <- as.dist(mat)
-hc <- hclust(d_mat, "average")                   ## hierarchical clustering of mutations based on distance matrix
-par(cex=0.6)
+hc <- hclust(d_mat, "average") ## hierarchical clustering of mutations based on distance matrix
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
 ```
 No apparent clustering visible.
@@ -400,10 +395,10 @@ No apparent clustering visible.
 # darkseagreen4 
 
 ```{r}
-clusterName <- 'darkseagreen4'
+clusterName <- "darkseagreen4"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, '_postSampling_',clusterName,'.txt') ),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
-mat<-as.matrix(d)
+d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
 
@@ -411,12 +406,11 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage<-read.table(file.path(inputFolder, sampleName, paste(sampleName, 'covScore.txt', sep = '_')),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
+coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
 coverage <- inner_join(coverage, annotations, by = "variantName")
-
 ```
 
 ## Method
@@ -441,7 +435,7 @@ ggheatmap(mat)
 mat2 <- mat
 diag(mat2) <- 1
 min_dist <- apply(mat2, 1, min) # find minimum distance to other mutations
-selected_muts <- which(min_dist<0.56) # select those below 0.5 say
+selected_muts <- which(min_dist < 0.56) # select those below 0.5 say
 mat3 <- mat[selected_muts, selected_muts]
 ```
 
@@ -462,8 +456,8 @@ To cluster mutations, we create a dendrogram based on the pairwise distances:
 ```{r}
 mat <- mat3
 d_mat <- as.dist(mat)
-hc <- hclust(d_mat, "average")                   ## hierarchical clustering of mutations based on distance matrix
-par(cex=0.6)
+hc <- hclust(d_mat, "average") ## hierarchical clustering of mutations based on distance matrix
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
 ```
 No apparent clustering visible.
@@ -471,10 +465,10 @@ No apparent clustering visible.
 # navajowhite2
 
 ```{r}
-clusterName <- 'navajowhite2'
+clusterName <- "navajowhite2"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, '_postSampling_',clusterName,'.txt') ),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
-mat<-as.matrix(d)
+d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
 
@@ -482,12 +476,11 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage<-read.table(file.path(inputFolder, sampleName, paste(sampleName, 'covScore.txt', sep = '_')),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
+coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
 coverage <- inner_join(coverage, annotations, by = "variantName")
-
 ```
 
 ## Method
@@ -512,7 +505,7 @@ ggheatmap(mat)
 mat2 <- mat
 diag(mat2) <- 1
 min_dist <- apply(mat2, 1, min) # find minimum distance to other mutations
-selected_muts <- which(min_dist<0.5) # select those below 0.5 say
+selected_muts <- which(min_dist < 0.5) # select those below 0.5 say
 mat3 <- mat[selected_muts, selected_muts]
 ```
 
@@ -532,8 +525,8 @@ To cluster mutations, we create a dendrogram based on the pairwise distances:
 ```{r}
 mat <- mat3
 d_mat <- as.dist(mat)
-hc <- hclust(d_mat, "average")                   ## hierarchical clustering of mutations based on distance matrix
-par(cex=0.6)
+hc <- hclust(d_mat, "average") ## hierarchical clustering of mutations based on distance matrix
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
 ```
 
@@ -544,10 +537,10 @@ No apparent clustering visible.
 # lemonchiffon 
 
 ```{r}
-clusterName <- 'lemonchiffon'
+clusterName <- "lemonchiffon"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, '_postSampling_',clusterName,'.txt') ),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
-mat<-as.matrix(d)
+d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
 
@@ -555,12 +548,11 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage<-read.table(file.path(inputFolder, sampleName, paste(sampleName, 'covScore.txt', sep = '_')),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
+coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
 coverage <- inner_join(coverage, annotations, by = "variantName")
-
 ```
 
 ## Method
@@ -585,7 +577,7 @@ ggheatmap(mat)
 mat2 <- mat
 diag(mat2) <- 1
 min_dist <- apply(mat2, 1, min) # find minimum distance to other mutations
-selected_muts <- which(min_dist<0.57) # select those below 0.5 say
+selected_muts <- which(min_dist < 0.57) # select those below 0.5 say
 mat3 <- mat[selected_muts, selected_muts]
 ```
 
@@ -602,8 +594,8 @@ To cluster mutations, we create a dendrogram based on the pairwise distances:
 ```{r}
 mat <- mat3
 d_mat <- as.dist(mat)
-hc <- hclust(d_mat, "average")                   ## hierarchical clustering of mutations based on distance matrix
-par(cex=0.6)
+hc <- hclust(d_mat, "average") ## hierarchical clustering of mutations based on distance matrix
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
 ```
 
@@ -613,13 +605,13 @@ We define a cut point to get distinct branches. These should roughly represent t
 
 
 ```{r}
-par(cex=0.6)
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
-abline(h=0.66, lwd = 2, lty = 2, col = "green")
+abline(h = 0.66, lwd = 2, lty = 2, col = "green")
 ```
 
 ```{r}
-#geneGroups <- cutree(hc, k = NULL, h = 0.6)
+# geneGroups <- cutree(hc, k = NULL, h = 0.6)
 geneGroups <- cutree(hc, k = 2)
 ```
 
@@ -641,7 +633,7 @@ cluster1
 
 Distances within cluster:
 ```{r}
-d1 <- d[cluster1 , cluster1]
+d1 <- d[cluster1, cluster1]
 ```
 
 Average distance to other mutations in cluster:
@@ -659,14 +651,14 @@ top_df$variantName <- rownames(top_df)
 ```
 
 ```{r}
-top_muts_1 <- inner_join(top_df, coverage, by='variantName')
-#colnames(top_muts_1)[1] <- "mutation"
+top_muts_1 <- inner_join(top_df, coverage, by = "variantName")
+# colnames(top_muts_1)[1] <- "mutation"
 top_muts_1
 ```
 
 ```{r}
-print(sprintf('Number of mutations in cluster %s with moderate functional impact: %d', clusterName, sum(top_muts_1 == 'MODERATE')))
-print(sprintf('Number of mutations in cluster %s with high functional impact: %d', clusterName, sum(top_muts_1 == 'HIGH')))
+print(sprintf("Number of mutations in cluster %s with moderate functional impact: %d", clusterName, sum(top_muts_1 == "MODERATE")))
+print(sprintf("Number of mutations in cluster %s with high functional impact: %d", clusterName, sum(top_muts_1 == "HIGH")))
 ```
 
 
@@ -685,7 +677,7 @@ cluster1
 
 Distances within cluster:
 ```{r}
-d1 <- d[cluster1 , cluster1]
+d1 <- d[cluster1, cluster1]
 ```
 
 Average distance to other mutations in cluster:
@@ -703,14 +695,14 @@ top_df$variantName <- rownames(top_df)
 ```
 
 ```{r}
-top_muts_2 <- inner_join(top_df, coverage, by='variantName')
-#colnames(top_muts_1)[1] <- "mutation"
+top_muts_2 <- inner_join(top_df, coverage, by = "variantName")
+# colnames(top_muts_1)[1] <- "mutation"
 top_muts_2
 ```
 
 ```{r}
-print(sprintf('Number of mutations in cluster %s with moderate functional impact: %d', clusterName, sum(top_muts_2 == 'MODERATE')))
-print(sprintf('Number of mutations in cluster %s with high functional impact: %d', clusterName, sum(top_muts_2 == 'HIGH')))
+print(sprintf("Number of mutations in cluster %s with moderate functional impact: %d", clusterName, sum(top_muts_2 == "MODERATE")))
+print(sprintf("Number of mutations in cluster %s with high functional impact: %d", clusterName, sum(top_muts_2 == "HIGH")))
 ```
 
 Two genetic clusters could be identified in the 3-cell CTC cluster, but only with moderate functional impact variants.
@@ -720,10 +712,10 @@ Two genetic clusters could be identified in the 3-cell CTC cluster, but only wit
 # plum 
 
 ```{r}
-clusterName <- 'plum'
+clusterName <- "plum"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, '_postSampling_',clusterName,'.txt') ),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
-mat<-as.matrix(d)
+d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
 
@@ -731,12 +723,11 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage<-read.table(file.path(inputFolder, sampleName, paste(sampleName, 'covScore.txt', sep = '_')),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
+coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
 coverage <- inner_join(coverage, annotations, by = "variantName")
-
 ```
 
 ## Method
@@ -761,7 +752,7 @@ ggheatmap(mat)
 mat2 <- mat
 diag(mat2) <- 1
 min_dist <- apply(mat2, 1, min) # find minimum distance to other mutations
-selected_muts <- which(min_dist<0.5) # select those below 0.5 say
+selected_muts <- which(min_dist < 0.5) # select those below 0.5 say
 mat3 <- mat[selected_muts, selected_muts]
 ```
 
@@ -778,8 +769,8 @@ To cluster mutations, we create a dendrogram based on the pairwise distances:
 ```{r}
 mat <- mat3
 d_mat <- as.dist(mat)
-hc <- hclust(d_mat, "average")                   ## hierarchical clustering of mutations based on distance matrix
-par(cex=0.6)
+hc <- hclust(d_mat, "average") ## hierarchical clustering of mutations based on distance matrix
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
 ```
 
@@ -789,13 +780,13 @@ We define a cut point to get distinct branches. These should roughly represent t
 
 
 ```{r}
-par(cex=0.6)
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
-abline(h=0.58, lwd = 2, lty = 2, col = "green")
+abline(h = 0.58, lwd = 2, lty = 2, col = "green")
 ```
 
 ```{r}
-#geneGroups <- cutree(hc, k = NULL, h = 0.6)
+# geneGroups <- cutree(hc, k = NULL, h = 0.6)
 geneGroups <- cutree(hc, k = 3)
 ```
 
@@ -816,7 +807,7 @@ cluster1
 
 Distances within cluster:
 ```{r}
-d1 <- d[cluster1 , cluster1]
+d1 <- d[cluster1, cluster1]
 ```
 
 Average distance to other mutations in cluster:
@@ -834,14 +825,14 @@ top_df$variantName <- rownames(top_df)
 ```
 
 ```{r}
-top_muts_1 <- inner_join(top_df, coverage, by='variantName')
-#colnames(top_muts_1)[1] <- "mutation"
+top_muts_1 <- inner_join(top_df, coverage, by = "variantName")
+# colnames(top_muts_1)[1] <- "mutation"
 top_muts_1
 ```
 
 ```{r}
-print(sprintf('Number of mutations in cluster %s with moderate functional impact: %d', clusterName, sum(top_muts_1 == 'MODERATE')))
-print(sprintf('Number of mutations in cluster %s with high functional impact: %d', clusterName, sum(top_muts_1 == 'HIGH')))
+print(sprintf("Number of mutations in cluster %s with moderate functional impact: %d", clusterName, sum(top_muts_1 == "MODERATE")))
+print(sprintf("Number of mutations in cluster %s with high functional impact: %d", clusterName, sum(top_muts_1 == "HIGH")))
 ```
 
 
@@ -860,7 +851,7 @@ cluster1
 
 Distances within cluster:
 ```{r}
-d1 <- d[cluster1 , cluster1]
+d1 <- d[cluster1, cluster1]
 ```
 
 Average distance to other mutations in cluster:
@@ -878,14 +869,14 @@ top_df$variantName <- rownames(top_df)
 ```
 
 ```{r}
-top_muts_2 <- inner_join(top_df, coverage, by='variantName')
-#colnames(top_muts_1)[1] <- "mutation"
+top_muts_2 <- inner_join(top_df, coverage, by = "variantName")
+# colnames(top_muts_1)[1] <- "mutation"
 top_muts_2
 ```
 
 ```{r}
-print(sprintf('Number of mutations in cluster %s with moderate functional impact: %d', clusterName, sum(top_muts_2 == 'MODERATE')))
-print(sprintf('Number of mutations in cluster %s with high functional impact: %d', clusterName, sum(top_muts_2 == 'HIGH')))
+print(sprintf("Number of mutations in cluster %s with moderate functional impact: %d", clusterName, sum(top_muts_2 == "MODERATE")))
+print(sprintf("Number of mutations in cluster %s with high functional impact: %d", clusterName, sum(top_muts_2 == "HIGH")))
 ```
 
 
@@ -902,7 +893,7 @@ cluster1
 
 Distances within cluster:
 ```{r}
-d1 <- d[cluster1 , cluster1]
+d1 <- d[cluster1, cluster1]
 ```
 
 Average distance to other mutations in cluster:
@@ -920,14 +911,14 @@ top_df$variantName <- rownames(top_df)
 ```
 
 ```{r}
-top_muts_2 <- inner_join(top_df, coverage, by='variantName')
-#colnames(top_muts_1)[1] <- "mutation"
+top_muts_2 <- inner_join(top_df, coverage, by = "variantName")
+# colnames(top_muts_1)[1] <- "mutation"
 top_muts_2
 ```
 
 ```{r}
-print(sprintf('Number of mutations in cluster %s with moderate functional impact: %d', clusterName, sum(top_muts_2 == 'MODERATE')))
-print(sprintf('Number of mutations in cluster %s with high functional impact: %d', clusterName, sum(top_muts_2 == 'HIGH')))
+print(sprintf("Number of mutations in cluster %s with moderate functional impact: %d", clusterName, sum(top_muts_2 == "MODERATE")))
+print(sprintf("Number of mutations in cluster %s with high functional impact: %d", clusterName, sum(top_muts_2 == "HIGH")))
 ```
 
 
@@ -935,10 +926,10 @@ print(sprintf('Number of mutations in cluster %s with high functional impact: %d
 # gold 
 This is a 5-cell CTC cluster, so I am expecting up to 5 genetic clusters.
 ```{r}
-clusterName <- 'gold'
+clusterName <- "gold"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, '_postSampling_',clusterName,'.txt') ),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
-mat<-as.matrix(d)
+d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
 
@@ -946,12 +937,11 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage<-read.table(file.path(inputFolder, sampleName, paste(sampleName, 'covScore.txt', sep = '_')),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
+coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
 coverage <- inner_join(coverage, annotations, by = "variantName")
-
 ```
 
 ## Method
@@ -976,7 +966,7 @@ ggheatmap(mat)
 mat2 <- mat
 diag(mat2) <- 1
 min_dist <- apply(mat2, 1, min) # find minimum distance to other mutations
-selected_muts <- which(min_dist<0.5) # select those below 0.5 say
+selected_muts <- which(min_dist < 0.5) # select those below 0.5 say
 mat3 <- mat[selected_muts, selected_muts]
 ```
 
@@ -993,8 +983,8 @@ To cluster mutations, we create a dendrogram based on the pairwise distances:
 ```{r}
 mat <- mat3
 d_mat <- as.dist(mat)
-hc <- hclust(d_mat, "average")                   ## hierarchical clustering of mutations based on distance matrix
-par(cex=0.6)
+hc <- hclust(d_mat, "average") ## hierarchical clustering of mutations based on distance matrix
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
 ```
 
@@ -1004,13 +994,13 @@ We define a cut point to get distinct branches. These should roughly represent t
 
 
 ```{r}
-par(cex=0.6)
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
-abline(h=0.68, lwd = 2, lty = 2, col = "green")
+abline(h = 0.68, lwd = 2, lty = 2, col = "green")
 ```
 
 ```{r}
-#geneGroups <- cutree(hc, k = NULL, h = 0.6)
+# geneGroups <- cutree(hc, k = NULL, h = 0.6)
 geneGroups <- cutree(hc, k = 2)
 ```
 
@@ -1032,7 +1022,7 @@ cluster1
 
 Distances within cluster:
 ```{r}
-d1 <- d[cluster1 , cluster1]
+d1 <- d[cluster1, cluster1]
 ```
 
 Average distance to other mutations in cluster:
@@ -1050,14 +1040,14 @@ top_df$variantName <- rownames(top_df)
 ```
 
 ```{r}
-top_muts_1 <- inner_join(top_df, coverage, by='variantName')
-#colnames(top_muts_1)[1] <- "mutation"
+top_muts_1 <- inner_join(top_df, coverage, by = "variantName")
+# colnames(top_muts_1)[1] <- "mutation"
 top_muts_1
 ```
 
 ```{r}
-print(sprintf('Number of mutations in cluster %s with moderate functional impact: %d', clusterName, sum(top_muts_1 == 'MODERATE')))
-print(sprintf('Number of mutations in cluster %s with high functional impact: %d', clusterName, sum(top_muts_1 == 'HIGH')))
+print(sprintf("Number of mutations in cluster %s with moderate functional impact: %d", clusterName, sum(top_muts_1 == "MODERATE")))
+print(sprintf("Number of mutations in cluster %s with high functional impact: %d", clusterName, sum(top_muts_1 == "HIGH")))
 ```
 
 
@@ -1076,7 +1066,7 @@ cluster1
 
 Distances within cluster:
 ```{r}
-d1 <- d[cluster1 , cluster1]
+d1 <- d[cluster1, cluster1]
 ```
 
 Average distance to other mutations in cluster:
@@ -1094,14 +1084,14 @@ top_df$variantName <- rownames(top_df)
 ```
 
 ```{r}
-top_muts_2 <- inner_join(top_df, coverage, by='variantName')
-#colnames(top_muts_1)[1] <- "mutation"
+top_muts_2 <- inner_join(top_df, coverage, by = "variantName")
+# colnames(top_muts_1)[1] <- "mutation"
 top_muts_2
 ```
 
 ```{r}
-print(sprintf('Number of mutations in cluster %s with moderate functional impact: %d', clusterName, sum(top_muts_2 == 'MODERATE')))
-print(sprintf('Number of mutations in cluster %s with high functional impact: %d', clusterName, sum(top_muts_2 == 'HIGH')))
+print(sprintf("Number of mutations in cluster %s with moderate functional impact: %d", clusterName, sum(top_muts_2 == "MODERATE")))
+print(sprintf("Number of mutations in cluster %s with high functional impact: %d", clusterName, sum(top_muts_2 == "HIGH")))
 ```
 
 We found two distinct genetic clusters. 
@@ -1111,10 +1101,10 @@ We found two distinct genetic clusters.
 # yellowgreen 
 
 ```{r}
-clusterName <- 'yellowgreen'
+clusterName <- "yellowgreen"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, '_postSampling_',clusterName,'.txt') ),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
-mat<-as.matrix(d)
+d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
 
@@ -1122,12 +1112,11 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage<-read.table(file.path(inputFolder, sampleName, paste(sampleName, 'covScore.txt', sep = '_')),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
+coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
 coverage <- inner_join(coverage, annotations, by = "variantName")
-
 ```
 
 ## Method
@@ -1148,7 +1137,7 @@ mutations:
 mat2 <- mat
 diag(mat2) <- 1
 min_dist <- apply(mat2, 1, min) # find minimum distance to other mutations
-selected_muts <- which(min_dist<1) # select those below 0.5 say
+selected_muts <- which(min_dist < 1) # select those below 0.5 say
 mat3 <- mat[selected_muts, selected_muts]
 ```
 
@@ -1161,7 +1150,7 @@ heatmaply(mat3)
 mat2 <- mat
 diag(mat2) <- 1
 min_dist <- apply(mat2, 1, min) # find minimum distance to other mutations
-selected_muts <- which(min_dist<0.93) # select those below 0.5 say
+selected_muts <- which(min_dist < 0.93) # select those below 0.5 say
 mat3 <- mat[selected_muts, selected_muts]
 ```
 
@@ -1178,8 +1167,8 @@ To cluster mutations, we create a dendrogram based on the pairwise distances:
 ```{r}
 mat <- mat3
 d_mat <- as.dist(mat)
-hc <- hclust(d_mat, "average")                   ## hierarchical clustering of mutations based on distance matrix
-par(cex=0.6)
+hc <- hclust(d_mat, "average") ## hierarchical clustering of mutations based on distance matrix
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
 ```
 
@@ -1189,13 +1178,13 @@ We define a cut point to get distinct branches. These should roughly represent t
 
 
 ```{r}
-par(cex=0.6)
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
-abline(h=0.94, lwd = 2, lty = 2, col = "green")
+abline(h = 0.94, lwd = 2, lty = 2, col = "green")
 ```
 
 ```{r}
-#geneGroups <- cutree(hc, k = NULL, h = 0.6)
+# geneGroups <- cutree(hc, k = NULL, h = 0.6)
 geneGroups <- cutree(hc, k = 4)
 ```
 
@@ -1217,7 +1206,7 @@ cluster1
 
 Distances within cluster:
 ```{r}
-d1 <- d[cluster1 , cluster1]
+d1 <- d[cluster1, cluster1]
 ```
 
 Average distance to other mutations in cluster:
@@ -1235,14 +1224,14 @@ top_df$variantName <- rownames(top_df)
 ```
 
 ```{r}
-top_muts_1 <- inner_join(top_df, coverage, by='variantName')
-#colnames(top_muts_1)[1] <- "mutation"
+top_muts_1 <- inner_join(top_df, coverage, by = "variantName")
+# colnames(top_muts_1)[1] <- "mutation"
 top_muts_1
 ```
 
 ```{r}
-print(sprintf('Number of mutations in cluster %s with moderate functional impact: %d', clusterName, sum(top_muts_1 == 'MODERATE')))
-print(sprintf('Number of mutations in cluster %s with high functional impact: %d', clusterName, sum(top_muts_1 == 'HIGH')))
+print(sprintf("Number of mutations in cluster %s with moderate functional impact: %d", clusterName, sum(top_muts_1 == "MODERATE")))
+print(sprintf("Number of mutations in cluster %s with high functional impact: %d", clusterName, sum(top_muts_1 == "HIGH")))
 ```
 
 
@@ -1259,7 +1248,7 @@ cluster1
 
 Distances within cluster:
 ```{r}
-d1 <- d[cluster1 , cluster1]
+d1 <- d[cluster1, cluster1]
 ```
 
 Average distance to other mutations in cluster:
@@ -1277,14 +1266,14 @@ top_df$variantName <- rownames(top_df)
 ```
 
 ```{r}
-top_muts_2 <- inner_join(top_df, coverage, by='variantName')
-#colnames(top_muts_1)[1] <- "mutation"
+top_muts_2 <- inner_join(top_df, coverage, by = "variantName")
+# colnames(top_muts_1)[1] <- "mutation"
 top_muts_2
 ```
 
 ```{r}
-print(sprintf('Number of mutations in cluster %s with moderate functional impact: %d', clusterName, sum(top_muts_2 == 'MODERATE')))
-print(sprintf('Number of mutations in cluster %s with high functional impact: %d', clusterName, sum(top_muts_2 == 'HIGH')))
+print(sprintf("Number of mutations in cluster %s with moderate functional impact: %d", clusterName, sum(top_muts_2 == "MODERATE")))
+print(sprintf("Number of mutations in cluster %s with high functional impact: %d", clusterName, sum(top_muts_2 == "HIGH")))
 ```
 
 
@@ -1305,7 +1294,7 @@ cluster1
 
 Distances within cluster:
 ```{r}
-d1 <- d[cluster1 , cluster1]
+d1 <- d[cluster1, cluster1]
 ```
 
 Average distance to other mutations in cluster:
@@ -1323,14 +1312,14 @@ top_df$variantName <- rownames(top_df)
 ```
 
 ```{r}
-top_muts_2 <- inner_join(top_df, coverage, by='variantName')
-#colnames(top_muts_1)[1] <- "mutation"
+top_muts_2 <- inner_join(top_df, coverage, by = "variantName")
+# colnames(top_muts_1)[1] <- "mutation"
 top_muts_2
 ```
 
 ```{r}
-print(sprintf('Number of mutations in cluster %s with moderate functional impact: %d', clusterName, sum(top_muts_2 == 'MODERATE')))
-print(sprintf('Number of mutations in cluster %s with high functional impact: %d', clusterName, sum(top_muts_2 == 'HIGH')))
+print(sprintf("Number of mutations in cluster %s with moderate functional impact: %d", clusterName, sum(top_muts_2 == "MODERATE")))
+print(sprintf("Number of mutations in cluster %s with high functional impact: %d", clusterName, sum(top_muts_2 == "HIGH")))
 ```
 
 
@@ -1341,7 +1330,7 @@ print(sprintf('Number of mutations in cluster %s with high functional impact: %d
 #### Fourth cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups ==4]
+cluster1 <- names(geneGroups)[geneGroups == 4]
 ```
 
 Mutations in cluster:
@@ -1351,7 +1340,7 @@ cluster1
 
 Distances within cluster:
 ```{r}
-d1 <- d[cluster1 , cluster1]
+d1 <- d[cluster1, cluster1]
 ```
 
 Average distance to other mutations in cluster:
@@ -1369,14 +1358,14 @@ top_df$variantName <- rownames(top_df)
 ```
 
 ```{r}
-top_muts_2 <- inner_join(top_df, coverage, by='variantName')
-#colnames(top_muts_1)[1] <- "mutation"
+top_muts_2 <- inner_join(top_df, coverage, by = "variantName")
+# colnames(top_muts_1)[1] <- "mutation"
 top_muts_2
 ```
 
 ```{r}
-print(sprintf('Number of mutations in cluster %s with moderate functional impact: %d', clusterName, sum(top_muts_2 == 'MODERATE')))
-print(sprintf('Number of mutations in cluster %s with high functional impact: %d', clusterName, sum(top_muts_2 == 'HIGH')))
+print(sprintf("Number of mutations in cluster %s with moderate functional impact: %d", clusterName, sum(top_muts_2 == "MODERATE")))
+print(sprintf("Number of mutations in cluster %s with high functional impact: %d", clusterName, sum(top_muts_2 == "HIGH")))
 ```
 
 
