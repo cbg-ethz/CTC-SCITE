@@ -7,5 +7,6 @@ experiments/.snakemake/*
 .Rapp.history
 *.Rhistory
 experiments/data/markdowns/
+!experiments/data/markdowns/*topSeparators.Rmd
 experiments/data/htmls/*files
 experiments/logs/
