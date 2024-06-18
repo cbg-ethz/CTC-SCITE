@@ -5,6 +5,13 @@ date: "__date__"
 output:
   html_document:
     keep_md: yes
+params:
+  inputFolder: "/cluster/work/bewi/members/jgawron/projects/CTC/input_folder"
+  nSamplingEvents: 1000
+  simulationInputFolder: "/cluster/work/bewi/members/jgawron/projects/CTC/simulations/simulations2"
+  treeName: "Br11"
+  functionsScript: "/Users/jgawron/Documents/projects/CTC-SCITE/CTC-SCITE/experiments/workflow/resources/functions.R"
+  
 ---
 
 ```{r setup, include=FALSE}
@@ -20,16 +27,16 @@ The analysis takes a list of trees sampled from its posterior distribution as in
 
 ## Configure the script
 ```{r config}
-inputFolder <- "__input_dir__"
-simulationInputFolder <- "__sim_dir__"
-treeName <- "__tree__"
-nTreeSamplingEvents <- __nSamplingEvents__
-nMutationSamplingEvents <- __nSamplingEvents__
+inputFolder <- params$inputFolder
+simulationInputFolder <- params$simulationInputFolder
+treeName <- params$treeName
+nTreeSamplingEvents <- params$nSamplingEvents
+nMutationSamplingEvents <- params$nSamplingEvents
 ```
 
 ## Loading data
 ```{r load, results="hide"}
-source("__functionsScript__")
+source(params$functionsScript)
 
 
 input <- load_data(inputFolder, treeName)
@@ -53,7 +60,10 @@ print(input$sample_description)
 
 
 ## General overview
-We sample __nSamplingEvents__ trees.
+
+```{r overview}
+print(sprintf("We sample %d trees", nSamplingEvents))
+```
 
 For each pair of cells in the same cluster and each sampled tree we compute the splitting score, that is, the probability that the two cells have experienced divergent evolution. A low splitting score (close to 0) indicates that the two cells are likely genealogically closely related, while a high splitting score (close to 1) indicates that the two cells have evolved in a divergent manner.
 
@@ -74,32 +84,35 @@ The latter is used to specify the cutoff for oligo-clonality: It is defined as t
 cutoffsSplittingProbs <- data.frame(clusterSize = vector(), Cutoff = vector())
 cutoffsBranchingProbabilities <- data.frame(clusterSize = vector(), Cutoff = vector())
 
-for (clusterSize in 2:5){
-  try(
-  {treeNameSimulated <- paste(treeName, clusterSize, sep = '_')
+for (clusterSize in 2:5) {
+  try({
+    treeNameSimulated <- paste(treeName, clusterSize, sep = "_")
 
 
-  inputSimulated <- load_data(simulationInputFolder, treeNameSimulated)
+    inputSimulated <- load_data(simulationInputFolder, treeNameSimulated)
 
-  sampleDescriptionSimulated <- inputSimulated$sample_description
-  
-  distance <- computeClusterSplits(inputSimulated$sample_description, inputSimulated$postSampling, treeNameSimulated, inputSimulated$nCells,
-                     inputSimulated$nMutations, inputSimulated$nClusters,
-                     inputSimulated$alleleCount,
-                     inputSimulated$mutatedReadCounts, inputSimulated$totalReadCounts,
-                     nMutationSamplingEvents = nMutationSamplingEvents, nTreeSamplingEvents = nTreeSamplingEvents,
-                     cellPairSelection = c("orchid", "orchid1", "orchid2",
-                                           "orchid3", "orchid4", "darkorchid",
-                                           "darkorchid1","darkorchid2", "darkorchid3",
-                                           "darkorchid4", "purple", "purple1",
-                                           "purple2", "purple3", "purple4"))
+    sampleDescriptionSimulated <- inputSimulated$sample_description
 
-  
-  cutoffsSplittingProbs <- rbind(cutoffsSplittingProbs, data.frame(clusterSize = clusterSize, Cutoff = mean(distance$splittingProbs$Splitting_probability) + 2 * sd(distance$splittingProbs$Splitting_probability) ))
+    distance <- computeClusterSplits(inputSimulated$sample_description, inputSimulated$postSampling, treeNameSimulated, inputSimulated$nCells,
+      inputSimulated$nMutations, inputSimulated$nClusters,
+      inputSimulated$alleleCount,
+      inputSimulated$mutatedReadCounts, inputSimulated$totalReadCounts,
+      nMutationSamplingEvents = nMutationSamplingEvents, nTreeSamplingEvents = nTreeSamplingEvents,
+      cellPairSelection = c(
+        "orchid", "orchid1", "orchid2",
+        "orchid3", "orchid4", "darkorchid",
+        "darkorchid1", "darkorchid2", "darkorchid3",
+        "darkorchid4", "purple", "purple1",
+        "purple2", "purple3", "purple4"
+      )
+    )
 
-  plot(ggplot(data.frame(x = distance$aggregatedBranchingProbabilities), aes(x = x)) +
-    geom_histogram(binwidth = 0.01))
-  cutoffsBranchingProbabilities <- rbind(cutoffsBranchingProbabilities, data.frame(clusterSize = clusterSize, Cutoff = quantile(distance$aggregatedBranchingProbabilities, probs = 0.95, names = FALSE)[1] ))
+
+    cutoffsSplittingProbs <- rbind(cutoffsSplittingProbs, data.frame(clusterSize = clusterSize, Cutoff = mean(distance$splittingProbs$Splitting_probability) + 2 * sd(distance$splittingProbs$Splitting_probability)))
+
+    plot(ggplot(data.frame(x = distance$aggregatedBranchingProbabilities), aes(x = x)) +
+      geom_histogram(binwidth = 0.01))
+    cutoffsBranchingProbabilities <- rbind(cutoffsBranchingProbabilities, data.frame(clusterSize = clusterSize, Cutoff = quantile(distance$aggregatedBranchingProbabilities, probs = 0.95, names = FALSE)[1]))
   })
 }
 print(cutoffsBranchingProbabilities)
@@ -114,30 +127,31 @@ nTumorClusters <- 0
 nOligoclonalClusters2 <- 0
 splittingSummary2 <- data.frame(Color = vector(), Oligoclonal = vector(), ClusterSize = vector())
 
-for(clusterSize in 2:5){
+for (clusterSize in 2:5) {
   try({
     clusterColor <- input$sample_description %>%
-    filter(WBC ==0 &  color != 'gray93') %>%
-    group_by(color) %>%
-    filter(n() == clusterSize) %>%
-    pull(color) %>%
-    unique() 
-    
-    for(color in clusterColor){
+      filter(WBC == 0 & color != "gray93") %>%
+      group_by(color) %>%
+      filter(n() == clusterSize) %>%
+      pull(color) %>%
+      unique()
+
+    for (color in clusterColor) {
       distance <- computeClusterSplits(input$sample_description, input$postSampling, treeName, input$nCells,
-                     input$nMutations, input$nClusters,
-                     input$alleleCount,
-                     input$mutatedReadCounts, input$totalReadCounts,
-                     nMutationSamplingEvents = nMutationSamplingEvents, nTreeSamplingEvents = nTreeSamplingEvents,
-                     cellPairSelection = c(color))
+        input$nMutations, input$nClusters,
+        input$alleleCount,
+        input$mutatedReadCounts, input$totalReadCounts,
+        nMutationSamplingEvents = nMutationSamplingEvents, nTreeSamplingEvents = nTreeSamplingEvents,
+        cellPairSelection = c(color)
+      )
 
       splittingProbs <- mean(distance$splittingProbs$Splitting_probability)
       branchingProbs <- mean(distance$aggregatedBranchingProbabilities)
-      
+
       nTumorClusters <- nTumorClusters + 1
       oligoclonal <- FALSE
 
-      if(branchingProbs > cutoffsBranchingProbabilities[(cutoffsBranchingProbabilities$clusterSize == clusterSize), 2]){
+      if (branchingProbs > cutoffsBranchingProbabilities[(cutoffsBranchingProbabilities$clusterSize == clusterSize), 2]) {
         nOligoclonalClusters2 <- nOligoclonalClusters2 + 1
         oligoclonal <- TRUE
       }
@@ -148,12 +162,15 @@ for(clusterSize in 2:5){
 
 
 numberOfCancerClusters <- input$sample_description %>%
-    filter(WBC ==0 &  color != 'gray93') %>%
-    group_by(color) %>%
-    filter(n() > 1) %>%
-    pull(color) %>%
-    unique() %>% length() 
+  filter(WBC == 0 & color != "gray93") %>%
+  group_by(color) %>%
+  filter(n() > 1) %>%
+  pull(color) %>%
+  unique() %>%
+  length()
 
-print(sprintf('%d out of %d clusters were found to be oligoclonal in %s, using method 2', nOligoclonalClusters2, numberOfCancerClusters, treeName))
+print(sprintf("%d out of %d clusters were found to be oligoclonal in %s, using method 2", nOligoclonalClusters2, numberOfCancerClusters, treeName))
 print(splittingSummary2)
+library(readr)
+write_csv(splittingSummary2, file.path(inputFolder, paste("splittingSummary_", treeName, ".csv", sep = "")))
 ```

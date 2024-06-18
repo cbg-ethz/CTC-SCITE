@@ -5,6 +5,7 @@ PROJECT_DIR = Path(workflow.basedir).parent
 SCRIPT_DIR = Path(workflow.basedir) / "scripts"
 RESOURCES_DIR = Path(workflow.basedir) / "resources"
 INPUT_FOLDER = Path(config["input"])
+SIMULATION_FOLDER = Path(config["simulations"])
 markdown_helper_functions = (
     (RESOURCES_DIR / "functions.R").resolve().as_posix().replace("/", "\\/")
 )
@@ -15,7 +16,6 @@ simulations_folder = (
 MARKDOWNS = PROJECT_DIR / "data" / "markdowns"
 
 
-
 ######Rules######
 include: "rules/base.smk"
 
@@ -23,7 +23,10 @@ include: "rules/base.smk"
 all_files = []
 for sample in SAMPLES:
     all_files.append((PROJECT_DIR / "data" / "htmls" / f"{sample}.html").resolve())
-    all_files.append((PROJECT_DIR / "data" / "htmls" / f"{sample}_topSeparators.html").resolve())
+    all_files.append(
+        (PROJECT_DIR / "data" / "htmls" / f"{sample}_topSeparators.html").resolve()
+    )
+
 
 rule all:
     input:

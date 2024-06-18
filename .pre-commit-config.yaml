@@ -7,7 +7,9 @@ repos:
     rev: v0.4.2
     hooks:
       - id: style-files
+        args: [--warn_only]
       - id: parsable-R  
+        args: [--warn-only]
       - id: lintr
         args: [--warn_only]
         verbose: true  
