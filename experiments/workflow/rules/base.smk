@@ -1,8 +1,44 @@
+rule tree_sampling:
+    input:
+        variants= INPUT_FOLDER / "{SAMPLE}" / "{SAMPLE}.txt",
+        trees= INPUT_FOLDER / "{SAMPLE}" / "{SAMPLE}_postSampling.tsv",
+        nodeDescription= INPUT_FOLDER / "{SAMPLE}" / "{SAMPLE}_samples_nodeDescription.tsv",
+    output:
+         INPUT_FOLDER / "{SAMPLE}" / "{SAMPLE}_postSampling_splits.txt" 
+    resources:
+        mem_mb=4096,
+        runtime=2880,
+    params:
+        code_dir=  SCRIPT_DIR / "CTC_parseSampling",
+    log:
+        PROJECT_DIR / "logs" / "treeSampling.{SAMPLE}.log",
+    shell:
+        """
+        {params.code_dir}/./CTC_parseSampling -i {input.variants} -samples {input.trees} -description {input.nodeDescription}
+        """
+
+rule get_coverage_scores:
+    input:
+        readCounts=INPUT_FOLDER / "{SAMPLE}" / "{SAMPLE}.txt"
+    output:
+        INPUT_FOLDER / "{SAMPLE}" / "{SAMPLE}_covScore.txt",
+    resources:
+        mem_mb=2048,
+        runtime=60,
+    params:
+        code_dir=SCRIPT_DIR,
+    log:
+        PROJECT_DIR / "logs" / "get_coverage_scores.{SAMPLE}.log",
+    shell:
+        """
+        python {params.code_dir}/getPositionCoverageScore.py {input.readCounts}
+        """
+
 rule prepare_markdown_file:
     input:
         PROJECT_DIR / "workflow" / "resources" / "template.Rmd",
     output:
-        PROJECT_DIR / "data" / "markdowns" / "{SAMPLE}.Rmd",
+        PROJECT_DIR / "data" / "markdowns" / "{SAMPLE}_treeSampling.Rmd",
     resources:
         mem_mb=1024,
         runtime=10,
@@ -29,9 +65,12 @@ rule prepare_markdown_file:
 
 rule render_markdown_file:
     input:
-        PROJECT_DIR / "data" / "markdowns" / "{SAMPLE}.Rmd",
+        PROJECT_DIR / "data" / "markdowns" / "{SAMPLE}_treeSampling.Rmd",
     output:
-        PROJECT_DIR / "data" / "htmls" / "{SAMPLE}.html",
+        PROJECT_DIR / "data" / "htmls" / "{SAMPLE}_treeSampling.html",
+    resources:
+        mem_mb=2048,
+        runtime=2880,
     threads: 16
     conda:
         Path(workflow.basedir) / "envs" / "R.yml"
@@ -45,9 +84,16 @@ rule render_markdown_file:
 
 rule render_topSeparators_markdowns:
     input:
-        PROJECT_DIR / "data" / "markdowns" / "{SAMPLE}_top_Separators.Rmd",
+        markdown = PROJECT_DIR / "data" / "markdowns" / "{SAMPLE}_topSeparators.Rmd",
+        coverageScore = INPUT_FOLDER / "{SAMPLE}" / "{SAMPLE}_covScore.txt",
+        clustersplits = INPUT_FOLDER / "{SAMPLE}" / "{SAMPLE}_postSampling_splits.txt",
     output:
-        PROJECT_DIR / "data" / "htmls" / "{SAMPLE}_top_Separators.html",
+        PROJECT_DIR / "data" / "htmls" / "{SAMPLE}_topSeparators.html",
+    resources:
+        mem_mb=6144,
+        runtime=2880,
+    params:
+        markdowndir=MARKDOWNS,
     threads: 4
     conda:
         Path(workflow.basedir) / "envs" / "R.yml"
@@ -55,5 +101,6 @@ rule render_topSeparators_markdowns:
         PROJECT_DIR / "logs" / "render_topSeparators_markdowns.{SAMPLE}.log",
     shell:
         """
-        ( Rscript -e "rmarkdown::render('{input}', output_file = '{output}')" ) &> {log}
+        cd {params.markdowndir}
+        ( Rscript -e "rmarkdown::render('{input.markdown}', output_file = '{output}')" ) &> {log}
         """

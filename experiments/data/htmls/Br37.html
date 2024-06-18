@@ -11,7 +11,7 @@
 
 <meta name="author" content="Johannes Gawron" />
 
-<meta name="date" content="2024-06-06" />
+<meta name="date" content="2024-06-17" />
 
 <title>Br37</title>
 
@@ -352,7 +352,7 @@ display: none;
 
 <h1 class="title toc-ignore">Br37</h1>
 <h4 class="author">Johannes Gawron</h4>
-<h4 class="date">2024-06-06</h4>
+<h4 class="date">2024-06-17</h4>
 
 </div>
 
@@ -368,15 +368,15 @@ divergent evolution. This score is called the splitting score.</p>
 </div>
 <div id="configure-the-script" class="section level2">
 <h2>Configure the script</h2>
-<pre class="r"><code>inputFolder &lt;- &quot;/Users/jgawron/Documents/projects/CTC_backup/input_folder&quot;
-simulationInputFolder &lt;- &quot;/Users/jgawron/Documents/projects/CTC_backup/simulations/simulations2&quot;
+<pre class="r"><code>inputFolder &lt;- &quot;/cluster/work/bewi/members/jgawron/projects/CTC/input_folder&quot;
+simulationInputFolder &lt;- &quot;/cluster/work/bewi/members/jgawron/projects/CTC/simulations/simulations2&quot;
 treeName &lt;- &quot;Br37&quot;
 nTreeSamplingEvents &lt;- 1000
 nMutationSamplingEvents &lt;- 1000</code></pre>
 </div>
 <div id="loading-data" class="section level2">
 <h2>Loading data</h2>
-<pre class="r"><code>source(&quot;/Users/jgawron/Documents/projects/CTC-SCITE/CTC-SCITE/experiments/workflow/resources/functions.R&quot;)</code></pre>
+<pre class="r"><code>source(&quot;/cluster/work/bewi/members/jgawron/projects/CTC/CTC-SCITE/experiments/workflow/resources/functions.R&quot;)</code></pre>
 <pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
 ## ✔ dplyr     1.1.4     ✔ readr     2.1.5
 ## ✔ forcats   1.0.0     ✔ stringr   1.5.1
@@ -492,14 +492,8 @@ for (clusterSize in 2:5){
     geom_histogram(binwidth = 0.01))
   cutoffsBranchingProbabilities &lt;- rbind(cutoffsBranchingProbabilities, data.frame(clusterSize = clusterSize, Cutoff = quantile(distance$aggregatedBranchingProbabilities, probs = 0.95, names = FALSE)[1] ))
   })
-}</code></pre>
-<pre><code>## Error : &#39;/Users/jgawron/Documents/projects/CTC_backup/simulations/simulations2/Br37_2/Br37_2_postSampling.tsv&#39; does not exist.
-## Error : &#39;/Users/jgawron/Documents/projects/CTC_backup/simulations/simulations2/Br37_3/Br37_3_postSampling.tsv&#39; does not exist.
-## Error : &#39;/Users/jgawron/Documents/projects/CTC_backup/simulations/simulations2/Br37_4/Br37_4_postSampling.tsv&#39; does not exist.
-## Error : &#39;/Users/jgawron/Documents/projects/CTC_backup/simulations/simulations2/Br37_5/Br37_5_postSampling.tsv&#39; does not exist.</code></pre>
-<pre class="r"><code>print(cutoffsBranchingProbabilities)</code></pre>
-<pre><code>## [1] clusterSize Cutoff     
-## &lt;0 Zeilen&gt; (oder row.names mit Länge 0)</code></pre>
+}
+print(cutoffsBranchingProbabilities)</code></pre>
 <p>Now we can compute the aggregated splitting score distributions for
 each cluster. The distribution’s mean is compared to the cutoffs
 computed above, and if it is higher than the cutoff, we call the cluster
@@ -552,7 +546,7 @@ print(sprintf(&#39;%d out of %d clusters were found to be oligoclonal in %s, usi
 <pre><code>## [1] &quot;0 out of 0 clusters were found to be oligoclonal in Br37, using method 2&quot;</code></pre>
 <pre class="r"><code>print(splittingSummary2)</code></pre>
 <pre><code>## [1] Color       Oligoclonal ClusterSize
-## &lt;0 Zeilen&gt; (oder row.names mit Länge 0)</code></pre>
+## &lt;0 rows&gt; (or 0-length row.names)</code></pre>
 </div>
 
 

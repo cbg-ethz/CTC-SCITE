@@ -17,9 +17,9 @@ output:
 ## Data 
 
 ```{r initialization}
-source("../software/Rcode/annotateVariants.R")
-sampleName <- "Br23"
-inputFolder <- "../input_folder/"
+source('../../workflow/resources/annotateVariants.R')
+sampleName <- 'Br23'
+inputFolder <- '/cluster/work/bewi/members/jgawron/projects/CTC/input_folder'
 ```
 
 #### Mutation distance matrix
@@ -69,9 +69,9 @@ coverage <- inner_join(coverage, annotations, by = "variantName")
 To get an overview, we plot the full distance matrix:
 
 ```{r raw plot}
-library(ggheatmap)
+library(heatmaply)
 
-ggheatmap(mat)
+heatmaply(mat)
 ```
 
 ### Filter out distant mutations

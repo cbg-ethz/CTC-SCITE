@@ -8,3 +8,4 @@ dependencies:
   - r-rcpp>=1.0
   - r-tidyverse>=2.0
   - pandoc>=3.1
+  - r-heatmaply>=1.5  
