@@ -3,6 +3,8 @@ slurm*
 Rcode/.Rproj.user
 Rcode/markdowns/*
 Rcode/*.html
+Rcode/.Rhistory
+Rcode/Rprofile
 !Rcode/markdowns/template.Rmd
 experiments/.snakemake/*
 .Rapp.history

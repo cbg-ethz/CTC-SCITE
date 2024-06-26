@@ -25,9 +25,9 @@ load_cluster_df <- function(filename) {
 
 
 
-files <- list.files(path = "../../validation_experiment/Cluster_csv_files/", pattern = "\\.csv$")
+files <- list.files(path = "../../../CTC_backup/validation_experiment/Cluster_csv_files/", pattern = "\\.csv$")
 
-files <- map_chr(files, reverse_paste, "../../validation_experiment/Cluster_csv_files/")
+files <- map_chr(files, reverse_paste, "../../../CTC_backup/validation_experiment/Cluster_csv_files/")
 
 myfiles <- map(files, load_cluster_df)
 
@@ -48,14 +48,14 @@ myfiles <- map(files, load_cluster_df)
 #' @examples load_cluster_files()
 #' @noRD
 load_cluster_files <- function() {
-  files <- list.files(path = "../../validation_experiment/Cluster_csv_files/", pattern = "\\.csv$")
+  files <- list.files(path = "../../../CTC_backup/validation_experiment/Cluster_csv_files/", pattern = "\\.csv$")
 
 
 
-  files <- map_chr(files, reverse_paste, "../../validation_experiment/Cluster_csv_files/")
+  files <- map_chr(files, reverse_paste, "../../../CTC_backup/validation_experiment/Cluster_csv_files/")
 
   df_list <- map(files, load_cluster_df)
-  save(df_list, file = "../../validation")
+  # save(df_list, file = "../../../CTC_backup/validatovalidation")
 
 
   # create empty data frame to store summary information
@@ -96,7 +96,7 @@ load_cluster_files <- function() {
     )
     summary_df <- rbind(summary_df, summary_row)
   }
-  save(summary_df, file = "../../validation_experiment/output/summary_df_nine_ninefive.rds")
+  save(summary_df, file = "../../../CTC_backup/validation_experiment/output/summary_df_nine_ninefive.rds")
   return(list("summary" = summary_df, "cluster_data" = df_list))
 }
 
@@ -115,7 +115,7 @@ df_list <- list()
 
 
 basename <- gsub("\\.csv", "", "50k_7_910_b_S276_R2_001.fastq.gz_stats.csv")
-df <- read_delim(paste0("../../validation_experiment/Cluster_csv_files/", file), delim = "\t", col_names = F)
+df <- read_delim(paste0("../../../CTC_backup/validation_experiment/Cluster_csv_files/", file), delim = "\t", col_names = F)
 colnames(df)[1] <- "barcodes"
 colnames(df)[3] <- "counts"
 df_sorted <- df %>% arrange(desc(counts))
@@ -127,7 +127,7 @@ for (file in files) {
   basename <- gsub("\\.csv", "", file)
   tryCatch(
     {
-      df <- read_delim(paste0("../../validation_experiment/Cluster_csv_files/", file), delim = "\t", col_names = F)
+      df <- read_delim(paste0("../../../CTC_backup/validation_experiment/Cluster_csv_files/", file), delim = "\t", col_names = F)
       colnames(df)[1] <- "barcodes"
       colnames(df)[3] <- "counts"
       df_sorted <- df %>% arrange(desc(counts))
