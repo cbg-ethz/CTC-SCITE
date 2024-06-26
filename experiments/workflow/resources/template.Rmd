@@ -32,6 +32,7 @@ simulationInputFolder <- params$simulationInputFolder
 treeName <- params$treeName
 nTreeSamplingEvents <- params$nSamplingEvents
 nMutationSamplingEvents <- params$nSamplingEvents
+nSamplingEvents <- params$nSamplingEvents
 ```
 
 ## Loading data
@@ -155,7 +156,7 @@ for (clusterSize in 2:5) {
         nOligoclonalClusters2 <- nOligoclonalClusters2 + 1
         oligoclonal <- TRUE
       }
-      splittingSummary2 <- rbind(splittingSummary2, data.frame(Color = color, Oligoclonal = oligoclonal, ClusterSize = clusterSize))
+      splittingSummary2 <- rbind(splittingSummary2, data.frame(Color = color, Oligoclonal = oligoclonal, ClusterSize = clusterSize, cutoff = cutoffsBranchingProbabilities[(cutoffsBranchingProbabilities$clusterSize == clusterSize), 2], mean_splitting_score = branchingProbs))
     }
   })
 }

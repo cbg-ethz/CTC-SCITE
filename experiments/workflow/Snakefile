@@ -22,7 +22,9 @@ include: "rules/base.smk"
 
 all_files = []
 for sample in SAMPLES:
-    all_files.append((PROJECT_DIR / "data" / "htmls" / f"{sample}.html").resolve())
+    all_files.append(
+        (PROJECT_DIR / "data" / "htmls" / f"{sample}_treeSampling.html").resolve()
+    )
     all_files.append(
         (PROJECT_DIR / "data" / "htmls" / f"{sample}_topSeparators.html").resolve()
     )

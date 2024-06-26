@@ -1,5 +1,5 @@
-#sample: ['Lu2']
-sample: ['Br11', 'Br7', 'Br61', 'Br38', 'LM2', 'Pr9', 'Br23','Br39', 'Br57', 'Lu2', 'Br16_AC', 'Br16_B', 'Br16_C', 'Br26', 'Br44', 'Lu7', 'Br30', 'Br45', 'Ov8', 'Br37', 'Br46', 'Brx50', 'Pr6']
+sample: ['Br11']
+#sample: ['Br11', 'Br7', 'Br61', 'Br38', 'LM2', 'Pr9', 'Br23','Br39', 'Br57', 'Lu2', 'Br16_AC', 'Br16_B', 'Br16_C', 'Br26', 'Br44', 'Lu7', 'Br30', 'Br45', 'Ov8', 'Br37', 'Br46', 'Brx50', 'Pr6']
 author: Johannes Gawron
 input: /cluster/work/bewi/members/jgawron/projects/CTC/input_folder
 simulations: /cluster/work/bewi/members/jgawron/projects/CTC/simulations/simulations2

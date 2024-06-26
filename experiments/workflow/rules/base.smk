@@ -79,7 +79,7 @@ rule render_markdown_file:
         input_dir=INPUT_FOLDER,
         simulation_dir=SIMULATION_FOLDER,
     resources:
-        mem_mb=2048,
+        mem_mb_per_cpu=4096,
         runtime=2880,
     threads: 16
     conda:
@@ -88,7 +88,7 @@ rule render_markdown_file:
         PROJECT_DIR / "logs" / "render_markdown_file.{SAMPLE}.log",
     shell:
         """
-        ( Rscript -e "rmarkdown::render('{input}', output_file = '{output}')", params = list(inputFolder = {params.input_dir}, nSamplingEvents = {params.sampling_depth}, simulationInputFolder = {params.simulation_dir}, treeName = {wildcard.SAMPLE}, functionsScript = {params.script_dir}) ) &> {log}
+        ( Rscript -e "rmarkdown::render('{input}', output_file = '{output}', params = list(inputFolder = '{params.input_dir}', nSamplingEvents={params.sampling_depth}, simulationInputFolder = '{params.simulation_dir}', treeName = '{wildcards.SAMPLE}', functionsScript = '{params.script_dir}'))" ) &> {log}
         """
 
 
