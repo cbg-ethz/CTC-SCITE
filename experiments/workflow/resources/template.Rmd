@@ -6,10 +6,10 @@ output:
   html_document:
     keep_md: yes
 params:
-  inputFolder: "/cluster/work/bewi/members/jgawron/projects/CTC/input_folder"
+  inputFolder: "/Users/jgawron/Documents/projects/CTC_backup/input_folder"
   nSamplingEvents: 1000
-  simulationInputFolder: "/cluster/work/bewi/members/jgawron/projects/CTC/simulations/simulations2"
-  treeName: "Br11"
+  simulationInputFolder: "/Users/jgawron/Documents/projects/CTC_backup/simulations/simulations2"
+  treeName: "Br16_B"
   functionsScript: "/Users/jgawron/Documents/projects/CTC-SCITE/CTC-SCITE/experiments/workflow/resources/functions.R"
   
 ---

@@ -21,7 +21,19 @@
 
 double chi_wbc = 1.0; // penalty for placing a mutation above a wbc
 
-double logBinomCoeff(int n, int k){
+
+double logBinomCoeff(const int & n, const int & k) {
+  if(k >  n)
+    throw 123;
+  if(k == 0)
+    return 0;
+  if(k > n/2)
+    return logBinomCoeff(n,n-k);
+  return log(n) + logBinomCoeff(n-1,k-1) - log(k);
+}
+
+
+// double logBinomCoeff(const int & n, const int & k){
   
   //	cout << "n = " << n << "  k = " << k << endl;
   //
@@ -32,18 +44,19 @@ double logBinomCoeff(int n, int k){
   //	if(k>n){
   //			getchar();
   //		}
-  return lgamma(n+1.0)-(lgamma(k+1.0)+lgamma(n+1.0-k));
-}
+ //  return lgamma(n+1.0)-(lgamma(k+1.0)+lgamma(n+1.0-k));
+// }
 
 
 
-std::vector< double > normalizeDistribution(std::vector< double >& probabilityWeights) {
+std::vector< double > normalizeDistribution(const std::vector< double >& probabilityWeights) {
   double sum = 0;
   int lengthOfVector = probabilityWeights.size();
   for (int i = 0; i < lengthOfVector; i++) {
     sum += probabilityWeights[i];
   }
   std::vector< double > normalizedProbabilityWeights;
+  normalizedProbabilityWeights.reserve(lengthOfVector);
   
   for (int i = 0; i < lengthOfVector; i++) {
     normalizedProbabilityWeights.push_back(exp(log(probabilityWeights[i])-log(sum)));
@@ -56,7 +69,7 @@ std::vector< double > normalizeDistribution(std::vector< double >& probabilityWe
 
 
 /* computes the probability mass function of the beta-binomial distribution */
-double logBetaBinom(int k, int r, int alpha, int beta, int p, int q, double tau){
+double logBetaBinom(const int & k, const int & r, const int & alpha, const int & beta, const int & p, const int & q, const double & tau){
   
   double logScore = 0.0;
    double M = ((alpha-p)+(beta-q))*tau;
@@ -76,12 +89,13 @@ double logBetaBinom(int k, int r, int alpha, int beta, int p, int q, double tau)
 }
 
 
-std::vector < int > drawWithReplacement(std::vector <double> probabilityWeights, int sampleSize) {
+std::vector < int > drawWithReplacement(const std::vector <double> & probabilityWeights, const int & sampleSize) {
   std::vector <double> probabilityDistribution = normalizeDistribution(probabilityWeights);
   std::discrete_distribution<int> distribution(probabilityDistribution.begin(), probabilityDistribution.end());
   std::random_device rd;
   
   std::vector < int > sampledNumbers;
+  sampledNumbers.reserve(sampleSize);
   for (int i = 0; i < sampleSize; i++) {
     std::mt19937 generator(rd());
     //std::mt19937 generator(seed);
@@ -93,8 +107,7 @@ std::vector < int > drawWithReplacement(std::vector <double> probabilityWeights,
 
 
 
-// [[Rcpp::export]]
-std::vector< std::vector<int> > transposeMatrix(std::vector< std::vector<int> > matrix, int nrows, int ncols) {
+std::vector< std::vector<int> > transposeMatrix(const std::vector< std::vector<int> > & matrix, const int & nrows, const int & ncols) {
   std::vector<std::vector<int>> transposedMatrix(ncols, std::vector<int>(nrows));
   for(int i = 0; i < nrows; i++){
     for(int j = 0; j< ncols; j++){
@@ -110,11 +123,13 @@ std::vector< std::vector<int> > transposeMatrix(std::vector< std::vector<int> > 
 
 /* precompute for each pair (sample, mutation placement) the number of expected mutated alleles in the sample */
 
-std::vector<std::vector<int> > getExpVarAlleleCount(int m, int sampleCount, std::vector<std::vector<bool> > ancMatrix, std::vector<int> leafClusterId){
+std::vector<std::vector<int> > getExpVarAlleleCount(const int & m, const int & sampleCount, const std::vector<std::vector<bool> > & ancMatrix, const std::vector<int> & leafClusterId){
   
   std::vector<std::vector<int> > expVarReadCount;
+  expVarReadCount.reserve(sampleCount);
   for(int sample=0; sample<sampleCount; sample++){
     expVarReadCount.push_back(std::vector<int>());
+    expVarReadCount.at(sample).reserve((2*m)-1);
     for(int node=0; node<(2*m)-1; node++){
       expVarReadCount.at(sample).push_back(0);
     }
@@ -137,19 +152,20 @@ std::vector<std::vector<int> > getExpVarAlleleCount(int m, int sampleCount, std:
 }
 
 
-std::vector<std::vector<int> > getExpAlleleCountFreqs(int m, int sampleCount, std::vector<std::vector<bool> > ancMatrix, std::vector<int> leafClusterId){
+std::vector<std::vector<int> > getExpAlleleCountFreqs(const int & m, const int & sampleCount, const std::vector<std::vector<bool> > & ancMatrix, const std::vector<int> & leafClusterId){
   
   std::vector<std::vector<int> > expVarReadCount = getExpVarAlleleCount(m, sampleCount, ancMatrix, leafClusterId);
   std::vector<std::vector<int> > expVarReadCountFreqs;
-  
-  
+  expVarReadCountFreqs.reserve(sampleCount);
   for(int sample=0; sample<sampleCount; sample++){
     
-    std::vector<int> freqCounter;
+    
     int maxExpVarReadCounter = 0;
     for(int i=0; i<expVarReadCount.at(sample).size(); i++){
       maxExpVarReadCounter = std::max(maxExpVarReadCounter, expVarReadCount.at(sample).at(i));
     }
+    std::vector<int> freqCounter;
+    freqCounter.reserve(maxExpVarReadCounter+1);
     for(int i=0; i<=maxExpVarReadCounter; i++){
       freqCounter.push_back(0);                    // set frequency of each expected allele frequency to zero
     }
@@ -164,9 +180,9 @@ std::vector<std::vector<int> > getExpAlleleCountFreqs(int m, int sampleCount, st
 
 
 /** this computes for each node in the current tree how many wbc's are below it (including node itself)**/
-std::vector<int> getWBC_count_below(int m, int sampleCount, std::vector<std::vector<bool> > ancMatrix, std::vector<bool> wbcStatus){
+std::vector<int> getWBC_count_below(int m, const std::vector<std::vector<bool> > & ancMatrix, const std::vector<bool>& wbcStatus){
   std::vector<int> wbcBelowCount;
-  
+  wbcBelowCount.reserve((2*m)-1);
   for(int node=0; node<(2*m)-1; node++){  // init vector of wbc counts
     wbcBelowCount.push_back(0);
   }
@@ -204,9 +220,8 @@ std::vector<int> getWBC_count_below(int m, int sampleCount, std::vector<std::vec
  * and the read count model 
  * 
  */
-double computeLogSampleScore(int expCount, int alleleCount, int obsMutCount, int obsTotalCount, double dropoutRate, double seqErr, double tau){
+double computeLogSampleScore(int alpha, int alleleCount, int obsMutCount, int obsTotalCount, double dropoutRate, double seqErr, double tau){
   
-  int alpha = expCount;
   int beta = alleleCount - alpha;
   int k = obsMutCount;
   int r = obsTotalCount;
@@ -215,14 +230,16 @@ double computeLogSampleScore(int expCount, int alleleCount, int obsMutCount, int
   //std::cout << "alleleCount " << alleleCount << std::endl;
   //std::cout <<"alpha " << alpha << std::endl;
   
-  std::vector<double> logScores;
-  double logSumScore;
-  double maxLogScore = -DBL_MAX;
-  
   
   if(r==0){
     return 0;
   }
+  
+  std::vector<double> logScores;
+  logScores.reserve(alpha*beta + alpha + beta);
+  double logSumScore;
+  double maxLogScore = -DBL_MAX;
+  
   // both alleles still present: use beta-binomial for modeling drop-out
   for(int p=0; p<alpha; p++){
     //std::cout << "p " << p << std::endl;
@@ -303,17 +320,18 @@ double computeLogSampleScore(int expCount, int alleleCount, int obsMutCount, int
  */
 // [[Rcpp::export]]
 std::vector<int> getMutationPlacement(int m, int n, int sampleCount,
-                                      std::vector<std::vector<bool> > ancMatrix,
-                                      std::vector<int> alleleCount,
-                                      std::vector<int> leafClusterId,
-                                      std::vector<std::vector<int> > mutReadCounts,
-                                      std::vector<std::vector<int> > totalReadCounts,
+                                      const std::vector<std::vector<bool> > & ancMatrix,
+                                      const std::vector<int> & alleleCount,
+                                      const std::vector<int> & leafClusterId,
+                                      const std::vector<std::vector<int> > & mutReadCounts,
+                                      const std::vector<std::vector<int> > & totalReadCounts,
                                       double dropoutRate, 
                                       double seqErr,
                                       double tau,
-                                      std::vector<bool> wbcStatus){
+                                      const std::vector<bool> & wbcStatus){
 
   std::vector<int> bestPlacementPoint;
+  bestPlacementPoint.reserve(n);
   for(int mut=0; mut< n; mut++){               // compute score separately for each mutation
     bestPlacementPoint.push_back(-1);
   }
@@ -321,7 +339,7 @@ std::vector<int> getMutationPlacement(int m, int n, int sampleCount,
 	std::vector<std::vector<int> > expVarAlleleCount = getExpVarAlleleCount(m, sampleCount, ancMatrix, leafClusterId);
   
 	std::vector<std::vector<int> > expVarAlleleFreqs = getExpAlleleCountFreqs(m, sampleCount, ancMatrix, leafClusterId);
-	std::vector<int> wbcBelowCount = getWBC_count_below(m, sampleCount, ancMatrix, wbcStatus);
+	std::vector<int> wbcBelowCount = getWBC_count_below(m, ancMatrix, wbcStatus);
   
 	//double logScore = 0.0;
   
@@ -341,6 +359,7 @@ std::vector<int> getMutationPlacement(int m, int n, int sampleCount,
 		
 		for(int sample=0; sample<sampleCount; sample++){
 			std::vector<double> sampleScorePrecomp;
+		  sampleScorePrecomp.reserve(expVarAlleleFreqs.at(sample).size()+1);
 			//cout << "sample: " << sample << endl;
 		 
 			for(int expFreq=0; expFreq<expVarAlleleFreqs.at(sample).size(); expFreq++){
@@ -449,14 +468,14 @@ std::vector<int> getMutationPlacement(int m, int n, int sampleCount,
 // [[Rcpp::export]]
 std::vector< std::vector<double> > computeMutationDistribution(int m, int n, int sampleCount,
                                                                std::vector<std::vector<bool> > ancMatrix,
-                                                               std::vector<int> alleleCount,
-                                                               std::vector<int> leafClusterId,
-                                                               std::vector<std::vector<int> > mutReadCounts,
-                                                               std::vector<std::vector<int> > totalReadCounts,
+                                                               const std::vector<int> & alleleCount,
+                                                               const std::vector<int> & leafClusterId,
+                                                               const std::vector<std::vector<int> > & mutReadCounts,
+                                                               const std::vector<std::vector<int> > & totalReadCounts,
                                                                double dropoutRate, 
                                                                double seqErr,
                                                                double tau,
-                                                               std::vector<bool> wbcStatus){
+                                                               const std::vector<bool> & wbcStatus){
 
   //std::vector<int> bestPlacementPoint;
   //for(int mut=0; mut< n; mut++){               // compute score separately for each mutation
@@ -466,14 +485,14 @@ std::vector< std::vector<double> > computeMutationDistribution(int m, int n, int
   std::vector<std::vector<int> > expVarAlleleCount = getExpVarAlleleCount(m, sampleCount, ancMatrix, leafClusterId);
   
   std::vector<std::vector<int> > expVarAlleleFreqs = getExpAlleleCountFreqs(m, sampleCount, ancMatrix, leafClusterId);
-  std::vector<int> wbcBelowCount = getWBC_count_below(m, sampleCount, ancMatrix, wbcStatus);
+  std::vector<int> wbcBelowCount = getWBC_count_below(m, ancMatrix, wbcStatus);
   
   //double logScore = 0.0;
   
 
   
   std::vector< std::vector<double> > logAttachmentScores;
-  
+  logAttachmentScores.reserve(n+1);
   for(int mut=0; mut<n; mut++){               // compute score separately for each mutation
     //cout << "mut " << mut << " of " << n << endl;
     
@@ -608,12 +627,12 @@ std::vector< std::vector<double> > computeMutationDistribution(int m, int n, int
  */
 // [[Rcpp::export]]
 std::vector< std::vector<int> > sampleMutationsPlacement(int nSamplingEvents, int nMutations,
-                                                         std::vector< std::vector<double> > logMutationPlacementProbabilities){
+                                                         const std::vector< std::vector<double> > & logMutationPlacementProbabilities){
   
 
   
   std::vector< std::vector<int> > mutationPlacements;
-
+  mutationPlacements.reserve(nMutations);
   for(int m = 0; m < nMutations; m++){
     std::vector<double> mutationPlacementProbabilities;
     for(int it = 0; it < logMutationPlacementProbabilities[m].size(); it++){
@@ -634,7 +653,7 @@ std::vector< std::vector<int> > sampleMutationsPlacement(int nSamplingEvents, in
 
 
 // [[Rcpp::export]]
-std::vector<std::vector<bool>> parentVector2ancMatrix(std::vector<int> parent, int n){
+std::vector<std::vector<bool>> parentVector2ancMatrix(const std::vector<int> & parent, int n){
   
   std::vector<std::vector<bool>> ancMatrix(n, std::vector<bool>(n, false));
   
@@ -713,9 +732,10 @@ std::vector<std::vector<bool>> parentVector2ancMatrix(std::vector<int> parent, i
  * 
  */
 // [[Rcpp::export]]
-std::vector<std::vector<int>> findMostRecentCommonAncestor(const std::vector<int>& treeParentVectorFormat, int leaf1, int leaf2) {
+std::vector<std::vector<int>> findMostRecentCommonAncestor(const std::vector<int> & treeParentVectorFormat, int leaf1, int leaf2) {
   std::vector<int> lineage1{leaf1};
   
+  lineage1.reserve(treeParentVectorFormat.size());
   while (true) {
     lineage1.push_back(treeParentVectorFormat[lineage1.back()]);
     // std::cout << lineage1[lineage1.back()] << std::endl;
@@ -723,6 +743,7 @@ std::vector<std::vector<int>> findMostRecentCommonAncestor(const std::vector<int
   }
   
   std::vector<int> lineage2;
+  lineage2.reserve(treeParentVectorFormat.size());
   int nextParent = leaf2;
   
   while (std::find(lineage1.begin(), lineage1.end(), nextParent) == lineage1.end()) {
@@ -785,105 +806,6 @@ std::vector<std::vector<int>> findMostRecentCommonAncestor(const std::vector<int
 
 
 
-/** For a given tree and a given pair of leaves, the evolutionary distance of
- * the leaves is computed by counting the number of mutations that are on the
- * shortest path from one leaf to the other.
- *
- *
- * @param treeData The DataFrame containing the information from the posterior Sampling
- * @param leaf1 A number from 0 to the number of leaves-1 denoting the leaf index
- * @param leaf2 like leaf1
- * @param nCells the total number of cells in the experiment
- * @param nMutations the total number of mutations in the experiment
- * @param nClusters the total number of CTC-clutsers (inclduing single CTCs)
- * in the experiment
- * @param allelCount A vector that counts the number of alleles for each of the 
- * clusters
- * @param ClusterID A vector of the length corresponding to the number of cells
- * with entries denoting an index for the ClusterID. Corresponds to a number from
- * 0 to number of Clusters -1.
- * @param mutatedReadCounts A matrix with mutations as rows and clusters as columns
- * @param totalReadCounts As mutatedReadCounts
- * @param wbcStatus A binary vector with as many entries as there are cells. 1 stands
- * for being a white blood cell.
- * 
- * @output the total number of mutations separating the genotypes of the two leaves.
- * 
- */
-// [[Rcpp::export]]
-int computePairwiseDistanceOfLeaves(Rcpp::DataFrame treeData, int leaf1, int leaf2, int nCells,
-                                        int nMutations, int nClusters,
-                                        std::vector<int> alleleCount, std::vector<int> ClusterID,
-                                        std::vector<std::vector<int> > mutatedReadCounts, std::vector<std::vector<int> > totalReadCounts,
-                                        std::vector<bool> wbcStatus) {
-  
-  std::string tree = treeData["Tree"];
-  
-  //Now need to split the string into single numbers and turn them into integers
-  // Using a stringstream to split the string
-  std::istringstream iss(tree);
-  std::vector<int> treeParentVectorFormat;
-  // Iterate over each substring and convert to integer
-  int num;
-  while (iss >> num) {
-    treeParentVectorFormat.push_back(num);
-  }
-  
-  double dropoutRate = Rcpp::as<double>(treeData["DropoutRate"]);
-  double seqErrRate = Rcpp::as<double>(treeData["SequencingErrorRate"]);
-  
-  // Preprocess tree
-  std::vector<std::vector<bool> > ancestorMatrix = parentVector2ancMatrix(treeParentVectorFormat, treeParentVectorFormat.size());
-  
-  // Find best Mutation placement
-  std::vector<int> bestMutationPlacement = getMutationPlacement(nCells, nMutations, nClusters,
-                                                             ancestorMatrix, alleleCount, ClusterID,
-                                                             mutatedReadCounts, totalReadCounts,
-                                                             dropoutRate, seqErrRate, 1, wbcStatus);
-  
-  
-  //std::vector<std::vector <double> > mutationDistribution = computeMutationDistribution(nCells, nMutations, nClusters,
-  //                                                              ancestorMatrix, alleleCount, ClusterID,
-  //                                                              mutatedReadCounts, totalReadCounts,
-  //                                                              dropoutRate, seqErrRate, 1, wbcStatus);
-  
-  
-  // Finding most recent common ancestor
-  std::vector<std::vector<int> > pairwiseGenealogy = findMostRecentCommonAncestor(treeParentVectorFormat, leaf1, leaf2);
-  
-  std::vector<int> firstLeafToMRCA = pairwiseGenealogy[0];
-  std::vector<int> secondLeafToMRCA = pairwiseGenealogy[1];
-  
-  // Calculate path between leaves
-  std::vector<int> pathBetweenLeaves = firstLeafToMRCA;
-  std::reverse(secondLeafToMRCA.begin(), secondLeafToMRCA.end());
-  pathBetweenLeaves.insert(pathBetweenLeaves.end(),secondLeafToMRCA.begin(), secondLeafToMRCA.end());
-  
-  
-  // Count mutations in the shortest path between leaves excluding MRCA
-  int positionOfMRCA = 0;
-  for (int i = 0; i < pathBetweenLeaves.size(); ++i) {
-    if (pathBetweenLeaves[i] == firstLeafToMRCA[positionOfMRCA]) {
-      positionOfMRCA = i;
-      break;
-    }
-  }
-  
-  int result = 0;
-  for (int i = 0; i < bestMutationPlacement.size(); ++i) {
-    if (std::find(pathBetweenLeaves.begin(), pathBetweenLeaves.end(), bestMutationPlacement[i]) !=
-        pathBetweenLeaves.end() && bestMutationPlacement[i] != firstLeafToMRCA[positionOfMRCA]) {
-      result++;
-    }
-  }
-  
-  return result;
-}
-
-
-
-
-
 
 
 
@@ -904,8 +826,8 @@ int computePairwiseDistanceOfLeaves(Rcpp::DataFrame treeData, int leaf1, int lea
  * 
  */
 // [[Rcpp::export]]
-std::vector< int > computePairwiseDistanceOfLeaves2(std::vector<int> treeParentVectorFormat, int leaf1, int leaf2,
-                                     std::vector<int> mutationPlacement, std::vector< std::vector<int> > pairwiseGenealogy) {
+std::vector< int > computePairwiseDistanceOfLeaves2(const std::vector<int> & treeParentVectorFormat, int leaf1, int leaf2,
+                                     const std::vector<int> & mutationPlacement, const std::vector< std::vector<int> > & pairwiseGenealogy) {
   
   //std::string tree = treeData["Tree"];
   
@@ -956,6 +878,7 @@ std::vector< int > computePairwiseDistanceOfLeaves2(std::vector<int> treeParentV
   }
   
   std::vector<int> output;
+  output.reserve(2);
   
   output.push_back(distance);
   output.push_back(split);
@@ -987,8 +910,8 @@ std::vector< int > computePairwiseDistanceOfLeaves2(std::vector<int> treeParentV
  * 
  */
 // [[Rcpp::export]]
-double ComputePerMutationProbabilityOfPolyclonality(std::vector< std::vector<int> > pairwiseGenealogy,
-                                                 std::vector< std::vector<double> > logMutationPlacementProbabilities,
+double ComputePerMutationProbabilityOfPolyclonality(const std::vector< std::vector<int> > & pairwiseGenealogy,
+                                                 const std::vector< std::vector<double> > & logMutationPlacementProbabilities,
                                                  int nMutations, int nCells){
   
   std::vector<int> lineage1 = pairwiseGenealogy[0];
@@ -1006,7 +929,7 @@ double ComputePerMutationProbabilityOfPolyclonality(std::vector< std::vector<int
     double ProbabilityOfMutationInLineage1 = 0;
     double ProbabilityOfMutationInLineage2 = 0;
     std::vector<double> mutationPlacementProbabilityWeights;
-    
+    mutationPlacementProbabilityWeights.reserve(logMutationPlacementProbabilities[mut].size());
     for(int it = 0; it < logMutationPlacementProbabilities[mut].size(); it++){
       mutationPlacementProbabilityWeights.push_back(exp(logMutationPlacementProbabilities[mut][it]));
     }
@@ -1062,15 +985,16 @@ double ComputePerMutationProbabilityOfPolyclonality(std::vector< std::vector<int
 // [[Rcpp::export]]
 std::vector<std::vector<double> > computePairwiseDistanceOfLeavesGivenTree(Rcpp::DataFrame treeData, int leaf1, int leaf2, int nCells,
                                                            int nMutations, int nClusters,
-                                                           std::vector<int> alleleCount, std::vector<int> ClusterID,
-                                                           std::vector<std::vector<int> > mutatedReadCounts, std::vector<std::vector<int> > totalReadCounts,
-                                                           std::vector<bool> wbcStatus, int nSamplingEvents){
+                                                           const std::vector<int> & alleleCount, const std::vector<int> &  ClusterID,
+                                                           const std::vector<std::vector<int> > & mutatedReadCounts, const std::vector<std::vector<int> > & totalReadCounts,
+                                                           const std::vector<bool> & wbcStatus, int nSamplingEvents){
   std::string tree = treeData["Tree"];
   
   //Now need to split the string into single numbers and turn them into integers
   // Using a stringstream to split the string
   std::istringstream iss(tree);
   std::vector<int> treeParentVectorFormat;
+  treeParentVectorFormat.reserve(2*nCells-1);
   // Iterate over each substring and convert to integer
   int num;
   while (iss >> num) {
@@ -1115,6 +1039,8 @@ std::vector<std::vector<double> > computePairwiseDistanceOfLeavesGivenTree(Rcpp:
   
   std::vector<int> distanceVector;
   std::vector<int> splittingStats;
+  distanceVector.reserve(mutationPlacements.size());
+  splittingStats.reserve(mutationPlacements.size());
   for(int it = 0; it < mutationPlacements.size(); it++){
     std::vector<int> output = computePairwiseDistanceOfLeaves2(treeParentVectorFormat, leaf1, leaf2,
                                      mutationPlacements[it], pairwiseGenealogy);
@@ -1131,6 +1057,7 @@ std::vector<std::vector<double> > computePairwiseDistanceOfLeavesGivenTree(Rcpp:
   std::vector<double> splittingStatsDouble(splittingStats.begin(), splittingStats.end());
   
   std::vector< std::vector<double> > result;
+  result.reserve(3);
   result.push_back(distanceVectorDouble);
   result.push_back(splittingStatsDouble);
   result.push_back(PerMutationProbabilityOfPolyclonality);
@@ -1173,8 +1100,8 @@ std::vector<std::vector<double> > computePairwiseDistanceOfLeavesGivenTree(Rcpp:
  */
 // [[Rcpp::export]]
 std::vector<std::vector<double>> getProbabilityOfBeingMutated(std::vector<Rcpp::DataFrame> treeData, int nCells, int nMutations, int nClusters,
-                                    std::vector<int> alleleCount, std::vector<int> ClusterID, std::vector< std::vector<int>> mutatedReadCounts,
-                                    std::vector< std::vector<int>>  totalReadCounts, std::vector<bool> wbcStatus){
+                                    const std::vector<int> & alleleCount, const std::vector<int> & ClusterID, const std::vector< std::vector<int>> & mutatedReadCounts,
+                                    const std::vector< std::vector<int>> & totalReadCounts, const std::vector<bool> & wbcStatus){
   
   
   
@@ -1195,6 +1122,7 @@ std::vector<std::vector<double>> getProbabilityOfBeingMutated(std::vector<Rcpp::
     // Using a stringstream to split the string
     std::istringstream iss(tree);
     std::vector<int> treeParentVectorFormat;
+    treeParentVectorFormat.reserve(2*nCells-1);
     // Iterate over each substring and convert to integer
     int num;
     while (iss >> num) {
@@ -1213,8 +1141,10 @@ std::vector<std::vector<double>> getProbabilityOfBeingMutated(std::vector<Rcpp::
     
     
     std::vector<std::vector<double>> mutationDistribution;
+    mutationDistribution.reserve(nMutations);
     for(int mutIndex = 0; mutIndex < nMutations; mutIndex++){
       mutationDistribution.push_back(std::vector<double>());
+      mutationDistribution.back().reserve(2*nCells - 1);
       for (int nodeIndex = 0; nodeIndex < 2*nCells-1; nodeIndex ++){
         mutationDistribution.back().push_back(exp(logMutationDistribution[mutIndex][nodeIndex]));
       }
