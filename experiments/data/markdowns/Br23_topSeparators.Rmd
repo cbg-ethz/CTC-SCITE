@@ -17,9 +17,9 @@ output:
 ## Data 
 
 ```{r initialization}
-source('../../workflow/resources/annotateVariants.R')
-sampleName <- 'Br23'
-inputFolder <- '/cluster/work/bewi/members/jgawron/projects/CTC/input_folder'
+source("../../workflow/resources/annotateVariants.R")
+sampleName <- "Br23"
+inputFolder <- "/cluster/work/bewi/members/jgawron/projects/CTC/input_folder"
 ```
 
 #### Mutation distance matrix

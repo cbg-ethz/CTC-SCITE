@@ -17,9 +17,9 @@ output:
 ## Data 
 
 ```{r initialization}
-source('../../workflow/resources/annotateVariants.R')
-sampleName <- 'Br11'
-inputFolder <- '/cluster/work/bewi/members/jgawron/projects/CTC/input_folder'
+source("../../workflow/resources/annotateVariants.R")
+sampleName <- "Br11"
+inputFolder <- "/cluster/work/bewi/members/jgawron/projects/CTC/input_folder"
 ```
 
 #### Mutation distance matrix
@@ -33,10 +33,10 @@ A **private branch** is defined as the path from a leaf to the node just below t
 This is a generalization of the earlier method to find the top seperating mutations of pairs of leafs. The generalization was necessary to handle the larger clusters that were broken in more than 2 pieces.
 
 ```{r}
-clusterName <- 'lightcoral'
+clusterName <- "lightcoral"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, '_postSampling_',clusterName,'.txt') ),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
-mat<-as.matrix(d)
+d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
 
@@ -44,13 +44,12 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage<-read.table(file.path(inputFolder, sampleName, paste(sampleName, 'covScore.txt', sep = '_')),header=TRUE,sep="\t", stringsAsFactors=F, row.names=1)
+coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 annotations <- annotate_variants(sampleName, inputFolder)
 
 coverage <- inner_join(coverage, annotations, by = "variantName")
-
 ```
 
 ## Method
@@ -79,7 +78,7 @@ heatmaply(mat)
 mat2 <- mat
 diag(mat2) <- 1
 min_dist <- apply(mat2, 1, min) # find minimum distance to other mutations
-selected_muts <- which(min_dist<0.9) # select those below 0.5 say
+selected_muts <- which(min_dist < 0.9) # select those below 0.5 say
 mat2 <- mat[selected_muts, selected_muts]
 ```
 
@@ -100,8 +99,8 @@ coverage %>% filter(variantName %in% colnames(mat2))
 To cluster mutations, we create a dendrogram based on the pairwise distances:
 ```{r}
 d_mat <- as.dist(mat)
-hc <- hclust(d_mat, "average")                   ## hierarchical clustering of mutations based on distance matrix
-par(cex=0.6)
+hc <- hclust(d_mat, "average") ## hierarchical clustering of mutations based on distance matrix
+par(cex = 0.6)
 plot(hc, main = "Dendrogram based on average pairwise distance", sub = "", xlab = "Separating mutations")
 ```
 
