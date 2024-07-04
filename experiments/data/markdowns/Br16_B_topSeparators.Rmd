@@ -17,11 +17,11 @@ output:
 ## Data 
 
 ```{r initialization, message = FALSE}
-source('../../workflow/resources/annotateVariants.R')
-sampleName <- 'Br16_B'
-inputFolder <- '/cluster/work/bewi/members/jgawron/projects/CTC/input_folder'
+source("../../workflow/resources/annotateVariants.R")
+sample_name <- "Br16_B"
+inputFolder <- "/cluster/work/bewi/members/jgawron/projects/CTC/input_folder"
 
-annotations <- annotate_variants(sampleName, inputFolder)
+annotations <- annotate_variants(sample_name, inputFolder)
 ```
 
 #### Mutation distance matrix
@@ -42,7 +42,7 @@ This is a 3-cell CTC-cluster.
 ```{r}
 clusterName <- "lightpink2"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+d <- read.table(file.path(inputFolder, sample_name, paste0(sample_name, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
@@ -51,7 +51,7 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+coverage <- read.table(file.path(inputFolder, sample_name, paste(sample_name, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
@@ -261,7 +261,7 @@ This is a 3-cell CTC-cluster.
 ```{r}
 clusterName <- "orangered4"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+d <- read.table(file.path(inputFolder, sample_name, paste0(sample_name, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
@@ -270,7 +270,7 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+coverage <- read.table(file.path(inputFolder, sample_name, paste(sample_name, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
@@ -479,7 +479,7 @@ This is a 3-cell CTC-cluster.
 ```{r}
 clusterName <- "goldenrod"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+d <- read.table(file.path(inputFolder, sample_name, paste0(sample_name, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
@@ -488,7 +488,7 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+coverage <- read.table(file.path(inputFolder, sample_name, paste(sample_name, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
@@ -655,7 +655,7 @@ This is a 4-cell CTC-cluster.
 ```{r}
 clusterName <- "sienna2"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+d <- read.table(file.path(inputFolder, sample_name, paste0(sample_name, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
@@ -664,7 +664,7 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+coverage <- read.table(file.path(inputFolder, sample_name, paste(sample_name, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
@@ -834,7 +834,7 @@ This is a 4-cell CTC-cluster.
 ```{r}
 clusterName <- "springgreen"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+d <- read.table(file.path(inputFolder, sample_name, paste0(sample_name, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
@@ -843,7 +843,7 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+coverage <- read.table(file.path(inputFolder, sample_name, paste(sample_name, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 
@@ -1015,7 +1015,7 @@ This is a 4-cell CTC-cluster.
 ```{r}
 clusterName <- "palegreen3"
 
-d <- read.table(file.path(inputFolder, sampleName, paste0(sampleName, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+d <- read.table(file.path(inputFolder, sample_name, paste0(sample_name, "_postSampling_", clusterName, ".txt")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 mat <- as.matrix(d)
 mat[1:4, 1:4]
 ```
@@ -1024,7 +1024,7 @@ mat[1:4, 1:4]
 For each position, we computed the percentage of samples that have a coverage of at least 3 at this position. This is meant as a simple score of the data quality of a position that can be used in addition to the separation score to pick mutations for the wet lab experiments. Furthermore, we added simple functional annotations to the variants.
 
 ```{r message=FALSE}
-coverage <- read.table(file.path(inputFolder, sampleName, paste(sampleName, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
+coverage <- read.table(file.path(inputFolder, sample_name, paste(sample_name, "covScore.txt", sep = "_")), header = TRUE, sep = "\t", stringsAsFactors = F, row.names = 1)
 coverage$variantName <- rownames(coverage)
 head(coverage)
 

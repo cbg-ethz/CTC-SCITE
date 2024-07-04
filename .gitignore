@@ -3,6 +3,7 @@ slurm*
 Rcode/.Rproj.user
 Rcode/markdowns/*
 Rcode/*.html
+Rcode/._*
 Rcode/.Rhistory
 Rcode/Rprofile
 !Rcode/markdowns/template.Rmd
