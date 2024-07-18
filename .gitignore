@@ -14,3 +14,5 @@ experiments/data/markdowns/
 !experiments/data/markdowns/*topSeparators.Rmd
 experiments/data/htmls/*files
 experiments/logs/
+*.vscode
+*ipynb*

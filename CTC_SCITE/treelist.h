@@ -6,8 +6,6 @@
  */
 
 #include <string>
-//#include <iostream>
-//#include <sstream>
 
 #ifndef TREELIST_H
 #define TREELIST_H

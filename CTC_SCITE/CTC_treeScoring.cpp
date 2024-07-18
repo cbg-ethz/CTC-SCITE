@@ -17,8 +17,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
-//#include "binTree_output.h"
-//#include "beta_distr.h"
 
 #include "CTC_treeScoring.h"
 #include "binTree_output.h"

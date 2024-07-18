@@ -9,7 +9,6 @@
 #define RAND_H
 
 #include <vector>
-//#include <string>
 
 void initRand();
 bool changeBeta(double prob);

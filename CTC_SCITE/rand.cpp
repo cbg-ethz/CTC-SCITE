@@ -5,8 +5,6 @@
  *      Author: jahnka
  */
 
-//#include <string>
-//#include <random>
 #include <iostream>
 #include <random>
 #include <stdlib.h>
