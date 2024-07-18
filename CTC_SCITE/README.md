@@ -22,7 +22,7 @@ allowing us to the the mixed and assess clonality of the cell clusters.
 ---------------
 
 
-**CTC-SCITE** is freely available under a GPL3 license at http:///CTC-SCITE
+**CTC-SCITE** is freely available under a GPL3 license at http://CTC-SCITE
 
 
 ##    Getting started
@@ -42,9 +42,11 @@ cd CTC-SCITE
 make
 ```
 
-Assuming the sample data file Br16.txt and annotation file Br16_samples_nodeDescription.tsv is located in the same folder, **CTC-SCITE** can then be executed as follows
-./CTC-SCITE -i Br16.txt -samples Br16_samples_nodeDescription.tsv -r 1 -l 1000 -g 1 -e 0.1 -p 1 -o test
+Assuming the sample data file Br16.txt and annotation file Br16_samples_nodeDescription.tsv is located in the same folder, **CTC-SCITE** can then be executed as follows:
 
+```bash
+./CTC-SCITE -i Br16.txt -samples Br16_samples_nodeDescription.tsv -r 1 -l 1000 -g 1 -e 0.1 -p 1 -o test
+```
 
 ##  Input Files
 ---------------
