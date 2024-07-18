@@ -1,4 +1,4 @@
----
+--
 title: "Top separating mutations for CTC cluster cell pairs"
 author: "Katharina Jahn, Johannes Gawron"
 date: "March 2024"
@@ -20,8 +20,8 @@ output:
 ```{r initialization, message = FALSE}
 source("../../workflow/resources/annotateVariants.R")
 sample_name <- "Br16_AC"
-inputFolder <- "/cluster/work/bewi/members/jgawron/projects/CTC/input_folder"
-annotations <- annotate_variants(sample_name, inputFolder)
+input_folder <- "/cluster/work/bewi/members/jgawron/projects/CTC/input_folder"
+annotations <- annotate_variants(sample_name, input_folder)
 ```
 
 #### Mutation distance matrix
@@ -45,12 +45,12 @@ larger clusters that were broken in more than 2 pieces.
 # sandybrown
 
 ```{r}
-clusterName <- "sandybrown"
+cluster_name <- "sandybrown"
 
 d <- read.table(
   file.path(
-    inputFolder, sample_name,
-    paste0(sample_name, "_postSampling_", clusterName, ".txt")
+    input_folder, sample_name,
+    paste0(sample_name, "_postSampling_", cluster_name, ".txt")
   ),
   header = TRUE, sep = "\t", stringsAsFactors = FALSE, row.names = 1
 )
@@ -68,7 +68,7 @@ annotations to the variants.
 ```{r message=FALSE}
 coverage <- read.table(
   file.path(
-    inputFolder, sample_name,
+    input_folder, sample_name,
     paste(sample_name, "covScore.txt", sep = "_")
   ),
   header = TRUE,
@@ -153,8 +153,7 @@ abline(h = 0.8, lwd = 2, lty = 2, col = "green")
 ```
 
 ```{r}
-# geneGroups <- cutree(hc, k = NULL, h = 0.6)
-geneGroups <- cutree(hc, k = 2)
+gene_groups <- cutree(hc, k = 2)
 ```
 
 
@@ -167,7 +166,7 @@ in the cluster.
 #### First cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 1]
+cluster1 <- names(gene_groups)[gene_groups == 1]
 ```
 
 Mutations in cluster:
@@ -198,7 +197,6 @@ top_df$variantName <- rownames(top_df)
 
 ```{r}
 top_muts_1 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
 top_muts_1
 ```
 
@@ -206,13 +204,13 @@ top_muts_1
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_1 == "MODERATE")
+    cluster_name, sum(top_muts_1 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_1 == "HIGH")
+    cluster_name, sum(top_muts_1 == "HIGH")
   )
 )
 ```
@@ -223,7 +221,7 @@ print(
 #### Second cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 2]
+cluster1 <- names(gene_groups)[gene_groups == 2]
 ```
 
 Mutations in cluster:
@@ -254,7 +252,6 @@ top_df$variantName <- rownames(top_df)
 
 ```{r}
 top_muts_2 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
 top_muts_2
 ```
 
@@ -262,13 +259,13 @@ top_muts_2
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_2 == "MODERATE")
+    cluster_name, sum(top_muts_2 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_2 == "HIGH")
+    cluster_name, sum(top_muts_2 == "HIGH")
   )
 )
 ```
@@ -278,12 +275,12 @@ print(
 # mistyrose
 
 ```{r}
-clusterName <- "mistyrose"
+cluster_name <- "mistyrose"
 
 d <- read.table(
   file.path(
-    inputFolder, sample_name,
-    paste0(sample_name, "_postSampling_", clusterName, ".txt")
+    input_folder, sample_name,
+    paste0(sample_name, "_postSampling_", cluster_name, ".txt")
   ),
   header = TRUE, sep = "\t", stringsAsFactors = FALSE, row.names = 1
 )
@@ -301,7 +298,7 @@ annotations to the variants.
 ```{r message=FALSE}
 coverage <- read.table(
   file.path(
-    inputFolder, sample_name, paste(sample_name, "covScore.txt", sep = "_")
+    input_folder, sample_name, paste(sample_name, "covScore.txt", sep = "_")
   ),
   header = TRUE, sep = "\t", stringsAsFactors = FALSE, row.names = 1
 )

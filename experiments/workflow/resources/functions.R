@@ -124,7 +124,8 @@ produce_Distance_Posterior <- function(leaf1, leaf2, postSampling, treeName,
   totalNumberOfSamplingEvents <- nSamplingEvents * length(postSampling)
 
 
-  data <- data.frame(StatisticsOfMutationPlacement = StatisticsOfMutationPlacement)
+  data <-
+    data.frame(StatisticsOfMutationPlacement = StatisticsOfMutationPlacement)
 
 
   sum(is.na(data$StatisticsOfMutationPlacement))
@@ -137,8 +138,11 @@ produce_Distance_Posterior <- function(leaf1, leaf2, postSampling, treeName,
 
   tryCatch(
     expr = {
-      histo <- ggplot(data, aes(x = StatisticsOfMutationPlacement)) +
-        geom_histogram(bins = 10, fill = "skyblue", color = "skyblue", alpha = 0.7) +
+      histo <-
+        ggplot(data, aes(x = StatisticsOfMutationPlacement)) +
+        geom_histogram(
+          bins = 10, fill = "skyblue", color = "skyblue", alpha = 0.7
+        ) +
         xlab("Splitting score") +
         ylab("total count") +
         ggtitle("Posterior sampling of branching probabilites") +
@@ -687,7 +691,8 @@ load_monoclonal_pairs <- function(inputFolder, treeName, cutoff = "") {
       if (it[1] <= it[2]) next
 
 
-      # Check whether the candidate pair of cells consists of single tumour cells:
+      # Check whether the candidate pair of cells consists of single tumour
+      # cells:
 
 
 

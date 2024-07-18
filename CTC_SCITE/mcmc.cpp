@@ -16,6 +16,8 @@
 #include <random>
 #include <fstream>
 #include <sstream>
+#include "limits.h"
+
 #include "matrices.h"
 #include "treelist.h"
 #include "trees.h"
@@ -23,7 +25,6 @@
 #include "scoreTree.h"
 #include "scoreBinTree.h"
 #include "rand.h"
-#include "limits.h"
 #include "output.h"
 #include "mcmcBinTreeMove.h"
 #include "mcmcTreeMove.h"

@@ -15,6 +15,7 @@
 #include <math.h>
 #include <cmath>
 #include <queue>
+
 #include "matrices.h"
 #include "treelist.h"
 #include "trees.h"

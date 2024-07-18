@@ -19,7 +19,7 @@ output:
 ```{r initialization}
 source("../../workflow/resources/annotateVariants.R")
 sample_name <- "Br11"
-inputFolder <- "/cluster/work/bewi/members/jgawron/projects/CTC/input_folder"
+input_folder <- "/cluster/work/bewi/members/jgawron/projects/CTC/input_folder"
 ```
 
 #### Mutation distance matrix
@@ -39,12 +39,12 @@ mutations of pairs of leafs. The generalization was necessary to handle the
 larger clusters that were broken in more than 2 pieces.
 
 ```{r}
-clusterName <- "lightcoral"
+cluster_name <- "lightcoral"
 
 d <- read.table(
   file.path(
-    inputFolder, sample_name,
-    paste0(sample_name, "_postSampling_", clusterName, ".txt")
+    input_folder, sample_name,
+    paste0(sample_name, "_postSampling_", cluster_name, ".txt")
   ),
   header = TRUE, sep = "\t", stringsAsFactors = FALSE, row.names = 1
 )
@@ -62,7 +62,7 @@ annotations to the variants.
 ```{r message=FALSE}
 coverage <- read.table(
   file.path(
-    inputFolder, sample_name,
+    input_folder, sample_name,
     paste(sample_name, "covScore.txt", sep = "_")
   ),
   header = TRUE,
@@ -70,7 +70,7 @@ coverage <- read.table(
 )
 coverage$variantName <- rownames(coverage)
 head(coverage)
-annotations <- annotate_variants(sample_name, inputFolder)
+annotations <- annotate_variants(sample_name, input_folder)
 
 coverage <- inner_join(coverage, annotations, by = "variantName")
 ```

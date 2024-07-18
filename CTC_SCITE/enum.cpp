@@ -19,14 +19,13 @@
 #include <float.h>
 #include <stdlib.h>
 #include <stdio.h>
-//#include <cmath>
+
 #include "treelist.h"
 #include "trees.h"
 #include "matrices.h"
-#include "enum.h"
-
 #include "rand.h"
 #include "scoreTree.h"
+#include "enum.h"
 // generate random tree with n nodes
 // attach m nodes randomly to the tree
 // get data matrix (m x n)

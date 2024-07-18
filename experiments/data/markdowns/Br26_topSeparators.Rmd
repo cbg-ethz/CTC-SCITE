@@ -19,9 +19,9 @@ output:
 ```{r initialization, message = FALSE}
 source("../../workflow/resources/annotateVariants.R")
 sample_name <- "Br26"
-inputFolder <- "/cluster/work/bewi/members/jgawron/projects/CTC/input_folder"
+input_folder <- "/cluster/work/bewi/members/jgawron/projects/CTC/input_folder"
 
-annotations <- annotate_variants(sample_name, inputFolder)
+annotations <- annotate_variants(sample_name, input_folder)
 ```
 
 #### Mutation distance matrix
@@ -44,12 +44,12 @@ larger clusters that were broken in more than 2 pieces.
 # plum 
 
 ```{r}
-clusterName <- "lightcoral"
+cluster_name <- "lightcoral"
 
 d <- read.table(
   file.path(
-    inputFolder, sample_name,
-    paste0(sample_name, "_postSampling_", clusterName, ".txt")
+    input_folder, sample_name,
+    paste0(sample_name, "_postSampling_", cluster_name, ".txt")
   ),
   header = TRUE,
   sep = "\t", stringsAsFactors = FALSE, row.names = 1
@@ -68,7 +68,7 @@ functional annotations to the variants.
 ```{r message=FALSE}
 coverage <- read.table(
   file.path(
-    inputFolder, sample_name, paste(sample_name, "covScore.txt", sep = "_")
+    input_folder, sample_name, paste(sample_name, "covScore.txt", sep = "_")
   ),
   header = TRUE, sep = "\t", stringsAsFactors = FALSE, row.names = 1
 )
@@ -165,8 +165,7 @@ abline(h = 0.98, lwd = 2, lty = 2, col = "green")
 ```
 
 ```{r}
-# geneGroups <- cutree(hc, k = NULL, h = 0.6)
-geneGroups <- cutree(hc, k = 2)
+gene_groups <- cutree(hc, k = 2)
 ```
 
 Here we decide to cut the data into three clusters eventhough the MAP trees
@@ -186,7 +185,7 @@ in the cluster.
 #### First cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 1]
+cluster1 <- names(gene_groups)[gene_groups == 1]
 ```
 
 Mutations in cluster:
@@ -210,7 +209,6 @@ top_df$variantName <- cluster1
 
 ```{r}
 top_muts_1 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
 top_muts_1
 ```
 
@@ -218,13 +216,13 @@ top_muts_1
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_1 == "MODERATE")
+    cluster_name, sum(top_muts_1 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_1 == "HIGH")
+    cluster_name, sum(top_muts_1 == "HIGH")
   )
 )
 ```

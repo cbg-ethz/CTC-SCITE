@@ -19,9 +19,9 @@ output:
 ```{r initialization, message = FALSE}
 source("../../workflow/resources/annotateVariants.R")
 sample_name <- "Br16_B"
-inputFolder <- "/cluster/work/bewi/members/jgawron/projects/CTC/input_folder"
+input_folder <- "/cluster/work/bewi/members/jgawron/projects/CTC/input_folder"
 
-annotations <- annotate_variants(sample_name, inputFolder)
+annotations <- annotate_variants(sample_name, input_folder)
 ```
 
 #### Mutation distance matrix
@@ -46,12 +46,12 @@ larger clusters that were broken in more than 2 pieces.
 This is a 3-cell CTC-cluster.
 
 ```{r}
-clusterName <- "lightpink2"
+cluster_name <- "lightpink2"
 
 d <- read.table(
   file.path(
-    inputFolder, sample_name,
-    paste0(sample_name, "_postSampling_", clusterName, ".txt")
+    input_folder, sample_name,
+    paste0(sample_name, "_postSampling_", cluster_name, ".txt")
   ),
   header = TRUE,
   sep = "\t", stringsAsFactors = FALSE, row.names = 1
@@ -70,7 +70,7 @@ annotations to the variants.
 ```{r message=FALSE}
 coverage <- read.table(
   file.path(
-    inputFolder, sample_name, paste(sample_name, "covScore.txt", sep = "_")
+    input_folder, sample_name, paste(sample_name, "covScore.txt", sep = "_")
   ),
   header = TRUE, sep = "\t", stringsAsFactors = FALSE, row.names = 1
 )
@@ -150,8 +150,7 @@ abline(h = 0.8, lwd = 2, lty = 2, col = "green")
 ```
 
 ```{r}
-# geneGroups <- cutree(hc, k = NULL, h = 0.6)
-geneGroups <- cutree(hc, k = 3)
+gene_groups <- cutree(hc, k = 3)
 ```
 
 
@@ -164,7 +163,7 @@ in the cluster.
 #### First cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 1]
+cluster1 <- names(gene_groups)[gene_groups == 1]
 ```
 
 Mutations in cluster:
@@ -195,7 +194,6 @@ top_df$variantName <- rownames(top_df)
 
 ```{r}
 top_muts_1 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
 top_muts_1
 ```
 
@@ -203,13 +201,13 @@ top_muts_1
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_1 == "MODERATE")
+    cluster_name, sum(top_muts_1 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_1 == "HIGH")
+    cluster_name, sum(top_muts_1 == "HIGH")
   )
 )
 ```
@@ -220,7 +218,7 @@ print(
 #### Second cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 2]
+cluster1 <- names(gene_groups)[gene_groups == 2]
 ```
 
 Mutations in cluster:
@@ -251,7 +249,7 @@ top_df$variantName <- rownames(top_df)
 
 ```{r}
 top_muts_2 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
+
 top_muts_2
 ```
 
@@ -259,13 +257,13 @@ top_muts_2
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_2 == "MODERATE")
+    cluster_name, sum(top_muts_2 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_2 == "HIGH")
+    cluster_name, sum(top_muts_2 == "HIGH")
   )
 )
 ```
@@ -274,7 +272,7 @@ print(
 #### Third cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 3]
+cluster1 <- names(gene_groups)[gene_groups == 3]
 ```
 
 Mutations in cluster:
@@ -305,7 +303,6 @@ top_df$variantName <- rownames(top_df)
 
 ```{r}
 top_muts_2 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
 top_muts_2
 ```
 
@@ -313,13 +310,13 @@ top_muts_2
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_2 == "MODERATE")
+    cluster_name, sum(top_muts_2 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_2 == "HIGH")
+    cluster_name, sum(top_muts_2 == "HIGH")
   )
 )
 ```
@@ -331,12 +328,12 @@ print(
 This is a 3-cell CTC-cluster.
 
 ```{r}
-clusterName <- "orangered4"
+cluster_name <- "orangered4"
 
 d <- read.table(
   file.path(
-    inputFolder, sample_name,
-    paste0(sample_name, "_postSampling_", clusterName, ".txt")
+    input_folder, sample_name,
+    paste0(sample_name, "_postSampling_", cluster_name, ".txt")
   ),
   header = TRUE,
   sep = "\t", stringsAsFactors = FALSE, row.names = 1
@@ -355,7 +352,7 @@ annotations to the variants.
 ```{r message=FALSE}
 coverage <- read.table(
   file.path(
-    inputFolder, sample_name, paste(sample_name, "covScore.txt", sep = "_")
+    input_folder, sample_name, paste(sample_name, "covScore.txt", sep = "_")
   ),
   header = TRUE, sep = "\t", stringsAsFactors = FALSE, row.names = 1
 )
@@ -437,8 +434,7 @@ abline(h = 0.85, lwd = 2, lty = 2, col = "green")
 ```
 
 ```{r}
-# geneGroups <- cutree(hc, k = NULL, h = 0.6)
-geneGroups <- cutree(hc, k = 3)
+gene_groups <- cutree(hc, k = 3)
 ```
 
 
@@ -451,7 +447,7 @@ in the cluster.
 #### First cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 1]
+cluster1 <- names(gene_groups)[gene_groups == 1]
 ```
 
 Mutations in cluster:
@@ -482,7 +478,6 @@ top_df$variantName <- rownames(top_df)
 
 ```{r}
 top_muts_1 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
 top_muts_1
 ```
 
@@ -490,13 +485,13 @@ top_muts_1
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_1 == "MODERATE")
+    cluster_name, sum(top_muts_1 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_1 == "HIGH")
+    cluster_name, sum(top_muts_1 == "HIGH")
   )
 )
 ```
@@ -507,7 +502,7 @@ print(
 #### Second cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 2]
+cluster1 <- names(gene_groups)[gene_groups == 2]
 ```
 
 Mutations in cluster:
@@ -538,7 +533,6 @@ top_df$variantName <- rownames(top_df)
 
 ```{r}
 top_muts_2 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
 top_muts_2
 ```
 
@@ -546,13 +540,13 @@ top_muts_2
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_2 == "MODERATE")
+    cluster_name, sum(top_muts_2 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_2 == "HIGH")
+    cluster_name, sum(top_muts_2 == "HIGH")
   )
 )
 ```
@@ -561,7 +555,7 @@ print(
 #### Third cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 3]
+cluster1 <- names(gene_groups)[gene_groups == 3]
 ```
 
 Mutations in cluster:
@@ -592,7 +586,6 @@ top_df$variantName <- rownames(top_df)
 
 ```{r}
 top_muts_2 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
 top_muts_2
 ```
 
@@ -600,13 +593,13 @@ top_muts_2
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_2 == "MODERATE")
+    cluster_name, sum(top_muts_2 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_2 == "HIGH")
+    cluster_name, sum(top_muts_2 == "HIGH")
   )
 )
 ```
@@ -617,12 +610,12 @@ print(
 This is a 3-cell CTC-cluster.
 
 ```{r}
-clusterName <- "goldenrod"
+cluster_name <- "goldenrod"
 
 d <- read.table(
   file.path(
-    inputFolder, sample_name,
-    paste0(sample_name, "_postSampling_", clusterName, ".txt")
+    input_folder, sample_name,
+    paste0(sample_name, "_postSampling_", cluster_name, ".txt")
   ),
   header = TRUE,
   sep = "\t", stringsAsFactors = FALSE, row.names = 1
@@ -637,7 +630,7 @@ For each position, we computed the percentage of samples that have a coverage of
 ```{r message=FALSE}
 coverage <- read.table(
   file.path(
-    inputFolder, sample_name, paste(sample_name, "covScore.txt", sep = "_")
+    input_folder, sample_name, paste(sample_name, "covScore.txt", sep = "_")
   ),
   header = TRUE, sep = "\t", stringsAsFactors = FALSE, row.names = 1
 )
@@ -718,8 +711,7 @@ abline(h = 0.82, lwd = 2, lty = 2, col = "green")
 ```
 
 ```{r}
-# geneGroups <- cutree(hc, k = NULL, h = 0.6)
-geneGroups <- cutree(hc, k = 2)
+gene_groups <- cutree(hc, k = 2)
 ```
 
 
@@ -732,7 +724,7 @@ in the cluster.
 #### First cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 1]
+cluster1 <- names(gene_groups)[gene_groups == 1]
 ```
 
 Mutations in cluster:
@@ -763,7 +755,6 @@ top_df$variantName <- rownames(top_df)
 
 ```{r}
 top_muts_1 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
 top_muts_1
 ```
 
@@ -771,13 +762,13 @@ top_muts_1
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_1 == "MODERATE")
+    cluster_name, sum(top_muts_1 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_1 == "HIGH")
+    cluster_name, sum(top_muts_1 == "HIGH")
   )
 )
 ```
@@ -788,7 +779,7 @@ print(
 #### Second cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 2]
+cluster1 <- names(gene_groups)[gene_groups == 2]
 ```
 
 Mutations in cluster:
@@ -819,7 +810,6 @@ top_df$variantName <- rownames(top_df)
 
 ```{r}
 top_muts_2 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
 top_muts_2
 ```
 
@@ -827,13 +817,13 @@ top_muts_2
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_2 == "MODERATE")
+    cluster_name, sum(top_muts_2 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_2 == "HIGH")
+    cluster_name, sum(top_muts_2 == "HIGH")
   )
 )
 ```
@@ -844,12 +834,12 @@ print(
 This is a 4-cell CTC-cluster.
 
 ```{r}
-clusterName <- "sienna2"
+cluster_name <- "sienna2"
 
 d <- read.table(
   file.path(
-    inputFolder, sample_name,
-    paste0(sample_name, "_postSampling_", clusterName, ".txt")
+    input_folder, sample_name,
+    paste0(sample_name, "_postSampling_", cluster_name, ".txt")
   ),
   header = TRUE,
   sep = "\t", stringsAsFactors = FALSE, row.names = 1
@@ -868,7 +858,7 @@ annotations to the variants.
 ```{r message=FALSE}
 coverage <- read.table(
   file.path(
-    inputFolder, sample_name, paste(sample_name, "covScore.txt", sep = "_")
+    input_folder, sample_name, paste(sample_name, "covScore.txt", sep = "_")
   ),
   header = TRUE, sep = "\t", stringsAsFactors = FALSE, row.names = 1
 )
@@ -950,8 +940,7 @@ abline(h = 0.8, lwd = 2, lty = 2, col = "green")
 ```
 
 ```{r}
-# geneGroups <- cutree(hc, k = NULL, h = 0.6)
-geneGroups <- cutree(hc, k = 2)
+gene_groups <- cutree(hc, k = 2)
 ```
 
 
@@ -964,7 +953,7 @@ in the cluster.
 #### First cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 1]
+cluster1 <- names(gene_groups)[gene_groups == 1]
 ```
 
 Mutations in cluster:
@@ -995,7 +984,6 @@ top_df$variantName <- rownames(top_df)
 
 ```{r}
 top_muts_1 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
 top_muts_1
 ```
 
@@ -1003,13 +991,13 @@ top_muts_1
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_1 == "MODERATE")
+    cluster_name, sum(top_muts_1 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_1 == "HIGH")
+    cluster_name, sum(top_muts_1 == "HIGH")
   )
 )
 ```
@@ -1020,7 +1008,7 @@ print(
 #### Second cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 2]
+cluster1 <- names(gene_groups)[gene_groups == 2]
 ```
 
 Mutations in cluster:
@@ -1051,7 +1039,6 @@ top_df$variantName <- rownames(top_df)
 
 ```{r}
 top_muts_2 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
 top_muts_2
 ```
 
@@ -1059,13 +1046,13 @@ top_muts_2
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_2 == "MODERATE")
+    cluster_name, sum(top_muts_2 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_2 == "HIGH")
+    cluster_name, sum(top_muts_2 == "HIGH")
   )
 )
 ```
@@ -1079,12 +1066,12 @@ print(
 This is a 4-cell CTC-cluster.
 
 ```{r}
-clusterName <- "springgreen"
+cluster_name <- "springgreen"
 
 d <- read.table(
   file.path(
-    inputFolder, sample_name,
-    paste0(sample_name, "_postSampling_", clusterName, ".txt")
+    input_folder, sample_name,
+    paste0(sample_name, "_postSampling_", cluster_name, ".txt")
   ),
   header = TRUE,
   sep = "\t", stringsAsFactors = FALSE, row.names = 1
@@ -1103,7 +1090,7 @@ annotations to the variants.
 ```{r message=FALSE}
 coverage <- read.table(
   file.path(
-    inputFolder, sample_name, paste(sample_name, "covScore.txt", sep = "_")
+    input_folder, sample_name, paste(sample_name, "covScore.txt", sep = "_")
   ),
   header = TRUE, sep = "\t", stringsAsFactors = FALSE, row.names = 1
 )
@@ -1188,8 +1175,7 @@ abline(h = 0.9, lwd = 2, lty = 2, col = "green")
 ```
 
 ```{r}
-# geneGroups <- cutree(hc, k = NULL, h = 0.6)
-geneGroups <- cutree(hc, k = 2)
+gene_groups <- cutree(hc, k = 2)
 ```
 
 
@@ -1202,7 +1188,7 @@ in the cluster.
 #### First cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 1]
+cluster1 <- names(gene_groups)[gene_groups == 1]
 ```
 
 Mutations in cluster:
@@ -1233,7 +1219,6 @@ top_df$variantName <- rownames(top_df)
 
 ```{r}
 top_muts_1 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
 top_muts_1
 ```
 
@@ -1241,13 +1226,13 @@ top_muts_1
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_1 == "MODERATE")
+    cluster_name, sum(top_muts_1 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_1 == "HIGH")
+    cluster_name, sum(top_muts_1 == "HIGH")
   )
 )
 ```
@@ -1258,7 +1243,7 @@ print(
 #### Second cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 2]
+cluster1 <- names(gene_groups)[gene_groups == 2]
 ```
 
 Mutations in cluster:
@@ -1289,7 +1274,6 @@ top_df$variantName <- rownames(top_df)
 
 ```{r}
 top_muts_2 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
 top_muts_2
 ```
 
@@ -1297,13 +1281,13 @@ top_muts_2
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_2 == "MODERATE")
+    cluster_name, sum(top_muts_2 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_2 == "HIGH")
+    cluster_name, sum(top_muts_2 == "HIGH")
   )
 )
 ```
@@ -1319,12 +1303,12 @@ print(
 This is a 4-cell CTC-cluster.
 
 ```{r}
-clusterName <- "palegreen3"
+cluster_name <- "palegreen3"
 
 d <- read.table(
   file.path(
-    inputFolder, sample_name,
-    paste0(sample_name, "_postSampling_", clusterName, ".txt")
+    input_folder, sample_name,
+    paste0(sample_name, "_postSampling_", cluster_name, ".txt")
   ),
   header = TRUE,
   sep = "\t", stringsAsFactors = FALSE, row.names = 1
@@ -1343,7 +1327,7 @@ annotations to the variants.
 ```{r message=FALSE}
 coverage <- read.table(
   file.path(
-    inputFolder, sample_name, paste(sample_name, "covScore.txt", sep = "_")
+    input_folder, sample_name, paste(sample_name, "covScore.txt", sep = "_")
   ),
   header = TRUE, sep = "\t", stringsAsFactors = FALSE, row.names = 1
 )
@@ -1428,8 +1412,7 @@ abline(h = 0.8, lwd = 2, lty = 2, col = "green")
 ```
 
 ```{r}
-# geneGroups <- cutree(hc, k = NULL, h = 0.6)
-geneGroups <- cutree(hc, k = 2)
+gene_groups <- cutree(hc, k = 2)
 ```
 
 
@@ -1442,7 +1425,7 @@ in the cluster.
 #### First cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 1]
+cluster1 <- names(gene_groups)[gene_groups == 1]
 ```
 
 Mutations in cluster:
@@ -1473,7 +1456,6 @@ top_df$variantName <- rownames(top_df)
 
 ```{r}
 top_muts_1 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
 top_muts_1
 ```
 
@@ -1481,13 +1463,13 @@ top_muts_1
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_1 == "MODERATE")
+    cluster_name, sum(top_muts_1 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_1 == "HIGH")
+    cluster_name, sum(top_muts_1 == "HIGH")
   )
 )
 ```
@@ -1498,7 +1480,7 @@ print(
 #### Second cluster:
 
 ```{r}
-cluster1 <- names(geneGroups)[geneGroups == 2]
+cluster1 <- names(gene_groups)[gene_groups == 2]
 ```
 
 Mutations in cluster:
@@ -1529,7 +1511,6 @@ top_df$variantName <- rownames(top_df)
 
 ```{r}
 top_muts_2 <- inner_join(top_df, coverage, by = "variantName")
-# colnames(top_muts_1)[1] <- "mutation"
 top_muts_2
 ```
 
@@ -1537,13 +1518,13 @@ top_muts_2
 print(
   sprintf(
     "Number of mutations in cluster %s with moderate functional impact: %d",
-    clusterName, sum(top_muts_2 == "MODERATE")
+    cluster_name, sum(top_muts_2 == "MODERATE")
   )
 )
 print(
   sprintf(
     "Number of mutations in cluster %s with high functional impact: %d",
-    clusterName, sum(top_muts_2 == "HIGH")
+    cluster_name, sum(top_muts_2 == "HIGH")
   )
 )
 ```

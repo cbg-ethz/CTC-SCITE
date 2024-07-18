@@ -7,11 +7,12 @@
 
 //#include <string>
 //#include <random>
-#include "rand.h"
 #include <iostream>
 #include <random>
 #include <stdlib.h>
 #include <time.h>
+
+#include "rand.h"
 #include "matrices.h"
 
 using namespace std;

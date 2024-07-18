@@ -12,6 +12,7 @@
 #include <sstream>
 #include <vector>
 #include <float.h>
+
 #include "output.h"
 #include "scoreTree.h"
 #include "trees.h"

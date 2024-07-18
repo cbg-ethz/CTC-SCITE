@@ -12,13 +12,14 @@
 #include <sstream>
 #include <vector>
 #include <float.h>
+#include <algorithm>
+
 #include "output.h"
 #include "scoreTree.h"
 #include "matrices.h"
-#include "binTree_output.h"
 #include "trees.h"
-#include "matrices.h"
-#include <algorithm>
+#include "binTree_output.h"
+
 
 using namespace std;
 

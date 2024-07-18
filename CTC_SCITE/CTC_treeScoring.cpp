@@ -14,6 +14,14 @@
 #include <float.h>
 #include <math.h>
 #include <deque>
+#include <map>
+#include <iomanip>
+#include <sstream>
+#include <limits>
+//#include "binTree_output.h"
+//#include "beta_distr.h"
+
+
 #include "binTree_output.h"
 #include "scoreTree.h"
 #include "matrices.h"
@@ -21,14 +29,7 @@
 #include "trees.h"
 #include "matrices.h"
 #include "mcmcBinTreeMove.h"
-#include <map>
-#include <iomanip>
-#include <sstream>
-#include <limits>
-//#include "binTree_output.h"
-//#include "beta_distr.h"
 #include "mcmc.h"
-
 #include "CTC_treeScoring.h"
 
 #define UNIFORM_BETA_DISTR_seqErr  false  // if true, use uniform distribution for the prior of seqErr
