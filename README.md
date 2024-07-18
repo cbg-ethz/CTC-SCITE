@@ -1,5 +1,5 @@
 [![DOI](https://zenodo.org/badge/707163006.svg)](https://zenodo.org/doi/10.5281/zenodo.12774098)
-[![Super-Linter](https://github.com/JohannesGawron/CTC-SCITE/actions/workflows/linter.yml/badge.svg)](https://github.com/marketplace/actions/super-linter)
+[![Super-Linter](https://github.com/cbg-ethz/CTC-SCITE/actions/workflows/linter.yml/badge.svg)](https://github.com/marketplace/actions/super-linter)
 
 
 
