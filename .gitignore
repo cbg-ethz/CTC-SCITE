@@ -12,7 +12,6 @@ experiments/.snakemake/*
 *.Rhistory
 experiments/assessing_cluster_clonality/data/markdowns/
 !experiments/assessing_cluster_clonality/data/markdowns/*topSeparators.Rmd
-experiments/assessing_cluster_clonality/data/htmls/*files
 experiments/assessing_cluster_clonality/logs/
 experiments/assessing_cluster_clonality/workflow/scripts/CTC_parseSampling/testData
 experiments/assessing_cluster_clonality/data/htmls/*
