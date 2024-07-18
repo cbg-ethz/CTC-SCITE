@@ -52,4 +52,6 @@ jobs:
           VALIDATE_SNAKEMAKE_SNAKEFMT: true
           #VALIDATE_SNAKEMAKE_LINT: true
           VALIDATE_R: true
+          VALIDATE_CLANG_FORMAT: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
