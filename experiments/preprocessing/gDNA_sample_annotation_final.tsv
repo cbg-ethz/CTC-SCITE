@@ -345,7 +345,6 @@ Lu2_13	Lu2	hsapiens	patient	NA	NA	lung	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_
 Lu2_15	Lu2	hsapiens	patient	NA	NA	lung	CTC-single	CTC	1	1	0	NA	NA	NA	RBC	Barbara_Szczerba	160425	20170628	NA	CTC
 Lu2_16	Blank	hsapiens	patient	NA	NA	lung	NA	NA	0	0	0	NA	NA	NA	NA	Barbara_Szczerba	160425	20170628	NA	NA
 Lu2_17	Lu2	hsapiens	patient	NA	NA	lung	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160425	20170509;20170517	NA	CTC
-Lu2_3_+_Br38_12	Lu2_Br38	hsapiens	patient	NA	NA	lung	CTC-cluster-WBC	CTC-WBC	2	1	1	NA	NA	NA	WBC from Lu2/ CTC from Br38	Barbara_Szczerba	160425	20170509;20170517	NA	CTC-WBC
 Lu2_6	Lu2	hsapiens	patient	NA	NA	lung	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160425	20170509;20170517	NA	CTC
 Lu2_7	Lu2	hsapiens	patient	NA	NA	lung	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160425	20170509;20170517	NA	CTC
 Lu2_8	Lu2	hsapiens	patient	NA	NA	lung	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160425	20170628	NA	CTC
