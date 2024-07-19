@@ -151,6 +151,12 @@ Br23_26	Br23	hsapiens	patient	NA	NA	breast	CTC-cluster	CTC	1	1	0	4	cBr23-10	NA	4
 Br23_27	Br23	hsapiens	patient	NA	NA	breast	CTC-cluster	CTC	3	3	0	4	cBr23-10	NA	4-cell cluster	Barbara_Szczerba	160422	20170308;20170322	NA	CTC
 Br23_28	Br23	hsapiens	patient	NA	NA	breast	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160422	20170308;20170322	NA	CTC
 Br23_29	Br23	hsapiens	patient	NA	NA	breast	CTC-cluster-WBC	CTC-WBC	3	2	1	2	cBr23-11	NA	NA	Barbara_Szczerba	160422	20170308;20170322	NA	CTC-WBC
+Br26_1	Br26	hsapiens	patient	NA	NA	breast	CTC-single	CTC	1	1	0	NA	NA	NA	RBC	Barbara_Szczerba	160530	20170308;20170322	NA	CTC
+Br26_2	Br26	hsapiens	patient	NA	NA	breast	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160530	20170308;20170322	NA	CTC
+Br26_3	Br26	hsapiens	patient	NA	NA	breast	CTC-cluster	CTC	2	2	0	2	cBr38-2	NA	NA	Barbara_Szczerba	160530	20170308;20170322	NA	CTC
+Br26_4	Br26	hsapiens	patient	NA	NA	breast	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160530	20170308;20170322	NA	CTC
+Br26_5	Br26	hsapiens	patient	NA	NA	breast	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160530	20170308;20170322	NA	CTC
+Br26_6	Br26	hsapiens	patient	NA	NA	normal	WBC	WBC	1	0	0	NA	NA	NA	reference	Barbara_Szczerba	160530	20170308;20170322	NA	WBC
 Br38_1	Br38	hsapiens	patient	NA	NA	breast	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160823	20170308;20170322	NA	CTC
 Br38_10	Br38	hsapiens	patient	NA	NA	breast	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160823	20170308;20170322	NA	CTC
 Br38_11	Br38	hsapiens	patient	NA	NA	breast	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160825	20170308;20170322	NA	CTC
@@ -308,8 +314,6 @@ Lu2_6	Lu2	hsapiens	patient	NA	NA	lung	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_S
 Lu2_7	Lu2	hsapiens	patient	NA	NA	lung	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160425	20170509;20170517	NA	CTC
 Lu2_8	Lu2	hsapiens	patient	NA	NA	lung	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160425	20170628	NA	CTC
 Lu2_9	Lu2	hsapiens	patient	NA	NA	lung	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160425	20170509;20170517	NA	CTC
-Ov8_1	Ov8	hsapiens	patient	NA	NA	ovarian	CTC-cluster	CTC	3	3	0	3	cOv8-1	NA	NA	Barbara_Szczerba	160805	20170509;20170517	NA	CTC
-Ov8_2	Ov8	hsapiens	patient	NA	NA	ovarian	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160805	20170308;20170322	NA	CTC
 Pr6_1	Pr6	hsapiens	patient	NA	NA	prostate	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160905	20170509;20170517	NA	CTC
 Pr6_2	Pr6	hsapiens	patient	NA	NA	prostate	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160905	20170509;20170517	NA	WBC
 Pr6_3	Pr6	hsapiens	patient	NA	NA	prostate	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	160905	20170509;20170517	NA	CTC
