@@ -101,26 +101,3 @@ mkdir Br16_AC Br16_B Br16_C
 python ../split_Br16.py Br16
 cd ..
 echo "Input files split based on mouse of origin"
-
-### Step 6: create input files where large components are omitted
-### For example directory Br16_max3 contains the input files for
-### Br16 with samples consisting of more than three cells removed
-
-cd $newDataDir
-for i in {1..4}
-do
-array=(*/)
-for dir in "Br16/" "Br16_AC/" "Br16_B/" "Br16_C/"
-do
-python ../restrictByComponentSize.py "$dir" "$i"
-done
-done
-cd ..
-
-### Step 7: remove mutations with insufficient support (at least two cells with read count > 3)
-### Actually not needed, as there are not mutations with insufficient support
-
-#for filename in "$newDataDir/Br16*/*.txt";
-#do
-#    python removeLowSupportMutations.py $filename
-#done
