@@ -1,11 +1,11 @@
 Br7
 Br11
-Br23 
+Br23
+Br26
 Br38
 Br39 
 Br57
 Br61 
-Ov8
 Lu2
 Pr6
 Pr9
