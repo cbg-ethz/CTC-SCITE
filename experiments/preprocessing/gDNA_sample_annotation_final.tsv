@@ -1,14 +1,4 @@
 sample_id	DONOR	organism	model	tumor_model	host	cancer_type	sample_type	cell_type	n_cells	n_ctc	n_wbc_attached	ctc_cluster_size	clusterID	warning	comments	researcher	ctc_collection_date	sequencing_date	mouse_id	cell_type_corrected
-1_Brx50_300K_sorted	Brx50	hsapiens	cell_line	NA	NA	breast	cell_culture	ctc_derived_cell_line	300000	0	0	NA	NA	NA	NA	Barbara_Szczerba	NA	20160720	NA	ctc_derived_cell_line
-2_Brx50_300K	Brx50	hsapiens	cell_line	NA	NA	breast	cell_culture	ctc_derived_cell_line	300000	0	0	NA	NA	NA	NA	Barbara_Szczerba	NA	20160720	NA	ctc_derived_cell_line
-300K_Brx50_CC2	Brx50	hsapiens	cell_line	NA	NA	breast	cell_culture	ctc_derived_cell_line	300000	0	0	NA	NA	NA	NA	Barbara_Szczerba	NA	20170509;20170517	NA	ctc_derived_cell_line
-300K_Brx50_CC7	Brx50	hsapiens	cell_line	NA	NA	breast	cell_culture	ctc_derived_cell_line	300000	0	0	NA	NA	NA	NA	Barbara_Szczerba	NA	20170509;20170517	NA	ctc_derived_cell_line
-300K_Brx50_CC9	Brx50	hsapiens	cell_line	NA	NA	breast	cell_culture	ctc_derived_cell_line	300000	0	0	NA	NA	NA	NA	Barbara_Szczerba	NA	20170509;20170517	NA	ctc_derived_cell_line
-300K_Brx50_CD9	Brx50	hsapiens	cell_line	NA	NA	breast	cell_culture	ctc_derived_cell_line	300000	0	0	NA	NA	NA	NA	Barbara_Szczerba	NA	20170509;20170517	NA	ctc_derived_cell_line
-300K_Brx50_SA6	Brx50	hsapiens	cell_line	NA	NA	breast	cell_culture	ctc_derived_cell_line	300000	0	0	NA	NA	NA	NA	Barbara_Szczerba	NA	20170509;20170517	NA	ctc_derived_cell_line
-300K_Brx68_GFP	Brx68	hsapiens	cell_line	NA	NA	breast	cell_culture	ctc_derived_cell_line	300000	0	0	NA	NA	NA	NA	Barbara_Szczerba	NA	20170308;20170322	NA	ctc_derived_cell_line
-3_Br16_300K_sorted	Br16	hsapiens	cell_line	NA	NA	breast	cell_culture	ctc_derived_cell_line	300000	0	0	NA	NA	NA	NA	Barbara_Szczerba	NA	20160720	NA	ctc_derived_cell_line
-4_Br16_300K	Br16	hsapiens	cell_line	NA	NA	breast	cell_culture	ctc_derived_cell_line	300000	0	0	NA	NA	NA	NA	Barbara_Szczerba	NA	20160720	NA	ctc_derived_cell_line
 Br11_1	Br11	hsapiens	patient	NA	NA	breast	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	170131	20170628	NA	CTC
 Br11_10	Br11	hsapiens	patient	NA	NA	breast	CTC-cluster	CTC	2	2	0	2	cBr11-2	0	NA	Barbara_Szczerba	170131	20170517;20170524;20170602	NA	CTC
 Br11_11	Br11	hsapiens	patient	NA	NA	breast	CTC-single	CTC	1	1	0	NA	NA	0	NA	Barbara_Szczerba	170131	20170517;20170524;20170602	NA	CTC
@@ -148,11 +138,6 @@ Br16_C8	Br16	hsapiens	xenograft	Br16	NSG	breast	CTC-cluster	CTC	4	4	0	4	NSG-Br16
 Br16_C9	Br16	hsapiens	xenograft	Br16	NSG	breast	CTC-single	CTC	1	1	0	NA	NA	NA	NA	Barbara_Szczerba	NA	20170308;20170322	Br16_C	CTC
 Br16_CC1	Br16	hsapiens	cell_line	NA	NA	breast	cell_culture	ctc_derived_cell_line	300000	0	0	NA	NA	NA	NA	Barbara_Szczerba	NA	20170509;20170517	NA	ctc_derived_cell_line
 Br16_CD2	Br16	hsapiens	cell_line	NA	NA	breast	cell_culture	ctc_derived_cell_line	300000	0	0	NA	NA	NA	NA	Barbara_Szczerba	NA	20170517;20170524;20170602	NA	ctc_derived_cell_line
-Br16_germline_reamp	Br16	hsapiens	patient	NA	NA	normal	healthy_mammary_gland	healthy_mammary_gland	300000	0	0	NA	NA	NA	re-amplified, FFPE	Barbara_Szczerba	50101	20171030	NA	healthy_mammary_gland
-Br16_PT_reamp	Br16	hsapiens	patient	NA	NA	breast	primary_tumor	tumor_cell	300000	0	0	NA	NA	NA	re-amplified, FFPE	Barbara_Szczerba	NA	20171030	NA	tumor_cell
-Br16_SA2	Br16	hsapiens	cell_line	NA	NA	breast	cell_culture	ctc_derived_cell_line	300000	0	0	NA	NA	NA	NA	Barbara_Szczerba	NA	20170517;20170524;20170602	NA	ctc_derived_cell_line
-Br16_SC1	Br16	hsapiens	cell_line	NA	NA	breast	cell_culture	ctc_derived_cell_line	300000	0	0	NA	NA	NA	NA	Barbara_Szczerba	NA	20170509;20170517	NA	ctc_derived_cell_line
-Br16_SD2	Br16	hsapiens	cell_line	NA	NA	breast	cell_culture	ctc_derived_cell_line	300000	0	0	NA	NA	NA	NA	Barbara_Szczerba	NA	20170517;20170524;20170602	NA	ctc_derived_cell_line
 Br23_12	Br23	hsapiens	patient	NA	NA	normal	WBC	WBC	1	0	0	NA	NA	NA	reference	Barbara_Szczerba	160422	20170308;20170322	NA	WBC
 Br23_13	Br23	hsapiens	patient	NA	NA	normal	WBC	WBC	1	0	0	NA	NA	NA	reference	Barbara_Szczerba	160422	20170308;20170322	NA	WBC
 Br23_14	Br23	hsapiens	patient	NA	NA	normal	WBC	WBC	1	0	0	NA	NA	NA	reference	Barbara_Szczerba	160422	20170308;20170322	NA	WBC
