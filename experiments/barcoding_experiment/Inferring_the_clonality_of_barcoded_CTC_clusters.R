@@ -1,19 +1,18 @@
 # Inferring the clonality of barcoded CTC clusters
 ## Author:David Gremmelspacher
-## Colors in the final figure may deviate through manual manipulation in Adobe Illustrator
+## Colors and labels in the final figure may deviate through manual manipulation in Adobe Illustrator
 
 
 
 # Load libraries
 library(data.table)
 library(stringr)
-library(ggplot2)
 library(dplyr)
-library(gridExtra)
-library(ggsignif)
-library(ggpubr)
 library(tidyr)
 library(forcats)
+library(ggplot2)
+library(ggpubr)
+library(webr)
 library(DescTools)
 
 # Generate a list of barcode counts files
@@ -154,28 +153,22 @@ summary_df_filter <- summary_df_filter %>%
 
 
 # Perform Cochran-Armitage test for trend
-# Define matrix with counts for oligo- and monoclonal CTC clusters across complexities
+# Define matrix with counts for oligo- and monoclonal CTC clusters across complexities (as inferred from summary_df_filter)
 x <- matrix(c(16, 133, 21, 52, 40, 14), byrow = TRUE, ncol = 2)
 CochranArmitageTest(x, alternative = "one.sided")
 
 
-# Generate plot for Fig. 2b
-complexity_colors <- c("Low" = "#9fc8c8", "Medium" = "#54a1a1", "High" = "#1f6f6f")
+# Fig. 2b
+# Generate a data.frame with counts for mono- and oligoclonal CTC clusters within each complexity level using PieDonut
+low <- data.frame(Clonality = c("Monoclonal", "Oligoclonal"), n = c(133, 16))
+medium <- data.frame(Clonality = c("Monoclonal", "Oligoclonal"), n = c(52, 21))
+high <- data.frame(Clonality = c("Monoclonal", "Oligoclonal"), n = c(14, 40))
 
-summary_df_filter %>%
-  group_by(complexity) %>%
-  summarize(prop = mean(clonality == "oligo" & !is.na(clonality))) %>%
-  ungroup() %>%
-  ggplot(aes(x = complexity, y = prop, fill = complexity)) +
-  geom_bar(alpha = 0.8, stat = "identity", width = 0.8, position = position_dodge(width = 0.6)) +
-  labs(x = "", y = "") + # Populate all labels using Adobe Illustrator
-  theme_classic() +
-  scale_fill_manual(values = complexity_colors) +
-  theme(
-    axis.text = element_text(size = 0),
-    axis.title = element_text(size = 0),
-    legend.position = "none"
-  ) # Populate all labels using Adobe Illustrator
+
+# Generate a donut plot illustrating mono- and oligoclonal CTC cluster counts for each complexity level  
+PieDonut(low, aes(Clonality, count=n), showPieName = FALSE, donutLabelSize = 0, labelpositionThreshold = 0.01, explode = 1, r0 = 0.5, r1 = 0.95, pieLabelSize = 0, showRatioDonut = FALSE)
+PieDonut(medium, aes(Clonality, count=n), showPieName = FALSE, donutLabelSize = 0, labelpositionThreshold = 0.01, explode = 1, r0 = 0.5, r1 = 0.95, pieLabelSize = 0, showRatioDonut = FALSE)
+PieDonut(high, aes(Clonality, count=n), showPieName = FALSE, donutLabelSize = 0, labelpositionThreshold = 0.01, explode = 1, r0 = 0.5, r1 = 0.95, pieLabelSize = 0, showRatioDonut = FALSE)
 
 
 # Create a data frame specifying for each tumor sample the proportion of oligoclonal CTC clusters in categories "2" and "3+"
@@ -214,6 +207,7 @@ fisher.test(contingency_table)
 
 
 # Generate plot for Fig. 2c
+complexity_colors <- c("Low" = "#9fc8c8", "Medium" = "#54a1a1", "High" = "#1f6f6f")
 ggplot(combined_summary, aes(x = as.character(cluster_category), y = prop_oligo, color = complexity)) +
   geom_point(size = 3, alpha = 0.6) +
   geom_smooth(method = "lm", aes(group = tumor_id), size = 1, se = FALSE, alpha = 0.6) +
