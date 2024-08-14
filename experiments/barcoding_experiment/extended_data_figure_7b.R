@@ -1,3 +1,6 @@
+## Author: Johannes Gawron
+## Colors and labels in the final figure may deviate through manual manipulation in Adobe Illustrator
+
 library(MCMCprecision)
 library(ggplot2)
 library(tidyverse)
@@ -54,17 +57,13 @@ for (mouse_model in mouse_models) {
   print(files)
   summary_temp <- summary_df_filter_combined[paste0(summary_df_filter_combined$basename, ".csv") %in% files, ]
 
-  summary_df_filter_combined <- summary_temp %>%
-    mutate(group = ifelse(value %in% c(100, 1000), "100-1000",
-      ifelse(value == 10000, "10000", "50000")
-    ))
 
-  total_number_of_clusters_by_size <- summary_df_filter_combined %>%
+  total_number_of_clusters_by_size <- summary_temp %>%
     group_by(cluster_size) %>%
     summarize(all_clusters = n())
 
 
-  number_of_monoclonal_cluster_by_size <- summary_df_filter_combined %>%
+  number_of_monoclonal_cluster_by_size <- summary_temp %>%
     filter(clonality == "mono") %>%
     group_by(cluster_size) %>%
     summarize(monoclonal_clusters = n())
@@ -161,50 +160,9 @@ for (mouse_model in mouse_models) {
 
 
 frequency_table <- mono_clusters / all_clusters
-rownames(all_clusters) <- 2:25
-rownames(mono_clusters) <- 2:25
 rownames(frequency_table) <- 2:25
 rownames(p_values_table) <- 2:25
 rownames(fold_change_table) <- 2:25
-rownames(expected_values_null_table) <- 2:25
-
-
-
-expected_values_null_table[is.na(expected_values_null_table)] <- 0
-
-expected_values_null_per_sample <- expected_values_null_table %>% apply(MARGIN = 2, FUN = sum)
-
-expected_proportion_null_per_sample <- expected_values_null_per_sample / all_clusters %>% apply(MARGIN = 2, FUN = sum)
-
-frequencies <- mono_clusters %>% apply(MARGIN = 2, FUN = sum) / all_clusters %>% apply(MARGIN = 2, FUN = sum)
-
-
-annotations <- ifelse(p_values_columns < 0.001, "***",
-  ifelse(p_values_columns < 0.01, "**",
-    ifelse(p_values_columns < 0.05, "*", "ns")
-  )
-)
-annotations <- paste0(mono_clusters %>% apply(MARGIN = 2, FUN = sum), "/", all_clusters %>% apply(MARGIN = 2, FUN = sum), "\n", annotations)
-annotation_data <- data.frame(SampleID = rownames(data), annotations = annotations, frequencies = frequencies, expected = expected_proportion_null_per_sample)
-
-annotation_data$SampleID <- factor(annotation_data$SampleID, levels = annotation_data$SampleID[c(5, 6, 2, 1, 3, 4, 7)])
-
-
-ggplot(annotation_data, aes(x = SampleID, y = frequencies)) +
-  ylim(0, 1.1) +
-  geom_bar(stat = "identity", fill = "#598F8F", alpha = 0.8, width = 0.8, position = position_dodge(width = 0.6)) +
-  geom_text(
-    data = annotation_data, aes(x = SampleID, y = frequencies, label = annotations),
-    position = position_dodge(width = 0.6), vjust = -0.5, size = 4
-  ) +
-  labs(x = "Sample ID", y = "Proportion of monoclonal Clusters") +
-  theme_classic() +
-  scale_x_discrete(limits = levels(annotation_data$SampleID)) +
-  theme(
-    axis.text = element_text(size = 14),
-    axis.title = element_text(size = 14)
-  ) +
-  geom_point(aes(y = expected), shape = 23, fill = "black", size = 4)
 
 
 

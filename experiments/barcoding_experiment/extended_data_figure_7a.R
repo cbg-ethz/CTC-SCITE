@@ -1,77 +1,148 @@
-library(tidyverse)
+library(ggplot2)
+library(boot)
+library(smoothr)
 
-data <- readRDS("combi_df.rds")
-View(data)
+setwd("~/Downloads")
+
+tables <- list()
+filelist <- c("combined_140_order_filter_merge.rds", "combined_141_order_filter_merge.rds", "combined_902_order_filter_merge.rds", "combined_903_order_filter_merge.rds", "combined_904_order_filter_merge.rds", "combined_905_order_filter_merge.rds", "combined_910_order_filter_merge.rds")
+for (file in filelist) {
+  tables[[file]] <- readRDS(file)
+  tables[[file]]$observations <- paste0(file, tables[[file]]$observations)
+  first_row_with_nonzero_counts <- tables[[file]][tables[[file]]$freq != 0, ][1, ]
+  total_counts <- first_row_with_nonzero_counts$counts / first_row_with_nonzero_counts$freq
+  tables[[file]]$total_counts <- total_counts
+  cutoff <- quantile(tables[[file]]$prop_av, prob = 0.01)
+  tables[[file]] <- tables[[file]] %>%
+    filter(prop_av > cutoff) %>%
+    filter(prop_av != 0)
+}
 
 
-data <- data %>% mutate(counts / freq, complexity = as.numeric(complexity))
+# Merge all tables
+merged_table <- do.call(rbind, tables)
+unique(merged_table$total_counts)
 
-summary(data)
+merged_table <- merged_table %>% mutate(complexity = as.numeric(complexity))
 
-data2 <- data %>%
+summary(merged_table)
+
+
+
+merged_table2 <- merged_table %>%
   group_by(observations) %>%
-  slice(rep(1:n(), counts / freq)) %>%
-  mutate(present = row_number() <= first(counts)) %>%
+  slice(rep(1:n(), total_counts)) %>%
+  mutate(present = as.integer(row_number() <= first(counts))) %>%
   ungroup()
 
-fit <- glm(present ~ log(prop_av), data = data2, family = binomial(link = "log"))
 
-summary(fit)
+fit <-
+  glm(
+    present ~ log(prop_av),
+    data = merged_table2, family = binomial(link = "logit")
+  )
+fit1 <-
+  glm(
+    present ~ prop_av,
+    data = merged_table2, family = binomial(link = "logit")
+  )
+fit2 <-
+  glm(
+    present ~ log(prop_av),
+    data = merged_table2, family = binomial(link = "log")
+  )
+fit3 <-
+  glm(present ~ logit(prop_av),
+    data = merged_table2, family = binomial(link = "logit")
+  )
+fit4 <-
+  glm(present ~ logit(prop_av),
+    data = merged_table2, family = binomial(link = "log")
+  )
 
-confint(fit)
-coef(fit)
+AIC(fit)
+AIC(fit1)
+AIC(fit2)
+AIC(fit3)
+AIC(fit4)
 
-data %>%
-  ggplot(aes(y = log(freq), x = log(prop_av))) +
+### fit3 and fit4 have approximately the same AIC, but fit 3 transforms the x
+## coordinates to a well defined range, so I will use fit3.
+fit_linear_model <- lm(freq ~ log(prop_av), data = merged_table)
+AIC(fit_linear_model)
+
+merged_table %>%
+  ggplot(aes(y = freq, x = prop_av)) +
   geom_point() +
-  labs(x = "log(tumorVAF)", y = "log(fraction among CTC clusters)") +
-  geom_abline(intercept = coef(fit)[1], slope = coef(fit)[2])
+  labs(x = "tumor VAF", y = "fraction among CTC clusters") +
+  geom_smooth(method = "lm", formula = y ~ x)
 
-
-data %>%
-  ggplot(aes(y = log(ratio), x = log(prop_av))) +
+merged_table %>%
+  ggplot(aes(y = freq, x = log(prop_av))) +
   geom_point() +
-  geom_abline(intercept = coef(fit)[1], slope = coef(fit)[2] - 1) +
-  labs(x = "log(VAF in primary tumor)", y = "log(fold-change in prevalence)") +
-  theme_minimal()
+  labs(x = "tumor VAF", y = "fraction among CTC clusters") +
+  geom_smooth(method = "lm")
+
+
+merged_table %>%
+  ggplot(aes(y = logit(freq), x = logit(prop_av))) +
+  geom_point() +
+  labs(x = "logit(tumor VAF)", y = "logit(fraction among CTC clusters)") +
+  geom_smooth(method = "lm", formula = y ~ x)
 
 
 
+fit_logit_logit_linear <-
+  lm(asin(sqrt(freq)) ~ asin(sqrt(prop_av)), data = merged_table)
+plot(fit_logit_logit_linear)
+primary_VAF <- seq(0.01, 0.55, 0.01)
 
-pdf("~/Desktop/clonal_prevalence.pdf", width = "3.6", height = "3.6")
-par(bty = "l")
-plot(
-  x = log(data$prop_av),
-  y = log(data$ratio),
-  cex = 0.8,
-  pch = 19,
-  col = "#81A9A9",
-  xlab = "log( VAF in primary tumor )",
-  ylab = "log( fold-change in prevalence in CTC clusters )"
+predicted <- predict(fit4,
+  newdata = data.frame(prop_av = primary_VAF),
+  type = "response"
 )
-abline(b = coef(fit)[2] - 1, a = coef(fit)[1], col = "#3C8181", lwd = 2.2)
-text(x = max(log(data$prop_av)) - 5, y = max(log(data$ratio)) - 3.5, labels = sprintf("slope = %f***", coef(fit)[2] - 1), pos = 4, col = "black")
-dev.off()
 
-summary(fit)
+color <- "#3C8181"
 
-#### The p-value is computed manually. Compare (Regression, Modelle, Methoden
-## und Anwendungen, second edition, page 204f; https://www.uni-goettingen.de/de/551357.html)
+ggplot(merged_table2, aes(x = prop_av, y = present)) +
+  geom_jitter(width = 0, height = 0.1, color = color) +
+  geom_smooth(
+    method = "glm",
+    method.args = list(family = "binomial"), formula = y ~ logit(x), color = color
+  ) +
+  labs(
+    x = "Clonal frequency in primary tumor",
+    y = "P(barcode is present in CTC cluster)"
+  ) +
+  geom_abline(linetype = "dotted", slope = 1, intercept = 0)
 
-### The coefficient scaled by the standard error and then squared is
-## approximately xi-square (1) distributed with one degree of freedom.
 
-### Also note that the number of data points 1798 is large enough (>50) for a
-## xi-square approximation to work, according to rule of thumb.
+merged_table %>%
+  ggplot(aes(y = freq, x = prop_av)) +
+  geom_point() +
+  labs(x = "tumor VAF", y = "fraction among CTC clusters") +
+  geom_line(data = data.frame(prop_av = primary_VAF, freq = predicted))
 
-pseudo_t_value <- as.numeric(coef(fit)["log(prop_av)"] - 1) / as.numeric(summary(fit)$coefficients["log(prop_av)", "Std. Error"])
+means <- rep(NA, 100)
+for (i in 1:25) {
+  window_start <- (i - 1) / 50
+  window_end <- i / 50
+  means[i] <- merged_table2 %>%
+    dplyr::filter(prop_av > window_start) %>%
+    dplyr::filter(prop_av <= window_end) %>%
+    pull(present) %>%
+    mean()
+}
 
-wald_statistics <- pseudo_t_value^2 ### xi^2_1 distributed
+ggplot(data.frame(y = means, x = 0:99), aes(x = x, y = y)) +
+  geom_point()
 
-p.value <- 1 - pchisq(wald_statistics, 1)
-print(p.value)
-cor(log(data$prop_av), log(data$ratio), method = "pearson")
-### The p-value is smaller that measurable by machine precision, so I suggest to report
-### the smallest p-value that the generic glm summary can output:
+ggsave(
+  "~/Desktop/clonal_prevalence2.pdf",
+  width = 3.6, height = 3.6, units = "in"
+)
 
-### p-value < 2.2e-16
+cor(x = merged_table2$prop_av, y = merged_table2$present, method = "spearman")
+cor.test(
+  x = merged_table2$prop_av, y = merged_table2$present, method = "spearman"
+)
