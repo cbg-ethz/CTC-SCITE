@@ -165,10 +165,10 @@ medium <- data.frame(Clonality = c("Monoclonal", "Oligoclonal"), n = c(52, 21))
 high <- data.frame(Clonality = c("Monoclonal", "Oligoclonal"), n = c(14, 40))
 
 
-# Generate a donut plot illustrating mono- and oligoclonal CTC cluster counts for each complexity level  
-PieDonut(low, aes(Clonality, count=n), showPieName = FALSE, donutLabelSize = 0, labelpositionThreshold = 0.01, explode = 1, r0 = 0.5, r1 = 0.95, pieLabelSize = 0, showRatioDonut = FALSE)
-PieDonut(medium, aes(Clonality, count=n), showPieName = FALSE, donutLabelSize = 0, labelpositionThreshold = 0.01, explode = 1, r0 = 0.5, r1 = 0.95, pieLabelSize = 0, showRatioDonut = FALSE)
-PieDonut(high, aes(Clonality, count=n), showPieName = FALSE, donutLabelSize = 0, labelpositionThreshold = 0.01, explode = 1, r0 = 0.5, r1 = 0.95, pieLabelSize = 0, showRatioDonut = FALSE)
+# Generate a donut plot illustrating mono- and oligoclonal CTC cluster counts for each complexity level
+PieDonut(low, aes(Clonality, count = n), showPieName = FALSE, donutLabelSize = 0, labelpositionThreshold = 0.01, explode = 1, r0 = 0.5, r1 = 0.95, pieLabelSize = 0, showRatioDonut = FALSE)
+PieDonut(medium, aes(Clonality, count = n), showPieName = FALSE, donutLabelSize = 0, labelpositionThreshold = 0.01, explode = 1, r0 = 0.5, r1 = 0.95, pieLabelSize = 0, showRatioDonut = FALSE)
+PieDonut(high, aes(Clonality, count = n), showPieName = FALSE, donutLabelSize = 0, labelpositionThreshold = 0.01, explode = 1, r0 = 0.5, r1 = 0.95, pieLabelSize = 0, showRatioDonut = FALSE)
 
 
 # Create a data frame specifying for each tumor sample the proportion of oligoclonal CTC clusters in categories "2" and "3+"
