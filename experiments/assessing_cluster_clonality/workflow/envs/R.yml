@@ -9,3 +9,7 @@ dependencies:
   - r-tidyverse>=2.0
   - pandoc>=3.1
   - r-heatmaply>=1.5  
+  - r-optparse>=1.7
+  - r-viridis>=0.6
+  - r-vgam>=1.1
+  - r-pscl>=1.5
