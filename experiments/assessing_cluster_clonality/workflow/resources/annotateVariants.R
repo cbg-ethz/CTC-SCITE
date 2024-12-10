@@ -11,12 +11,12 @@ annotate_variants <- function(sampleName, inputFolder, variantList) {
 
 
   # Read VCF file to extract column names
-  file <- file.path(inputFolder, "filtered", "vcf_files_annotated", paste0(sampleName, ".ann.vcf"))
+  file <- file.path(inputFolder, "annotations", paste0(sampleName, ".ann.vcf"))
   lines <- readLines(file, warn = FALSE)
   vcf_names <- strsplit(lines[grep("^#CHROM", lines)], "\t")[[1]]
 
   # Read VCF file into a data frame
-  vcf <- read.table(file.path(inputFolder, "filtered", "vcf_files_annotated", paste0(sampleName, ".ann.vcf")),
+  vcf <- read.table(file.path(inputFolder, "annotations", paste0(sampleName, ".ann.vcf")),
     comment.char = "#", sep = "\t", header = FALSE, col.names = vcf_names
   )
   colnames(vcf)[1] <- "#CHROM"

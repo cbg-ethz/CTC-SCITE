@@ -17,7 +17,6 @@ MARKDOWNS = PROJECT_DIR / "data" / "markdowns"
 
 
 ######Rules######
-include: "rules/common.smk"
 include: "rules/base.smk"
 
 

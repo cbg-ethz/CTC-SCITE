@@ -2,7 +2,7 @@ source("../resources/functions.R")
 library("optparse")
 
 parser <- OptionParser()
-parser <- add_option(parser, c("-i", "--input-file"),
+parser <- add_option(parser, c("-i", "--input-folder"),
   type = "character",
   default = "~/Documents/projects/CTC_backup/input_folder", help = "Path to the folder containing all input files"
 )
@@ -10,22 +10,23 @@ parser <- add_option(parser, c("-n", "--name-of-tree"),
   type = "character",
   default = "Br23", help = "Name of the tree for which to simulate CTC-clusters"
 )
-args <- parse_args(parser, args = c("--input-file", "--name-of-tree"))
+args <- parse_args(parser)
 
 
 
 
-inputFolder <- dirname(args$"input-file")
-treeName <- args$name_of_tree
+input_folder <- args$"input-folder"
+tree_name <- args$"name-of-tree"
 
 
-# inputFolder <- "~/Documents/projects/CTC_backup/input_folder"
-# treeName <- "Br23"
+
+# input_folder <- "~/Documents/projects/CTC_backup/input_folder"
+# tree_name <- "Br23"
 
 
-input <- load_data(inputFolder, treeName)
+input <- load_data(input_folder, tree_name)
 
-allClusterSizes <- input$sample_description %>%
+all_cluster_sizes <- input$sample_description %>%
   filter(WBC == 0 & color != "gray93") %>%
   group_by(color) %>%
   filter(n() > 1) %>%
@@ -33,4 +34,5 @@ allClusterSizes <- input$sample_description %>%
   dplyr::select("cluster_size") %>%
   unique()
 
-write_csv(allClusterSizes, file.path(inputFolder, treeName, paste(treeName, "clusterSizes.csv", sep = "_")))
+write_csv(all_cluster_sizes, file.path(input_folder, tree_name, paste(tree_name, "clusterSizes.csv", sep = "_")))
+print("Success.")
