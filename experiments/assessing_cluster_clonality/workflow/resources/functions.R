@@ -275,6 +275,7 @@ computeClusterSplits <- function(sampleDescription, postSampling, treeName,
     counter <- 1
     system.time(
       for (it in cellPairSelection) {
+        print(it)
         leaf1 <- which(sampleDescription$ClusterName == it[1]) - 1
         leaf2 <- which(sampleDescription$ClusterName == it[2]) - 1
 
@@ -309,9 +310,11 @@ computeClusterSplits <- function(sampleDescription, postSampling, treeName,
   } else if (class(cellPairSelection) == "character") {
     CTCclusters <- unique(cellPairSelection)
     CTCclusters <- CTCclusters[!(CTCclusters %in% c("ghostwhite", "gray93"))]
+    print(CTCclusters)
+
     system.time(
       for (it in CTCclusters) {
-        cellsInCluster <- which(sampleDescription$color %in% it) - 1
+        cellsInCluster <- which(sampleDescription$color == it) - 1
         ## Make sure array indication is compatible with cpp
         cluster_done <- 0
         for (i in cellsInCluster) {
@@ -332,6 +335,7 @@ computeClusterSplits <- function(sampleDescription, postSampling, treeName,
             print(paste(paste("Computing genomic distances of leaves:", i,
               sep = " "
             ), j, sep = " "))
+
             posterior <- produce_Distance_Posterior(i, j, postSampling,
               treeName, nCells,
               nMutations, nClusters,
@@ -344,6 +348,7 @@ computeClusterSplits <- function(sampleDescription, postSampling, treeName,
                 nMutationSamplingEvents,
               clusterName = it
             )
+
             splittingProbs <- rbind(
               splittingProbs,
               data.frame(
@@ -400,6 +405,7 @@ computeClusterSplits <- function(sampleDescription, postSampling, treeName,
                 nMutationSamplingEvents,
               clusterName = it
             )
+            print("Posterior computed")
             splittingProbs <- rbind(
               splittingProbs,
               data.frame(
