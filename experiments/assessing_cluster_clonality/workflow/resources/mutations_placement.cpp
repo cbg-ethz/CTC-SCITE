@@ -519,6 +519,7 @@ std::vector<std::vector<double>> computeMutationDistribution(
   // double logScore = 0.0;
 
   std::vector<std::vector<double>> logAttachmentScores;
+
   logAttachmentScores.reserve(n + 1);
   for (int mut = 0; mut < n;
        mut++) { // compute score separately for each mutation
@@ -563,9 +564,9 @@ std::vector<std::vector<double>> computeMutationDistribution(
     for (int att = 0; att < (2 * m) - 1; att++) {
       // cout << "wbcBelowCount.at(" << att << ") = " << wbcBelowCount.at(att)
       // << endl;
-
       double logAttachmentScore = 0.0;
       double wbc_penalty = chi_wbc * wbcBelowCount.at(att);
+
       for (int sample = 0; sample < sampleCount; sample++) { // for each sample
         // cout << "sample " << sample << endl;
         int expCount = expVarAlleleCount[sample][att];
@@ -589,6 +590,7 @@ std::vector<std::vector<double>> computeMutationDistribution(
         logAttachmentScore += newScore;
         // cout << newScore << endl;
       }
+
       // cout << "\n mut score: " << logAttachmentScore << endl;
       logAttachmentScores.back().push_back(logAttachmentScore - wbc_penalty);
 
@@ -1028,6 +1030,7 @@ std::vector<std::vector<double>> computePairwiseDistanceOfLeavesGivenTree(
     const std::vector<std::vector<int>> &mutatedReadCounts,
     const std::vector<std::vector<int>> &totalReadCounts,
     const std::vector<bool> &wbcStatus, int nSamplingEvents) {
+
   std::string tree = treeData["Tree"];
 
   // Now need to split the string into single numbers and turn them into

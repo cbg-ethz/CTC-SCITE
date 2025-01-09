@@ -6,6 +6,7 @@
 
 # Load libraries
 library(data.table)
+library(readxl)
 library(stringr)
 library(dplyr)
 library(tidyr)
@@ -48,7 +49,7 @@ for (file in files) {
 # Create empty data frame to store summary information for all samples
 summary_df <- data.frame( # Sample basename
   basename = character(),
-  # Number of barcodes accumulating 90% of total counts
+  # Number of barcodes accumulating 90% of total aligned counts
   num_rows_accumulating_nine = integer(),
   # Proportion of total counts for most abundant barcode
   prop_col_1 = numeric(),
@@ -63,14 +64,6 @@ for (i in seq_along(df_list)) {
   cumprop_col <- df[, "cumprop_col"]
   num_rows_accumulating_nine <- sum(cumprop_col < 0.9) + 1
   basename <- names(df_list)[i]
-  # Extract corresponding primary tumor complexity from basename
-  pt_complexity <- switch(substr(basename, 1, 4),
-    "10k_" = 10000,
-    "50k_" = 50000,
-    "100_" = 100,
-    "1000" = 1000,
-    NA
-  ) # if no match, assign NA
   prop_col_1 <- df$prop_col[1]
   prop_col_2 <- df$prop_col[2]
   summary_row <- data.frame(
@@ -78,91 +71,56 @@ for (i in seq_along(df_list)) {
     num_rows_accumulating_nine = num_rows_accumulating_nine,
     prop_col_1 = prop_col_1,
     prop_col_2 = prop_col_2,
-    value = value,
     stringsAsFactors = FALSE
   )
   summary_df <- rbind(summary_df, summary_row)
 }
 
-# Extract the number of cells per CTC cluster from the sample name and add to summary_df
-summary_df <- summary_df %>%
-  mutate(cluster_size = case_when(
-    grepl("_0_", basename) ~ "0",
-    grepl("_1_", basename) ~ "1",
-    grepl("_2_", basename) ~ "2",
-    grepl("_3_", basename) ~ "3",
-    grepl("_4_", basename) ~ "4",
-    grepl("_5_", basename) ~ "5",
-    grepl("_6_", basename) ~ "6",
-    grepl("_7_", basename) ~ "7",
-    grepl("_8_", basename) ~ "8",
-    grepl("_9_", basename) ~ "9",
-    grepl("_10_", basename) ~ "10",
-    grepl("_10plus_", basename) ~ "11",
-    grepl("_11_", basename) ~ "11",
-    grepl("_12_", basename) ~ "12",
-    grepl("_13_", basename) ~ "13",
-    grepl("_14_", basename) ~ "14",
-    grepl("_20_", basename) ~ "20",
-    grepl("_25_", basename) ~ "25",
-    TRUE ~ NA_character_
-  ))
+# Read-in metadata containing information on CTC cell count per cluster, primary tumor barcode diversity and mouse/tumor IDs
+metadata <- read_excel("metadata.xlsx")
 
+# Merge summary dataframe and metadata by CTC cluster basename
+merged_df <- merge(summary_df, metadata, by = "basename", all = TRUE)
 
-# Assign CTC clusters into categories "0" (negative controls), "2" or "3+" based on the cell number
-summary_df <- summary_df %>%
+# Assign CTC clusters into categories "0" (negative controls), "2" or "3+" based on the CTC counts
+merged_df <- merged_df %>%
   mutate(cluster_category = case_when(
-    grepl("_0_", basename) ~ "0",
-    grepl("_2_", basename) ~ "2",
-    grepl("_2_|_3_|_4_|_5_|_6_|_7_|_8_|_9_|_10_|_10plus_|_11_|_12_|_13_|_14_|_20_|_25_", basename) ~ "3+",
-    TRUE ~ NA_character_
+    cluster_size == 0 ~ "0",
+    cluster_size == 2 ~ "2",
+    TRUE ~ "3+"
   ))
-
-# Add a column with the corresponding tumor ID
-summary_df <- summary_df %>%
-  mutate(tumor_id = case_when(
-    grepl("910", basename) ~ "910",
-    grepl("905", basename) ~ "905",
-    grepl("904", basename) ~ "904",
-    grepl("903", basename) ~ "903",
-    grepl("902", basename) ~ "902",
-    grepl("141", basename) ~ "141",
-    grepl("140", basename) ~ "140",
-    TRUE ~ NA_character_
-  ))
-
 
 # Quality filtering of CTC cluster samples
-summary_df$cluster_size <- as.numeric(summary_df$cluster_size)
-summary_df_filter <- summary_df[summary_df$num_rows_accumulating_nine <= summary_df$cluster_size, ]
+merged_df$cluster_size <- as.numeric(merged_df$cluster_size)
+merged_df_filter <- merged_df[merged_df$num_rows_accumulating_nine <= merged_df$cluster_size, ]
 
 # Assign CTC cluster samples mono- or oligoclonal based on the dominance of the most abundant barcode, taking into account the cell number
-summary_df_filter$clonality <- ifelse(summary_df_filter$prop_col_2 / summary_df_filter$prop_col_1 < 1 / summary_df_filter$cluster_size,
+merged_df_filter$clonality <- ifelse(merged_df_filter$prop_col_2 / merged_df_filter$prop_col_1 < 1 / merged_df_filter$cluster_size,
   "mono",
   "oligo"
 )
 
 # Return fraction of oligoclonal CTC clusters across all samples
-nrow(summary_df_filter[summary_df_filter$clonality == "oligo", ]) / nrow(summary_df_filter)
+nrow(merged_df_filter[merged_df_filter$clonality == "oligo", ]) / nrow(merged_df_filter)
 
 # Assign CTC cluster samples a complexity value of "Low", "Medium" or "High", based on corresponding primary tumor barcode complexity
-summary_df_filter <- summary_df_filter %>%
-  mutate(complexity = ifelse(value %in% c(100, 1000), "Low",
-    ifelse(value == 10000, "Medium", "High")
+merged_df_filter <- merged_df_filter %>%
+  mutate(complexity = ifelse(pt_complexity %in% c(100, 1000), "Low",
+    ifelse(pt_complexity == 10000, "Medium", "High")
   ))
 
 
 # Perform Cochran-Armitage test for trend
-# Define matrix with counts for oligo- and monoclonal CTC clusters across complexities (as inferred from summary_df_filter)
-x <- matrix(c(16, 133, 21, 52, 40, 14), byrow = TRUE, ncol = 2)
+# Define matrix with counts for oligo- and monoclonal CTC clusters across complexities (as inferred from merged_df_filter)
+x <- matrix(c(16, 133, 57, 88, 90, 42), byrow = TRUE, ncol = 2)
 CochranArmitageTest(x, alternative = "one.sided")
 
 
 # Fig. 2b
 # Generate a data.frame with counts for mono- and oligoclonal CTC clusters within each complexity level using PieDonut
 low <- data.frame(Clonality = c("Monoclonal", "Oligoclonal"), n = c(133, 16))
-medium <- data.frame(Clonality = c("Monoclonal", "Oligoclonal"), n = c(52, 21))
-high <- data.frame(Clonality = c("Monoclonal", "Oligoclonal"), n = c(14, 40))
+medium <- data.frame(Clonality = c("Monoclonal", "Oligoclonal"), n = c(88, 57))
+high <- data.frame(Clonality = c("Monoclonal", "Oligoclonal"), n = c(42, 90))
 
 
 # Generate a donut plot illustrating mono- and oligoclonal CTC cluster counts for each complexity level
@@ -172,7 +130,7 @@ PieDonut(high, aes(Clonality, count = n), showPieName = FALSE, donutLabelSize = 
 
 
 # Create a data frame specifying for each tumor sample the proportion of oligoclonal CTC clusters in categories "2" and "3+"
-combined_summary <- summary_df_filter %>%
+combined_summary <- merged_df_filter %>%
   group_by(tumor_id, cluster_category, complexity) %>%
   summarise(
     n = n(),
@@ -182,7 +140,7 @@ combined_summary <- summary_df_filter %>%
   ungroup()
 
 # Only keep samples with counts in both categories ("2" and "3+")
-combined_summary <- combined_summary[c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13), ]
+combined_summary <- combined_summary[-c(21), ]
 
 # Calculate the absolute number of mono- and oligoconal CTC clusters per category
 combined_summary$oligo <- combined_summary$n * combined_summary$prop_oligo
@@ -204,7 +162,6 @@ contingency_table <- matrix(
 
 # Perform Fisher's Exact Test for "2" vs. "3+"
 fisher.test(contingency_table)
-
 
 # Generate plot for Fig. 2c
 complexity_colors <- c("Low" = "#9fc8c8", "Medium" = "#54a1a1", "High" = "#1f6f6f")

@@ -6,6 +6,7 @@ library(boot)
 source("functions.R")
 library("optparse")
 
+
 ############
 # Config
 ############
@@ -35,7 +36,7 @@ parser <- add_option(parser, c("-s", "--simulation-cluster-size"),
 )
 parser <- add_option(parser, c("-o", "--output-folder"),
   type = "character",
-  default = "~/Documents/projects/CTC_backup/simulations/simulation2", help = ""
+  default = "~/Documents/projects/CTC_backup/simulations/simulation3", help = ""
 )
 parser <- add_option(parser, c("-m", "--monoclonal"),
   type = "logical",
@@ -511,6 +512,7 @@ simulate_oligoclonals <- function(input, output_directory, number_of_cells, samp
     return(sum(x != y))
   }
 
+  it <- 0
   while (TRUE) { # I sample until I get a cluster where at least two cells are distinct
     # Sample cells to merge
     cells_to_merge <-
@@ -532,6 +534,10 @@ simulate_oligoclonals <- function(input, output_directory, number_of_cells, samp
       }
     }
     if (sum_of_distances > 0) {
+      break
+    }
+    it <- 1 + it
+    if (it > 100) {
       break
     }
   }
@@ -596,7 +602,7 @@ simulate_oligoclonals <- function(input, output_directory, number_of_cells, samp
   )
 
   write_delim(
-    x = description_data,
+    x = description_data_output_format,
     file = file.path(
       output_directory,
       paste(input$sampleName, output_label, sep = "_"),
@@ -767,7 +773,7 @@ simulateCTCclusters <- function(
 # for (tree in c("Br11", "Br16_AC_max2", "Br16_AC_max3", "Br16_AC_max4", "Br16_B_max1", "Br16_B_max2", "Br16_B_max3", "Br16_B_max4", "Br16_C_max1", "Br16_C_max2", "Br16_C_max3", "Br23", "Br26", "Br30", "Br37", "Br38", "Br39", "Br44", "Br45", "Br46", "Br53", "Br57", "Brx50", "Lu2", "Lu7", "Ov8", "Pr6", "Pr9")) {}
 
 
-cluster_size_vector <- c(0, 4, 3, 2, 2, 2, 2, 2, 2)
+cluster_size_vector <- c(0, 3, 3, 3, 3, 3, 3, 3, 3)
 
 
 print(paste("Running simulation for", tree_name))
