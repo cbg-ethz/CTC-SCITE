@@ -7,6 +7,7 @@ repos:
     rev: v0.4.2
     hooks:
       - id: style-files
+        dry: on
       - id: parsable-R  
       - id: lintr
         args: [--warn_only]
