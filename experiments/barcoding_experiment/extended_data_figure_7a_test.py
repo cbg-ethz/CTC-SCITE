@@ -12,22 +12,24 @@ from scipy.stats import combine_pvalues
 logging.basicConfig(level=logging.INFO)
 
 
-def load_cluster_data(path, pattern):
-    files = [str(file) for file in Path(path).glob('*.csv') if pattern in str(file)]
-
+def load_cluster_data(path, pattern, cluster2tumor):
+    #files = [str(file) for file in Path(path).glob('*.csv') if pattern in str(file)]
+    files = cluster2tumor.loc[cluster2tumor['tumor_sample'] == pattern, 'basename']
     # Create empty dictionary to store data frames
     df_dict = {}
     cluster_sizes = []
     # Loop through all sample barcode counts files
     for idx,file in enumerate(files):
-        basename = Path(file).stem
-        pattern = next((p for p in ["910", "905", "904", "903", "902", "141", "140"] if p in basename), None)
-        cluster_size = int(basename.split('_')[1])
+        basename = Path(f'{file}.csv').stem
+        #pattern = next((p for p in ["910", "905", "904", "903", "902", "141", "140"] if p in basename), None)
+        
+        cluster_size = cluster2tumor.loc[cluster2tumor['basename'] == file, 'cluster_size'].iloc[0]
+    
         
         try:
             # Load counts into data frame
             # Use pd.read_csv with chunksize for faster processing
-            df = pd.read_csv(file, sep='\t', header=None, dtype={0: 'str'})
+            df = pd.read_csv(Path(path) / f'{file}.csv', sep='\t', header=None, dtype={0: 'str'})
             logging.info(f'File {file} loaded')
         except Exception as e:
             logging.error(f"Error reading {file} - skipping\n")
@@ -66,13 +68,15 @@ def load_cluster_data(path, pattern):
 
 
 def load_primary_data(path):
-    file_list = ["combined_140_order_filter_merge.rds.csv", "combined_141_order_filter_merge.rds.csv", "combined_902_order_filter_merge.rds.csv", "combined_903_order_filter_merge.rds.csv", "combined_904_order_filter_merge.rds.csv", "combined_905_order_filter_merge.rds.csv", "combined_910_order_filter_merge.rds.csv"]
+    file_list = [filename for filename in list(path.glob("combined_*_filter_merge.rds.csv"))]
+    #file_list = ["combined_140_order_filter_merge.rds.csv", "combined_141_order_filter_merge.rds.csv", "combined_902_order_filter_merge.rds.csv", "combined_903_order_filter_merge.rds.csv", "combined_904_order_filter_merge.rds.csv", "combined_905_order_filter_merge.rds.csv", "combined_910_order_filter_merge.rds.csv"]
     primary_dict = {}
     for file in file_list:
-        mouse_ID = file.split('_')[1]
-        primary_dict[mouse_ID] = pd.read_csv(Path(path) / file, sep=',', header=0)
-    
+        mouse_ID = file.stem.split('_')[1]
+        primary_dict[mouse_ID] = pd.read_csv(file, sep=',', header=0)
+
         primary_dict[mouse_ID]['observations'] = primary_dict[mouse_ID]['observations'].astype(str)
+        primary_dict[mouse_ID]['prop_av'] = primary_dict[mouse_ID]['prop_av'].astype(float)
     return primary_dict
 
 
@@ -100,7 +104,7 @@ def preprocess_primary_data(primary_data):
 def merge_data(files, primary_data):
     for mouse_ID, data in primary_data.items():
         for cluster_ID, cluster_data in files.items():
-            if cluster_data['Mouse ID'].iloc[0] == mouse_ID:
+            if str(cluster_data['Mouse ID'].iloc[0]) == mouse_ID:
                 # Filter out barcode IDs in cluster_data that are not in primary_data
                 
                 cluster_data = cluster_data[cluster_data['Barcode ID'].isin(data['observations'])]
@@ -111,7 +115,6 @@ def merge_data(files, primary_data):
                     logging.warning(f"Mouse ID {mouse_ID}, Cluster ID {cluster_ID} has barcodes with 'Clone present in cluster' True but not in observations: {missing_barcodes['Barcode ID'].tolist()}")
 
                 # Merge the prop_av values from primary_data into cluster_data
-                
                 cluster_data = cluster_data.merge(data[['observations', 'prop_av']], left_on='Barcode ID', right_on='observations', how='left')
 
                 cluster_data.drop(columns=['observations'], inplace=True)
@@ -166,22 +169,23 @@ def compute_test(all_clones, n_cells_in_cluster, simulations = None):
 
 
 if __name__ == '__main__':
-    path = '/Users/jgawron/Documents/projects/CTC_backup/validation_experiment/barcode_data/cluster_data'
-    primary_data_path = '/Users/jgawron/Downloads'
-    primary_data = load_primary_data(primary_data_path)
+    path = '/home/jovyan/work/ctc-data/barcoding_experiment/Cluster data'
+    primary_data_path = '/home/jovyan/work/ctc-data/barcoding_experiment/combined_primary_cluster'
+    primary_data = load_primary_data(Path(primary_data_path))
     primary_data = preprocess_primary_data(primary_data)
-
+    cluster2tumor = pd.read_csv('/home/jovyan/work/ctc-data/barcoding_experiment/summary_df_filter_final_all.csv')
+    tumor_samples = list(set(cluster2tumor['tumor_sample']))
     # Create empty dictionary to store data frames
     p_values = []
     mouse_models = []
     number_of_simulations = 10000
-    for pattern in ["910", "905", "904", "903", "902", "141", "140"]:
-        files, cluster_sizes = load_cluster_data(path, pattern)
+    for pattern in tumor_samples:
+        files, cluster_sizes = load_cluster_data(path, pattern, cluster2tumor)
 
         merged_data = merge_data(files, primary_data)
 
         first_dataset = next(iter(merged_data.values()))
-
+        print(first_dataset.columns)
         print(cluster_sizes)
         simulated_G_scores = pd.DataFrame(np.zeros((number_of_simulations, len(cluster_sizes))), columns=[str(cluster_size) for cluster_size in cluster_sizes])
         
