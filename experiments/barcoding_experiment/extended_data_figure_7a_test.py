@@ -185,8 +185,7 @@ if __name__ == '__main__':
         merged_data = merge_data(files, primary_data)
 
         first_dataset = next(iter(merged_data.values()))
-        print(first_dataset.columns)
-        print(cluster_sizes)
+        
         simulated_G_scores = pd.DataFrame(np.zeros((number_of_simulations, len(cluster_sizes))), columns=[str(cluster_size) for cluster_size in cluster_sizes])
         
         for cell_number in cluster_sizes:
@@ -202,7 +201,7 @@ if __name__ == '__main__':
 
     p_value_summary = pd.DataFrame({'P value': p_values, 'Mouse Model': mouse_models})
     logging.info(p_value_summary)
-    p_value_summary.to_csv('/Users/jgawron/Documents/projects/CTC_backup/validation_experiment/barcode_data/cluster_data/p_values.csv')
+    p_value_summary.to_csv('/home/jovyan/work/ctc-data/barcoding_experiment/')
 
     # Combine p-values using Fisher's method
     combined_p_value = combine_pvalues(p_values, method='fisher')[1]
