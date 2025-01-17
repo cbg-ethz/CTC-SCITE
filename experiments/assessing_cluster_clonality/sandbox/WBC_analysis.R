@@ -27,9 +27,6 @@ summary(fit2)
 fit3 <- glm(n_wbcs ~ n_cells + `Sample Name` + Oligoclonal, data = filtered_data, family = poisson(link = "log"))
 summary(fit3)
 
-fit4 <- glm(n_wbcs ~ n_cells + `Sample Name` + Oligoclonal, data = filtered_data, family = poisson(link = "log"))
-summary(fit4)
-### Not significant
 
 
 fit6 <- glm(high_impact_mutations ~ n_cells + `Sample Name` + Oligoclonal + WBC, data = filtered_data, family = poisson(link = "log"))
@@ -37,7 +34,7 @@ summary(fit6)
 ### Not significant
 
 
-fit7 <- glm(as.factor(Oligoclonal) ~ n_cells + `Sample Name` + impact_mutations + Oligoclonal + WBC, data = filtered_data, family = binomial(link = "logit"))
+fit7 <- glm(as.factor(Oligoclonal) ~ n_cells + `Sample Name` + impact_mutations + WBC, data = filtered_data, family = binomial(link = "logit"))
 summary(fit7)
 
 

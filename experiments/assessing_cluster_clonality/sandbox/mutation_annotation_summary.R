@@ -52,4 +52,4 @@ for(idx in seq_len(nrow(splitting_summary))) {
     called_variants_annotated %>% dplyr::filter(relevant == "HIGH") %>% nrow()
 }
 
-write_delim(splitting_summary, file = "~/work/ctc-data/WES_experiment/splitting_summaries/splittingSummmary_full_with_sample_names_annotated.tsv", delim = "\t")
+write_delim(splitting_summary, file = "~/work/ctc-data/WES_experiment/splitting_summaries/splittingSummary_full_with_sample_names_annotated.tsv", delim = "\t")

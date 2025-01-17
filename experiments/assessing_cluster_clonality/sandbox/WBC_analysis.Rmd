@@ -1,0 +1,100 @@
+---
+title: "WBC_analysis"
+author: "Johannes Gawron"
+date: "2025-01-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Role of WBCs in oligoclonality and genetic diversity
+Here, we study the role of white blood cells in the formation for the genetic
+diversity respectively the oligoclonality of CTC clusters.
+
+# Loading data
+
+```{r loading, include=FALSE}
+data <- read_tsv("~/work/ctc-data/WES_experiment/splitting_summaries/splittingSummary_full_with_sample_names_annotated.tsv")
+
+data <- data %>% mutate(WBC = n_wbcs > 0)
+
+data <- data %>% mutate(impact_mutations = high_impact_mutations + medium_impact_mutations)
+```
+Here is an overview of the data:
+
+```{r data overview, include=TRUE}
+print(data)
+
+```
+# Preprocessing
+
+The data from Br26 will be excluded manually, as this is in fact not a breast
+cancer sample but an ovarian cancer sample (which we don't study here).
+
+```{r filtering, include=TRUE}
+data <- data %>% dplyr::filter(`Sample Name` != "Br26")
+filtered_data <- data %>%
+  filter(str_detect(`Sample Name`, "Br|Pr|LM2"))
+```
+
+# Data analysis
+To ensure that our analysis is not confounded, we control for the number of
+cells in the CTC clusters and the sample identity throughout the analyses.
+
+## Predicting oligoclonality from the presence of white blood cells
+
+```{r fit1, include=TRUE}
+fit <-
+  glm(
+    as.factor(Oligoclonal) ~ n_cells + `Sample Name` + WBC,
+    data = filtered_data,
+    family = binomial(link = "logit")
+    )
+summary(fit)
+```
+There is no significant effect of the presence of white blood cells on the
+oligoclonality status of the CTC clusters was found.
+
+## Effect of the number of white blood cells on Oligoclonality
+
+```{r fit2, include=TRUE}
+fit <-
+  glm(
+    as.factor(Oligoclonal) ~ n_cells + `Sample Name` + n_wbcs, 
+    data = filtered_data,
+    family = binomial(link = "logit")
+    )
+summary(fit)
+```
+There is no significant effect of the number of white blood cells on the
+oligoclonality status of the CTC clusters wasfound.
+
+
+## Predicting the presence of mutations with high functional impact
+```{r fit}
+fit <-
+  glm(
+    as.factor(Oligoclonal) ~ high_impact_mutations + n_cells + `Sample Name` + WBC,
+    data = filtered_data,
+    family = binomial(link = "logit")
+    )
+summary(fit)
+```
+No significant effect was found for predicting the number of mutations with a
+high functional impact as a function of the presence of white blood cells and of
+the clonality status.
+
+
+## Predicting the presence of mutations with functional impact
+
+```{r fit4}
+fit7 <-
+  glm(
+    as.factor(Oligoclonal) ~ n_cells + `Sample Name` + high_impact_mutations + WBC,
+    data = filtered_data,
+    family = binomial(link = "logit"))
+summary(fit7)
+```
