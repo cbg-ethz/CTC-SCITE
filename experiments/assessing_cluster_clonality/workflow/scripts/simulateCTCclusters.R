@@ -3,7 +3,7 @@ library(VGAM)
 library(pscl)
 library(MASS)
 library(boot)
-source("functions.R")
+source("~/work/CTC-SCITE/experiments/assessing_cluster_clonality/workflow/resources/functions.R")
 library("optparse")
 
 
@@ -42,91 +42,6 @@ parser <- add_option(parser, c("-m", "--monoclonal"),
   type = "logical",
   default = TRUE, help = ""
 )
-
-args <- parse_args(parser)
-
-
-input_folder <- args$"input-folder"
-tree_name <- args$"name-of-tree"
-cluster_size <- args$"simulation-cluster-size"
-output_folder <- args$"output-folder"
-monoclonal <- args$monoclonal
-
-# input_folder <- "~/Documents/projects/CTC_backup/input_folder"
-# tree_name <- "Br23"
-print(input_folder)
-print(tree_name)
-input <- load_data(input_folder, tree_name)
-print("Input data successfully loaded.")
-
-#
-# ############
-# # Exploratory data analysis
-# ############
-#
-#
-# # input <- load_data(input_folder, tree_name)
-# # totalReadCounts <- input$totalReadCounts
-# # sampleDescription <- input$sample_description
-#
-#
-#
-# # totalReadCountVector <- totalReadCounts %>% unlist()
-#
-#
-# sum(totalReadCountVector == 0) / length(totalReadCountVector)
-#
-# # fit1 <- glm(totalReadCountVector ~ 1, family = poisson(link = 'log'))
-# fit2 <- glm.nb(totalReadCountVector ~ 1)
-# fit3 <- zeroinfl(totalReadCountVector ~ 1, dist = "negbin")
-# # fit4 <- zeroinfl(totalReadCountVector ~1, dist = 'poisson')
-#
-# # summary(fit1)
-# summary(fit2)
-# summary(fit3)
-# # summary(fit4)
-# # exp(coef(fit))
-# # coef(fit2)
-#
-#
-# # exp(summary(fit3)$coefficients$zero[1])
-#
-#
-# # parameterOfNegBinom <- exp(summary(fit3)$coefficients$count[,1])
-#
-#
-# # exp(coef(fit3))
-# # summary(fit4)
-#
-#
-# # sim() <-
-#
-#
-# simNew <- ifelse(rbinom(length(totalReadCountVector), size = 1, prob = exp(coef(fit3))[2]) > 0,
-#   0, rnegbin(length(totalReadCountVector), exp(coef(fit3))[1], theta = exp(-0.76961))
-# )
-#
-# sim <- data.frame(sim = vector(), run = vector())
-#
-# for (i in 1:100) {
-#   simNew <- ifelse(rbinom(length(totalReadCountVector), size = 1, prob = exp(coef(fit3))[2]) > 0,
-#     0, rnegbin(length(totalReadCountVector), exp(coef(fit3))[1], theta = exp(-0.76961))
-#   )
-#
-#   # simNew <- rnegbin(length(totalReadCountVector), exp(coef(fit2)), theta = 0.9222)
-#   sim <- rbind(sim, data.frame(sim = simNew, run = i))
-# }
-#
-#
-# sim <- rbind(sim, data.frame(sim = totalReadCountVector, run = 0))
-#
-# sim %>%
-#   ggplot(aes(x = sim, group = run)) +
-#   geom_histogram(data = sim[sim$run == 0, ], alpha = 0.4, color = "darkseagreen", fill = "darkseagreen") +
-#   geom_freqpoly(data = sim[sim$run != 0, ], aes(x = sim), color = "red", position = "identity", alpha = 0.4)
-#
-
-
 
 
 #' Fits a zero inflated negative binomial distribution
@@ -249,21 +164,21 @@ simulateReads <-
 #' @export
 #'
 #' @examples
-call_genotypes <- function(nTreeSamplingEvents = 1000, input) {
-  postSampling <- input$postSampling
-  nCells <- input$nCells
-  nMutations <- input$nMutations
-  nClusters <- input$nClusters
-  alleleCount <- input$alleleCount
-  ClusterID <- input$clusterID
-  mutatedReadCounts <- input$mutatedReadCounts
-  totalReadCounts <- input$totalReadCounts
+call_genotypes <- function(n_tree_sampling_events = 1000, input) {
+  postSampling <- input$post_sampling
+  nCells <- input$n_cells
+  nMutations <- input$n_mutations
+  nClusters <- input$n_clusters
+  alleleCount <- input$allele_count
+  ClusterID <- input$cluster_id
+  mutatedReadCounts <- input$mutated_read_counts
+  totalReadCounts <- input$total_read_counts
 
 
   desired_values <-
     sample(
       1:length(postSampling),
-      size = nTreeSamplingEvents, replace = FALSE
+      size = n_tree_sampling_events, replace = FALSE
     ) %>%
     sort()
   postSampling <- postSampling[desired_values]
@@ -770,41 +685,63 @@ simulateCTCclusters <- function(
 
 
 
-# for (tree in c("Br11", "Br16_AC_max2", "Br16_AC_max3", "Br16_AC_max4", "Br16_B_max1", "Br16_B_max2", "Br16_B_max3", "Br16_B_max4", "Br16_C_max1", "Br16_C_max2", "Br16_C_max3", "Br23", "Br26", "Br30", "Br37", "Br38", "Br39", "Br44", "Br45", "Br46", "Br53", "Br57", "Brx50", "Lu2", "Lu7", "Ov8", "Pr6", "Pr9")) {}
 
-
-cluster_size_vector <- c(0, 3, 3, 3, 3, 3, 3, 3, 3)
-
-
-print(paste("Running simulation for", tree_name))
-
-all_cluster_sizes <- input$sample_description %>%
-  filter(WBC == 0 & color != "gray93") %>%
-  group_by(color) %>%
-  filter(n() > 1) %>%
-  summarize(cluster_size = n()) %>%
-  dplyr::select("cluster_size") %>%
-  unique()
-
-
-if (monoclonal == TRUE) {
-  keep <- rep(0, length(cluster_size_vector))
-  keep[cluster_size] <- 1
-  cluster_size_vector[keep == 0] <- 0
-  print("Simulating monoclonal clusters.")
-  simulateCTCclusters(
-    samplingSize = 100, cluster_size_vector = cluster_size_vector, input,
-    output_directory = output_folder, output_label = output_label,
-    dropoutRate = 0.35, errorRate = 0.0015, seed = 124,
-    zeroInflated = TRUE
-  )
-} else {
-  for (idx in 1:nrow(all_cluster_sizes)) {
-    cluster_size <- all_cluster_sizes$cluster_size[idx]
-    print("Simulating oligoclonal clusters.")
-    for (idx2 in 1:cluster_size_vector[cluster_size]) {
-      simulate_oligoclonals(input, output_folder, cluster_size, sampling_size = 100)
+main <- function(){
+  
+  args <- parse_args(parser)
+  
+  
+  input_folder <- args$"input-folder"
+  tree_name <- args$"name-of-tree"
+  cluster_size <- args$"simulation-cluster-size"
+  output_folder <- args$"output-folder"
+  monoclonal <- args$monoclonal
+  
+   input_folder <- "~/Documents/projects/CTC_backup/input_folder"
+   tree_name <- "Br23"
+  
+  input <- load_data(input_folder, tree_name)
+  print("Input data successfully loaded.")
+  
+  
+  
+  
+  
+  cluster_size_vector <- c(0, 3, 3, 3, 3, 3, 3, 3, 3)
+  
+  
+  print(paste("Running simulation for", tree_name))
+  
+  all_cluster_sizes <- input$sample_description %>%
+    filter(WBC == 0 & color != "gray93") %>%
+    group_by(color) %>%
+    filter(n() > 1) %>%
+    summarize(cluster_size = n()) %>%
+    dplyr::select("cluster_size") %>%
+    unique()
+  
+  
+  if (monoclonal == TRUE) {
+    keep <- rep(0, length(cluster_size_vector))
+    keep[cluster_size] <- 1
+    cluster_size_vector[keep == 0] <- 0
+    print("Simulating monoclonal clusters.")
+    simulateCTCclusters(
+      samplingSize = 100, cluster_size_vector = cluster_size_vector, input,
+      output_directory = output_folder, output_label = output_label,
+      dropoutRate = 0.35, errorRate = 0.0015, seed = 124,
+      zeroInflated = TRUE
+    )
+  } else {
+    for (idx in 1:nrow(all_cluster_sizes)) {
+      cluster_size <- all_cluster_sizes$cluster_size[idx]
+      print("Simulating oligoclonal clusters.")
+      for (idx2 in 1:cluster_size_vector[cluster_size]) {
+        simulate_oligoclonals(input, output_folder, cluster_size, sampling_size = 100)
+      }
+      print("Success.")
     }
-    print("Success.")
   }
 }
+
+

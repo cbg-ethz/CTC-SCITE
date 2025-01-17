@@ -5,8 +5,8 @@
 library(Rcpp)
 library(tidyverse)
 
-sourceCpp("../../workflow/resources/mutations_placement.cpp")
-util::globalVariables(computePairwiseDistanceOfLeavesGivenTree)
+sourceCpp("~/work/CTC-SCITE/experiments/assessing_cluster_clonality/workflow/resources/mutations_placement.cpp")
+
 
 
 #' Takes a list of mutations and outputs which one of these is a driver.
@@ -488,19 +488,19 @@ load_data <- function(input_folder, tree_name) {
       "Description"
     )
   )
+
   n_cells <- sum(description$CellCount)
   n_clusters <- nrow(description)
   n_mutations <- nrow(counts)
   allele_count <- description$CellCount * 2
 
 
-  description <- description |>
-    dplyr::mutate(color = regmatches(rlang::.data$Description, regexpr(
+  description <- description %>%
+    dplyr::mutate(color = regmatches(Description, regexpr(
       "color=([a-zA-Z]+[0-9]*)",
-      rlang::.data$Description
-    ))) |>
-    (\(data) substr(start = 7, stop = (nchar(data))))()
-
+      Description
+    )) %>%
+    substr(start = 7, stop = (nchar(.))))
 
 
   cluster_id <- vector()
@@ -578,8 +578,8 @@ load_data <- function(input_folder, tree_name) {
   sample_description <- sample_description |>
     dplyr::mutate(
       single_cell =
-        !(duplicated(rlang::.data$Cluster)) &
-          !(duplicated(rlang::.data$Cluster, fromLast = TRUE))
+        !(duplicated(Cluster)) &
+          !(duplicated(Cluster, fromLast = TRUE))
     )
 
 

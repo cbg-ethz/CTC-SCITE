@@ -1,11 +1,15 @@
 library(tidyverse)
-data <- read_tsv("~/Downloads/splittingSummary_full_final.tsv")
+data <- read_tsv("~/work/ctc-data/WES_experiment/splitting_summaries/splittingSummary_full_with_sample_names.tsv")
 data <- data %>% mutate(WBC = n_wbcs > 0)
 
 data <- data %>% mutate(impact_mutations = high_impact_mutations + medium_impact_mutations)
 
 
 View(data)
+
+##Manually Remove
+data <- data %>% filter(`Sample Name` != "Br26") %>% nrow()
+
 filtered_data <- data %>%
   filter(str_detect(`Sample Name`, "Br|Pr|LM2"))
 
