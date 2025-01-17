@@ -2,7 +2,6 @@
 ## Colors and labels in the final figure may deviate through manual manipulation in Adobe Illustrator
 
 library(MCMCprecision)
-library(ggplot2)
 library(tidyverse)
 library(poolr)
 library(ComplexHeatmap)
@@ -33,14 +32,24 @@ compute_p_value <- function(k, n, r, samplingSize, primaryTumorVector) {
 
 
 
-summary_df_filter <- readRDS("summary_df_filter_final.rds")
-summary_df_filter_combined <- summary_df_filter %>%
-  mutate(group = ifelse(value %in% c(100, 1000), "100-1000",
-    ifelse(value == 10000, "10000", "50000")
+summary_df_filter <- readRDS("~/work/ctc-data/Barcoding experiment/summary_df_filter_final.rds")
+summary_df_filter2 <- readRDS("~/work/ctc-data/Barcoding experiment/summary_df_filter_rev_bc_ident.rds")
+
+colnames(summary_df_filter)[6] <- "pt_complexity"
+colnames(summary_df_filter2)[15] <- "tumor_sample"
+
+summary_df_filter2$tumor_sample <- as.character(summary_df_filter2$tumor_sample)
+
+summary_df_filter_combined <- bind_rows(summary_df_filter, summary_df_filter2)
+
+
+summary_df_filter_combined <- summary_df_filter_combined %>%
+  mutate(group = ifelse(pt_complexity %in% c(100, 1000), "100-1000",
+    ifelse(pt_complexity == 10000, "10000", "50000")
   ))
 
+write_csv(summary_df_filter_combined, file = "~/work/ctc-data/Barcoding experiment/summary_df_filter_final_all.csv")
 
-setwd("~/Documents/projects/CTC_backup/validation_experiment/")
 
 
 p_values_table <- data.frame(matrix(ncol = 0, nrow = 24))
@@ -49,13 +58,15 @@ mono_clusters <- data.frame(matrix(ncol = 0, nrow = 24))
 expected_values_null_table <- data.frame(matrix(ncol = 0, nrow = 24))
 fold_change_table <- data.frame(matrix(ncol = 0, nrow = 24))
 
-mouse_models <- c("140", "141", "902", "903", "904", "905", "910")
+mouse_models <- unique(summary_df_filter_combined$tumor_sample)
 
 for (mouse_model in mouse_models) {
-  setwd("Cluster_csv_files")
+  setwd("~/work/ctc-data/Barcoding experiment/Cluster data")
+
   files <- list.files(pattern = paste0("^.*_", mouse_model, ".*\\.csv$"))
   print(files)
-  summary_temp <- summary_df_filter_combined[paste0(summary_df_filter_combined$basename, ".csv") %in% files, ]
+  summary_temp <- summary_df_filter_combined %>% filter(tumor_sample == mouse_model)
+  # summary_df_filter_combined[paste0(summary_df_filter_combined$basename, ".csv") %in% files, ]
 
 
   total_number_of_clusters_by_size <- summary_temp %>%
@@ -72,13 +83,13 @@ for (mouse_model in mouse_models) {
   summary_clusters_by_size <- merge(data.frame(cluster_size = 2:25), summary_clusters_by_size, by.x = "cluster_size", all.x = TRUE)
   summary_clusters_by_size[is.na(summary_clusters_by_size)] <- 0
 
-  setwd("../Primary_tumor_csv_files")
+  setwd("~/work/ctc-data/Barcoding experiment/primary_data")
 
 
   primary_files <- list.files(pattern = paste0("^.*", mouse_model, ".*\\.csv$"))
 
   print("Loading primary tumor data:")
-  primaryA <- read_delim(primary_files[1], col_names = F, delim = "\t")
+  primaryA <- read_delim(primary_files[1], col_names = FALSE, delim = "\t")
 
 
   colnames(primaryA)[1] <- "barcodes"
@@ -105,7 +116,7 @@ for (mouse_model in mouse_models) {
   }
 
   print("Done!")
-  setwd("..")
+
 
   primary_counts <- primary_counts %>%
     group_by(barcodes) %>%
@@ -171,10 +182,10 @@ log_fold_change_table <- log(fold_change_table + 1)
 
 
 frequency_table <- t(frequency_table[1:4, ])
-frequency_table <- frequency_table[c(5, 6, 2, 1, 3, 4, 7), ]
+frequency_table <- frequency_table[c(9, 11, 4, 3, 10, 12, 8, 5, 6, 2, 1, 7), ]
 
 p_values_table <- t(p_values_table[1:4, ])
-p_values_table <- p_values_table[c(5, 6, 2, 1, 3, 4, 7), ]
+p_values_table <- p_values_table[c(9, 11, 4, 3, 10, 12, 8, 5, 6, 2, 1, 7), ]
 
 fold_change_table[is.na(fold_change_table)] <- -1
 log_fold_change_table[is.na(log_fold_change_table)] <- -1
@@ -235,9 +246,9 @@ ha_col <- HeatmapAnnotation(
 
 ha_row <- rowAnnotation(
   foo = anno_text(x = row_annotation, which = "row", show_name = TRUE, gp = gpar(fontsize = 8)),
-  annotation_label = c("Cluster size"), annotation_name_gp = gpar(fontsize = 10)
+  annotation_label = c(""),
+  annotation_name_gp = gpar(fontsize = 10)
 )
-
 
 
 ht <- Heatmap(frequency_table,
@@ -260,7 +271,7 @@ ht <- Heatmap(frequency_table,
   cluster_columns = FALSE,
   col = col_fun,
   heatmap_legend_param = list(
-    title = "% mono",
+    title = "Monoclonal fraction",
     at = c(0, 0.5, 1), labels = c("0", "50", "100")
   ),
   top_annotation = ha_col,
@@ -268,7 +279,14 @@ ht <- Heatmap(frequency_table,
 )
 
 lgd_sig <- Legend(pch = c("*", "**", "***", "-"), type = "points", labels = c("<0.05", "<0.01", "<0.001", "NA"), legend_gp = gpar(fontsize = 8))
-draw(ht, annotation_legend_list = list(lgd_sig))
+
+pdf("~/work/ctc-data/Barcoding experiment/Supplementary Figure 7b.pdf", width = 6, height = 4)
+draw(ht, annotation_legend_list = list(lgd_sig), padding = unit(c(3, 1, 1, 1), "lines"))
+pushViewport(viewport(layout = grid.layout(1, 1))) # Ensure single viewport
+grid.text("CTC cluster size (n cells)", x = 0.35, y = unit(0.05, "npc"), gp = gpar(fontsize = 10))
+
+dev.off()
+
 
 ##### Same only for fold-change
 
