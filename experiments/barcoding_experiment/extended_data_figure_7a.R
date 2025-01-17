@@ -1,6 +1,5 @@
 library(tidyverse)
 library(boot)
-# library(smoothr)
 
 setwd("~/work/ctc-data/barcoding_experiment/combined_primary_cluster/")
 
@@ -70,29 +69,38 @@ get_mean_quantile2 <- function(cutoff, merged_table, upper = TRUE) {
 }
 
 
-boot_wrapper <- function(data, indices, cutoff, upper = TRUE) {
-  # Subset the data based on bootstrap sample indices
+boot_wrapper <- function(data, indices, cutoff, upper = TRUE, CTC = TRUE) {
   sampled_data <- data[indices, ]
-  # Call the target function
-  return(get_mean_quantile2(cutoff, sampled_data, upper))
+  if(CTC == TRUE) return(get_mean_quantile2(cutoff, sampled_data, upper))
+  else return(get_mean_quantile(cutoff, sampled_data, upper))
 }
 
 # Perform the bootstrap
-set.seed(123) # For reproducibility
+set.seed(123)
 cutoff <- merged_table$prop_av %>% quantile(0.999) # 0.1
 bootstrap_replicates <- 1000
 bootstrap_results <- boot(
   data = merged_table,
   statistic = function(data, indices) boot_wrapper(data, indices, cutoff, upper = TRUE),
-  R = bootstrap_replicates # Number of bootstrap replicates
+  R = bootstrap_replicates
 )
 # Print bootstrap results
 print(bootstrap_results)
 
 bootstrap_statistics <- bootstrap_results$t
 
-# Convert to a data frame for ggplot2
-bootstrap_df <- data.frame(stats = bootstrap_statistics, bias = bootstrap_statistics - get_mean_quantile(cutoff, merged_table, upper = TRUE), upper = TRUE, mean_fraction_primary = get_mean_quantile(cutoff, merged_table, upper = TRUE))
+
+bootstrap_df <-
+  data.frame(
+    stats = bootstrap_statistics,
+    bias =
+      bootstrap_statistics - 
+      get_mean_quantile(cutoff, merged_table, upper = TRUE),
+    upper = TRUE,
+    measurement = "CTC"
+    )
+
+
 
 bootstrap_results <- boot(
   data = merged_table,
@@ -105,11 +113,22 @@ print(bootstrap_results)
 bootstrap_statistics <- bootstrap_results$t
 
 
-bootstrap_df2 <- data.frame(stats = bootstrap_statistics, bias = bootstrap_statistics - get_mean_quantile(cutoff, merged_table, upper = FALSE), upper = FALSE, mean_fraction_primary = get_mean_quantile(cutoff, merged_table, upper = FALSE))
+bootstrap_df2 <-
+  data.frame(
+    stats = bootstrap_statistics,
+    bias = 
+      bootstrap_statistics -
+      get_mean_quantile(cutoff, merged_table, upper = FALSE),
+    upper = FALSE,
+    measurement = "CTC"
+    )
+
 bootstrap_df <- rbind(bootstrap_df, bootstrap_df2)
 
-bootstrap_df$mean_fraction_primary <- as.factor(bootstrap_df$mean_fraction_primary)
-mean_frac_primary_upper <- levels(bootstrap_df$mean_fraction_primary)[2]
+mean_frac_primary_upper <- get_mean_quantile(cutoff, merged_table, upper = TRUE)
+mean_frac_primary_lower <-
+  get_mean_quantile(cutoff, merged_table, upper = FALSE)
+
 
 ggplot(bootstrap_df, aes(x = upper, y = stats)) +
   geom_boxplot(fill = "#41B7C4", color = "#3C8181") +
@@ -145,13 +164,114 @@ ggplot(bootstrap_df, aes(x = upper, y = stats)) +
   ) +
   scale_x_discrete(
     labels = c("Lowly abundant clones", "Highly abundant clones")
+  ) +
+  annotate(
+    "segment",
+    x = 0.5,
+    xend = 1.5,
+    y = as.numeric(mean_frac_primary_lower),
+    yend = as.numeric(mean_frac_primary_lower),
+    linetype = "dashed",
+    color = "red"
+  ) +
+  annotate(
+    "text",
+    x = 1,
+    y = as.numeric(mean_frac_primary_lower) + 0.01,
+    label = "Mean frequency in primary tumor",
+    color = "red",
+    size = 4,
+    fontface = "italic"
   )
-# fill = "#41B7C4", color ="#3C8181"
+
+
+bootstrap_results <- boot(
+  data = merged_table,
+  statistic = function(data, indices) boot_wrapper(data, indices, cutoff, upper = TRUE, CTC = FALSE),
+  R = bootstrap_replicates
+)
+# Print bootstrap results
+print(bootstrap_results)
+
+bootstrap_statistics <- bootstrap_results$t
+
+
+bootstrap_df2 <-
+  data.frame(
+    stats = bootstrap_statistics,
+    bias =
+      bootstrap_statistics - 
+      get_mean_quantile(cutoff, merged_table, upper = TRUE),
+    upper = TRUE,
+    measurement = "primary"
+  )
+
+
+bootstrap_df <- rbind(bootstrap_df, bootstrap_df2)
+
+
+bootstrap_results <- boot(
+  data = merged_table,
+  statistic = function(data, indices) boot_wrapper(data, indices, cutoff, upper = FALSE, CTC = FALSE),
+  R = bootstrap_replicates # Number of bootstrap replicates
+)
+# Print bootstrap results
+print(bootstrap_results)
+
+bootstrap_statistics <- bootstrap_results$t
+
+
+bootstrap_df2 <-
+  data.frame(
+    stats = bootstrap_statistics,
+    bias = 
+      bootstrap_statistics -
+      get_mean_quantile(cutoff, merged_table, upper = FALSE),
+    upper = FALSE,
+    measurement = "primary"
+  )
+
+bootstrap_df <- rbind(bootstrap_df, bootstrap_df2)
+
+
+
+
+
+#fill = "#41B7C4", color = "#3C8181",
+ggplot(bootstrap_df, aes(y = stats, fill = measurement)) +
+  geom_boxplot(alpha = 0.8, position = position_identity()) +
+  scale_fill_manual(values = c("CTC" = "#41B7C4", "primary" = "#F7FCC9")) +
+  labs(
+    # title = "Shift in abundancy of highly against lowly represented clones",
+    y = "Estimated mean clonal frequency",
+    x = ""
+  ) +
+  theme_classic() +
+  theme(
+    # axis.title = element_text(size = 0),
+    legend.title = element_text(size = 0),
+    #legend.text = element_text(size = 0),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  ) +
+  facet_wrap(
+    ~ upper,
+    scales = "free_y",
+    labeller =
+      labeller(
+        upper =
+          c("FALSE" = "Lowly abundant clones",
+            "TRUE" = "Highly abundant clones")
+        )
+    )
+
 
 ggsave(
   "~/work/ctc-data/barcoding_experiment/extended_data_figure_7a.pdf",
   width = 6, height = 4, units = "in"
 )
+
+
+
 
 merged_table %>%
   ggplot(aes(y = freq, x = prop_av)) +
