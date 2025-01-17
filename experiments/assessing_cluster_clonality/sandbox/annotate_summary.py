@@ -73,7 +73,7 @@ def main():
 
     splitting_summary = filter_out_non_CTC_clusters(splitting_summary,master_table)
 
-
+    splitting_summary = splitting_summary.loc[splitting_summary['Sample Name'] != 'Br26',:]
     splitting_summary.to_csv('splittingSummary_full_with_sample_names.tsv', sep = '\t', index = False)
 
 if __name__ == '__main__':
