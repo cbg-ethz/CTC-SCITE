@@ -24,7 +24,7 @@ df_list <- list()
 
 # Loop through all sample barcode counts files
 for (file in files) {
-  basename <- gsub("\\.csv", "", file)
+  sample_alias <- gsub("\\.csv", "", file)
   tryCatch(
     {
       # Load counts into data frame
@@ -38,7 +38,7 @@ for (file in files) {
       # Bind columns
       df_sorted <- cbind(df_sorted, prop_col, cumprop_col)
       # Add to list
-      df_list[[basename]] <- df_sorted
+      df_list[[sample_alias]] <- df_sorted
     },
     error = function(e) {
       cat("Error reading", file, "- skipping\n")
@@ -47,8 +47,8 @@ for (file in files) {
 }
 
 # Create empty data frame to store summary information for all samples
-summary_df <- data.frame( # Sample basename
-  basename = character(),
+summary_df <- data.frame( # Sample alias
+  sample_alias = character(),
   # Number of barcodes accumulating 90% of total aligned counts
   num_rows_accumulating_nine = integer(),
   # Proportion of total counts for most abundant barcode
@@ -63,11 +63,11 @@ for (i in seq_along(df_list)) {
   df <- df_list[[i]]
   cumprop_col <- df[, "cumprop_col"]
   num_rows_accumulating_nine <- sum(cumprop_col < 0.9) + 1
-  basename <- names(df_list)[i]
+  sample_alias <- names(df_list)[i]
   prop_col_1 <- df$prop_col[1]
   prop_col_2 <- df$prop_col[2]
   summary_row <- data.frame(
-    basename = basename,
+    sample_alias = sample_alias,
     num_rows_accumulating_nine = num_rows_accumulating_nine,
     prop_col_1 = prop_col_1,
     prop_col_2 = prop_col_2,
@@ -79,23 +79,23 @@ for (i in seq_along(df_list)) {
 # Read-in metadata containing information on CTC cell count per cluster, primary tumor barcode diversity and mouse/tumor IDs
 metadata <- read_excel("metadata.xlsx")
 
-# Merge summary dataframe and metadata by CTC cluster basename
-merged_df <- merge(summary_df, metadata, by = "basename", all = TRUE)
+# Merge summary dataframe and metadata by CTC cluster sample_alias
+merged_df <- merge(summary_df, metadata, by = "sample_alias", all = TRUE)
 
 # Assign CTC clusters into categories "0" (negative controls), "2" or "3+" based on the CTC counts
 merged_df <- merged_df %>%
   mutate(cluster_category = case_when(
-    cluster_size == 0 ~ "0",
-    cluster_size == 2 ~ "2",
+    n_ctc == 0 ~ "0",
+    n_ctc == 2 ~ "2",
     TRUE ~ "3+"
   ))
 
 # Quality filtering of CTC cluster samples
-merged_df$cluster_size <- as.numeric(merged_df$cluster_size)
-merged_df_filter <- merged_df[merged_df$num_rows_accumulating_nine <= merged_df$cluster_size, ]
+merged_df$n_ctc <- as.numeric(merged_df$n_ctc)
+merged_df_filter <- merged_df[merged_df$num_rows_accumulating_nine <= merged_df$n_ctc, ]
 
 # Assign CTC cluster samples mono- or oligoclonal based on the dominance of the most abundant barcode, taking into account the cell number
-merged_df_filter$clonality <- ifelse(merged_df_filter$prop_col_2 / merged_df_filter$prop_col_1 < 1 / merged_df_filter$cluster_size,
+merged_df_filter$clonality <- ifelse(merged_df_filter$prop_col_2 / merged_df_filter$prop_col_1 < 1 / merged_df_filter$n_ctc,
   "mono",
   "oligo"
 )
@@ -105,8 +105,8 @@ nrow(merged_df_filter[merged_df_filter$clonality == "oligo", ]) / nrow(merged_df
 
 # Assign CTC cluster samples a complexity value of "Low", "Medium" or "High", based on corresponding primary tumor barcode complexity
 merged_df_filter <- merged_df_filter %>%
-  mutate(complexity = ifelse(pt_complexity %in% c(100, 1000), "Low",
-    ifelse(pt_complexity == 10000, "Medium", "High")
+  mutate(complexity = ifelse(barcode_initial_complexity %in% c(100, 1000), "Low",
+    ifelse(barcode_initial_complexity == 10000, "Medium", "High")
   ))
 
 

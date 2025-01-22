@@ -20,7 +20,12 @@ def load_cluster_data(path, pattern, cluster2tumor):
     cluster_sizes = []
     # Loop through all sample barcode counts files
     for idx,file in enumerate(files):
-        basename = Path(f'{file}.csv').stem
+        cluster_files = list(Path(path).glob(f'{file}*.csv'))
+        if len(cluster_files) == 0:
+            continue
+        cluster_file = cluster_files[0]
+
+        basename = cluster_file.stem
         #pattern = next((p for p in ["910", "905", "904", "903", "902", "141", "140"] if p in basename), None)
         
         cluster_size = cluster2tumor.loc[cluster2tumor['basename'] == file, 'cluster_size'].iloc[0]
@@ -28,8 +33,8 @@ def load_cluster_data(path, pattern, cluster2tumor):
         
         try:
             # Load counts into data frame
-            # Use pd.read_csv with chunksize for faster processing
-            df = pd.read_csv(Path(path) / f'{file}.csv', sep='\t', header=None, dtype={0: 'str'})
+            # Use pd.read_csv with chunksize for faster processing            
+            df = pd.read_csv(cluster_file, sep='\t', header=None, dtype={0: 'str'})
             logging.info(f'File {file} loaded')
         except Exception as e:
             logging.error(f"Error reading {file} - skipping\n")
@@ -37,13 +42,12 @@ def load_cluster_data(path, pattern, cluster2tumor):
             continue
         df.columns = ['Barcode ID', '1', 'Barcode Count', '3']
              
-
+        df_sorted = df.copy(deep = True)
 
         # Sort by decreasing barcode counts
-        df_sorted = df.sort_values(by=df.columns[2], ascending=False)
+        df_sorted = df_sorted.sort_values(by=df.columns[2], ascending=False)
         df_sorted['Mouse ID'] = pattern
         df['Cluster Size'] = cluster_size
-        df['CTC Cluster ID'] = id ### The choice of cluster ID is completely arbitrary and only helps to distinguish between different clusters
         # Calculate fraction of total counts for each Barcode
         df_sorted['prop_col'] = df_sorted.iloc[:, 2] / df_sorted.iloc[:, 2].sum()
         
@@ -60,16 +64,17 @@ def load_cluster_data(path, pattern, cluster2tumor):
 
 
         if not df_sorted['Clone present in cluster'].sum() > cluster_size:
+            df_sorted['Barcode ID'] = df_sorted['Barcode ID'].str.replace(r'^bc_', '', regex=True)
             df_dict[basename] = df_sorted
             cluster_sizes.append(cluster_size)
             logging.info(f'File {file} added to dictionary')
 
-    return df_dict, list(set(cluster_sizes))
+    return df_dict, cluster_sizes
 
 
 def load_primary_data(path):
     file_list = [filename for filename in list(path.glob("combined_*_filter_merge.rds.csv"))]
-    #file_list = ["combined_140_order_filter_merge.rds.csv", "combined_141_order_filter_merge.rds.csv", "combined_902_order_filter_merge.rds.csv", "combined_903_order_filter_merge.rds.csv", "combined_904_order_filter_merge.rds.csv", "combined_905_order_filter_merge.rds.csv", "combined_910_order_filter_merge.rds.csv"]
+    
     primary_dict = {}
     for file in file_list:
         mouse_ID = file.stem.split('_')[1]
@@ -143,11 +148,11 @@ def simulate_G_scores(proportions, n_cells, n_simulations):
                 G_score = compute_G_score(simulated_data, n_cells)
                 G_scores.append(G_score)
             
-            plt.hist(G_scores, bins=60, edgecolor='k', alpha=0.7)
-            plt.xlabel('G Score')
-            plt.ylabel('Frequency')
-            plt.title('Histogram of Simulated G Scores')
-            plt.show()
+            #plt.hist(G_scores, bins=60, edgecolor='k', alpha=0.7)
+            #plt.xlabel('G Score')
+            #plt.ylabel('Frequency')
+            #plt.title('Histogram of Simulated G Scores')
+            #plt.show()
             
             return G_scores
 
@@ -169,12 +174,21 @@ def compute_test(all_clones, n_cells_in_cluster, simulations = None):
 
 
 if __name__ == '__main__':
-    path = '/home/jovyan/work/ctc-data/barcoding_experiment/Cluster data'
-    primary_data_path = '/home/jovyan/work/ctc-data/barcoding_experiment/combined_primary_cluster'
+    path = '/Users/jgawron/Documents/projects/CTC_backup/validation_experiment/barcoding_experiment/Cluster data'
+    primary_data_path = '/Users/jgawron/Documents/projects/CTC_backup/validation_experiment/barcoding_experiment/combined_primary_cluster'
     primary_data = load_primary_data(Path(primary_data_path))
     primary_data = preprocess_primary_data(primary_data)
-    cluster2tumor = pd.read_csv('/home/jovyan/work/ctc-data/barcoding_experiment/summary_df_filter_final_all.csv')
+    cluster2tumor = pd.read_csv('/Users/jgawron/Documents/projects/CTC_backup/validation_experiment/barcoding_experiment/summary_df_filter_final_all.csv')
     tumor_samples = list(set(cluster2tumor['tumor_sample']))
+    
+    
+    
+    #####DEBUGGIN#####
+    #tumor_samples = [102]
+    #####DEBUGGING####
+    
+    
+    
     # Create empty dictionary to store data frames
     p_values = []
     mouse_models = []
@@ -182,26 +196,29 @@ if __name__ == '__main__':
     for pattern in tumor_samples:
         files, cluster_sizes = load_cluster_data(path, pattern, cluster2tumor)
 
+        unique_cluster_sizes = list(set(cluster_sizes))
+
         merged_data = merge_data(files, primary_data)
 
         first_dataset = next(iter(merged_data.values()))
         
-        simulated_G_scores = pd.DataFrame(np.zeros((number_of_simulations, len(cluster_sizes))), columns=[str(cluster_size) for cluster_size in cluster_sizes])
+        simulated_G_scores = pd.DataFrame(np.zeros((number_of_simulations, len(unique_cluster_sizes))), columns=[str(cluster_size) for cluster_size in unique_cluster_sizes])
         
-        for cell_number in cluster_sizes:
+        for cell_number in unique_cluster_sizes:
             if simulated_G_scores[str(cell_number)].sum() == 0:
                 logging.info(f"Simulating null distribution for cluster size:  {cell_number}")
                 simulated_G_scores[str(cell_number)] = simulate_G_scores(first_dataset['prop_av'], cell_number, number_of_simulations)
 
         for cluster_id, cluster_data in merged_data.items():
-            n_cells = cluster_id.split('_')[1]
-            p_values.append(compute_test(cluster_data, int(n_cells), simulated_G_scores[n_cells])+1e-16)
+            filter = [basename in '8B' for basename in cluster2tumor['basename']]
+            n_cells = cluster2tumor.loc[filter, 'cluster_size'].iloc[0]
+            p_values.append(compute_test(cluster_data, int(n_cells), simulated_G_scores[str(n_cells)])+1e-36)
             mouse_models.append(pattern)
             logging.info(f"P value for cluster {cluster_id}: {p_values[-1]}")
 
     p_value_summary = pd.DataFrame({'P value': p_values, 'Mouse Model': mouse_models})
     logging.info(p_value_summary)
-    p_value_summary.to_csv('/home/jovyan/work/ctc-data/barcoding_experiment/')
+    p_value_summary.to_csv('/Users/jgawron/Documents/projects/CTC_backup/validation_experiment/barcoding_experiment/extended_data_figre_7a_p_value_sumary.csv')
 
     # Combine p-values using Fisher's method
     combined_p_value = combine_pvalues(p_values, method='fisher')[1]
@@ -213,7 +230,7 @@ if __name__ == '__main__':
     plt.show()
     # Plot the p_values stratified by Mouse model
     plt.figure(figsize=(10, 6))
-    for mouse_model in p_value_summary['Mouse Model'].unique():
+    for mouse_model in ['Mouse Model'].unique():
         subset = p_value_summary[p_value_summary['Mouse Model'] == mouse_model]
         plt.hist(subset['P value'], bins=30, alpha=0.5, label=f'Mouse Model {mouse_model}')
 
