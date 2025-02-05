@@ -27,7 +27,6 @@ Here is an overview of the data:
 
 ```{r data overview, include=TRUE}
 print(data)
-
 ```
 # Preprocessing
 
@@ -52,7 +51,7 @@ fit <-
     as.factor(Oligoclonal) ~ n_cells + `Sample Name` + WBC,
     data = filtered_data,
     family = binomial(link = "logit")
-    )
+  )
 summary(fit)
 ```
 There is no significant effect of the presence of white blood cells on the
@@ -63,10 +62,10 @@ oligoclonality status of the CTC clusters was found.
 ```{r fit2, include=TRUE}
 fit <-
   glm(
-    as.factor(Oligoclonal) ~ n_cells + `Sample Name` + n_wbcs, 
+    as.factor(Oligoclonal) ~ n_cells + `Sample Name` + n_wbcs,
     data = filtered_data,
     family = binomial(link = "logit")
-    )
+  )
 summary(fit)
 ```
 There is no significant effect of the number of white blood cells on the
@@ -77,10 +76,10 @@ oligoclonality status of the CTC clusters wasfound.
 ```{r fit}
 fit <-
   glm(
-    as.factor(Oligoclonal) ~ high_impact_mutations + n_cells + `Sample Name` + WBC,
+    as.factor(Oligoclonal) ~ high_impact_mutations + n_cells + `Sample Name`,
     data = filtered_data,
     family = binomial(link = "logit")
-    )
+  )
 summary(fit)
 ```
 No significant effect was found for predicting the number of mutations with a
@@ -88,13 +87,25 @@ high functional impact as a function of the presence of white blood cells and of
 the clonality status.
 
 
-## Predicting the presence of mutations with functional impact
+## Predicting oligoclonality from the number of mutations with functional impact
 
 ```{r fit4}
-fit7 <-
+fit <-
   glm(
-    as.factor(Oligoclonal) ~ n_cells + `Sample Name` + high_impact_mutations + WBC,
+    as.factor(Oligoclonal) ~ n_cells + `Sample Name` + high_impact_mutations,
     data = filtered_data,
-    family = binomial(link = "logit"))
-summary(fit7)
+    family = binomial(link = "logit")
+  )
+summary(fit)
+```
+
+## Predicting oligoclonality from the number of driver mutations
+```{r fit5}
+fit <-
+  glm(
+    as.factor(Oligoclonal) ~ n_cells + `Sample Name` + drivers,
+    data = filtered_data,
+    family = binomial(link = "logit")
+  )
+summary(fit)
 ```
