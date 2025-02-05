@@ -3,7 +3,7 @@ library(VGAM)
 library(pscl)
 library(MASS)
 library(boot)
-source("~/work/CTC-SCITE/experiments/assessing_cluster_clonality/workflow/resources/functions.R")
+source("~/Documents/projects//CTC-SCITE/experiments/assessing_cluster_clonality/workflow/resources/functions.R")
 library("optparse")
 
 
@@ -686,32 +686,31 @@ simulateCTCclusters <- function(
 
 
 
-main <- function(){
-  
+main <- function() {
   args <- parse_args(parser)
-  
-  
+
+
   input_folder <- args$"input-folder"
   tree_name <- args$"name-of-tree"
   cluster_size <- args$"simulation-cluster-size"
   output_folder <- args$"output-folder"
   monoclonal <- args$monoclonal
-  
-   input_folder <- "~/Documents/projects/CTC_backup/input_folder"
-   tree_name <- "Br23"
-  
+
+  input_folder <- "~/Documents/projects/CTC_backup/input_folder"
+  tree_name <- "Br23"
+
   input <- load_data(input_folder, tree_name)
   print("Input data successfully loaded.")
-  
-  
-  
-  
-  
+
+
+
+
+
   cluster_size_vector <- c(0, 3, 3, 3, 3, 3, 3, 3, 3)
-  
-  
+
+
   print(paste("Running simulation for", tree_name))
-  
+
   all_cluster_sizes <- input$sample_description %>%
     filter(WBC == 0 & color != "gray93") %>%
     group_by(color) %>%
@@ -719,8 +718,8 @@ main <- function(){
     summarize(cluster_size = n()) %>%
     dplyr::select("cluster_size") %>%
     unique()
-  
-  
+
+
   if (monoclonal == TRUE) {
     keep <- rep(0, length(cluster_size_vector))
     keep[cluster_size] <- 1
@@ -743,5 +742,3 @@ main <- function(){
     }
   }
 }
-
-

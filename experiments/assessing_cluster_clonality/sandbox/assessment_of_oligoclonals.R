@@ -4,14 +4,15 @@ simulation_input_folder <- "/Users/jgawron/Documents/projects/CTC_backup/simulat
 tree_name <- "Br16_AC"
 n_sampling_events <- 100
 
-source("functions.R")
+source("/Users/jgawron/Documents/projects/CTC-SCITE/experiments/assessing_cluster_clonality/workflow/resources/functions.R")
 
-
-tree_names <- c("Br11", "Br16_AC", "Br16_B", "Br16_C", "Br23", "Br26", "Br30", "Br37", "Br38", "Br39", "Br44", "Br45", "Br46", "Br53", "Br57", "Br61", "Br7", "Brx50", "LM2", "Lu2", "Lu7", "Ov8", "Pr6", "Pr9")
+# "Br11", "Br16_AC", "Br16_B","Br16_C", "Br23", "Br26" "Br38", "Br39", "Br57", "Br61", "Br7", "Brx50", "LM2", "Pr6",
+tree_names <- c("Pr9")
 
 
 mean_splitting_scores_mono <- vector()
 for (tree_name in tree_names) {
+  print(tree_name)
   # input <- load_data(input_folder, tree_name)
 
   # description_data <-
@@ -44,14 +45,14 @@ for (tree_name in tree_names) {
       "purple2", "purple3", "purple4"
     )) {
       distance_simulated <-
-        computeClusterSplits(
-          input_simulated$sample_description, input_simulated$postSampling,
-          simulation_instance, input_simulated$nCells, input_simulated$nMutations,
-          input_simulated$nClusters, input_simulated$alleleCount,
-          input_simulated$mutatedReadCounts, input_simulated$totalReadCounts,
-          nMutationSamplingEvents = n_sampling_events,
-          nTreeSamplingEvents = n_sampling_events,
-          cellPairSelection = c(color)
+        compute_cluster_splits(
+          input_simulated$sample_description, input_simulated$post_sampling,
+          simulation_instance, input_simulated$n_cells, input_simulated$n_mutations,
+          input_simulated$n_clusters, input_simulated$allele_count,
+          input_simulated$mutated_read_counts, input_simulated$total_read_counts,
+          n_mutation_sampling_events = n_sampling_events,
+          n_tree_sampling_events = n_sampling_events,
+          cell_pair_selection = c(color)
         )
       plot(
         ggplot(
@@ -65,6 +66,9 @@ for (tree_name in tree_names) {
   }
 }
 
+mean_splitting_scores_mono <- mean_splitting_scores_mono[!is.na(mean_splitting_scores_mono)]
+
+save(mean_splitting_scores_mono, file = "~/Documents/projects/CTC_backup/simulations/simulation3/mean_branching_probs_mono.RData")
 
 
 involved_cell_indices <- sub(paste0(".*", tree_name, "_"), "", simulation_instance) %>%
@@ -116,19 +120,33 @@ splitting_probs_single_cells <- data.frame(splitting_probs = -deviance_splitting
 
 splitting_probs <- rbind(splitting_probs, splitting_probs2, splitting_probs_single_cells)
 splitting_probs <- splitting_probs %>% mutate(Oligoclonal = factor(Oligoclonal, levels = c("Monoclonal", "Oligoclonal", "Genetically distinct single cells")))
+levels(splitting_probs$Oligoclonal) <- c("Simulated \n monoclonal", "Simulated \n oligoclonal", "Genetically \n distinct single cells")
+
 
 splitting_probs %>%
   ggplot(aes(y = splitting_probs, x = Oligoclonal, group = Oligoclonal)) +
-  geom_boxplot() +
-  ylab("Mean splitting probability") +
+  geom_boxplot(fill = "#41B7C4") +
+  ylab("Mean splitting score") +
   xlab("Clonality status of CTC cluster") +
-  theme_minimal()
-theme(
-  axis.text.x = element_text(angle = 45, hjust = 1, size = 18),
-  axis.title.x = element_text(size = 20),
-  axis.title.y = element_text(size = 20),
-  axis.text.y = element_text(size = 18)
+  theme_classic() +
+  theme(
+    # axis.title = element_text(size = 0),
+    legend.title = element_text(size = 0),
+    legend.text = element_text(size = 0),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+ggsave(
+  "/Users/jgawron/Documents/projects/CTC_backup/simulations/supplementary_figure_simulation.pdf",
+  width = 6, height = 4, units = "in"
 )
+
+ggsave(
+  "/Users/jgawron/Documents/projects/CTC_backup/simulations/supplementary_figure_simulation.png",
+  width = 6, height = 4, units = "in"
+)
+
+
 
 data.frame(y = deviance_splitting_score) %>%
   ggplot(aes(y = y)) +

@@ -5,7 +5,7 @@
 library(Rcpp)
 library(tidyverse)
 
-sourceCpp("~/work/CTC-SCITE/experiments/assessing_cluster_clonality/workflow/resources/mutations_placement.cpp")
+sourceCpp("~/Documents/projects/CTC-SCITE/experiments/assessing_cluster_clonality/workflow/resources/mutations_placement.cpp")
 
 
 
@@ -500,7 +500,7 @@ load_data <- function(input_folder, tree_name) {
       "color=([a-zA-Z]+[0-9]*)",
       Description
     )) %>%
-    substr(start = 7, stop = (nchar(.))))
+      substr(start = 7, stop = (nchar(.))))
 
 
   cluster_id <- vector()
