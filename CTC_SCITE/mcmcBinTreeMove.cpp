@@ -93,6 +93,7 @@ int pickNodeToMove(int *currTreeParentVec, int parentVectorLength) {
     } // for a binary tree with more than two leafs this can not be an infinite
       // loop
   }
+  return 0;
 }
 
 /* returns the (unique) sibling of node v. The sibling has to exist because tree

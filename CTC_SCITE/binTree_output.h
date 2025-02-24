@@ -8,6 +8,8 @@
 #ifndef BINTREE_OUTPUT_H_
 #define BINTREE_OUTPUT_H_
 
+#include <vector>
+
 using namespace std;
 
 string getFancyGraphVizBinTree(int *parents, int m, vector<string> &label,

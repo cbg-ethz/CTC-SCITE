@@ -54,3 +54,6 @@ trees.o: matrices.h treelist.o trees.h rand.h output.h
 
 clean:
 	rm *.o
+
+install: CTC-SCITE
+	mv CTC-SCITE $(prefix)/bin

@@ -8,6 +8,8 @@
 #ifndef OUTPUT_H_
 #define OUTPUT_H_
 
+#include <string>
+
 using namespace std;
 
 // void writeToFile(string content, string fileName);

@@ -8,6 +8,10 @@
 #ifndef MCMC_H
 #define MCMC_H
 
+#include <string>
+
+using namespace std;
+
 double logBetaPDF(double x, double bpriora, double bpriorb);
 double proposeNewBeta(double currBeta, double jumpSd);
 double proposeNewAlpha(double currAlpha, double jumpSd);
