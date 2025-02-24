@@ -8,6 +8,8 @@
 #ifndef MCMCBINTREEMOVE_H_
 #define MCMCBINTREEMOVE_H_
 
+#include <vector>
+
 int *proposeNextBinTree(std::vector<double> moveProbs, int m,
                         int *currTreeParVec, bool **currTreeAncMatrix);
 int pickNodeToMove(int *currTreeParentVec, int parentVectorLength);
