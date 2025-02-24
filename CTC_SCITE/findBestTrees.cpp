@@ -661,6 +661,7 @@ int readParameters(int argc, char *argv[]) {
            << endl;
       cout << "-help: Print this help." << endl;
       exit(0);
+    } else {
       std::cerr << "unknown parameter " << argv[i] << std::endl;
       getchar();
       return 1;
