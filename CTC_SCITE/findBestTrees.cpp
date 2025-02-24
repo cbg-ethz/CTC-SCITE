@@ -623,7 +623,44 @@ int readParameters(int argc, char *argv[]) {
       }
     } else if (strcmp(argv[i], "-s") == 0) {
       scoreType = 's';
-    } else {
+    } else if (strcmp(argv[i], "-help") == 0) {
+      cout << "CTC-SCITE. Infers cell lineages from single-cells and clusters "
+              "of single-cells."
+           << endl;
+      cout << "Parameters:" << endl;
+      cout << "-i <filename>: Replace <filename> with the file containing the "
+              "mutation matrix"
+           << endl;
+      cout << "-samples <sampledesciption> Replace <sampledescription> by the "
+              "file containing the sample annotations"
+           << endl;
+      cout << "-r <INT> Set <INT> to the desired number of repetitions of the "
+              "MCMC"
+           << endl;
+      cout << "-l <INT> Set <INT> to the desired chain length of each MCMC "
+              "repetition"
+           << endl;
+      cout << "-g <DOUBLE> For ML/MAP computation only: Set <DOUBLE> to the "
+              "desired value of gamma (gamma > 1: more local exploration, "
+              "possibly local optimum; gamma < 1: easier to explore the space, "
+              "but less deeply). The default value of gamma is 1. This is "
+              "necessary for the MCMC chain to guarantee asymptotic "
+              "convergence to the posterior distribution."
+           << endl;
+      cout << "-e <DOUBLE> Invokes the learning of error rates. Set <DOUBLE> "
+              "to a value between zero and one to specify the probability to "
+              "chose the move for changing the error rate in the MCMC."
+           << endl;
+      cout << "-p <INT> When setting this option, CTC-SCITE samples from the "
+              "posterior distribution, and writes the trees to a file using "
+              "the parent vector format. The value of specifies how dense the "
+              "sampling is. In this case the parameter -g must be set to 1."
+           << endl;
+      cout << "-o <filename> Optional. Replace with the desired base of the "
+              "output file to overwrite the default output file names."
+           << endl;
+      cout << "-help: Print this help." << endl;
+      exit(0);
       std::cerr << "unknown parameter " << argv[i] << std::endl;
       getchar();
       return 1;
