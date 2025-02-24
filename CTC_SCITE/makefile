@@ -1,4 +1,4 @@
-CXX	= g++
+CXX	= gcc
 CXXFLAGS = -std=c++11 -O2
 
 
@@ -16,7 +16,7 @@ CTC_treeScoring.o: binTree_output.h scoreTree.h matrices.h rand.h trees.h matric
 binTree_output.o: output.h scoreTree.h matrices.h trees.h binTree_output.h
 	${CXX} ${CXXFLAGS} -c binTree_output.cpp
 
-doublets.o: matrices.h treeList.h trees.h mcmc.h scoreTree.h scoreBinTree.h rand.h output.h mcmcBinTreeMove.h mcmcTreeMove.h recMut.h doublets.h
+doublets.o: matrices.h treelist.h trees.h mcmc.h scoreTree.h scoreBinTree.h rand.h output.h mcmcBinTreeMove.h mcmcTreeMove.h recMut.h doublets.h
 	${CXX} ${CXXFLAGS} -c doublets.cpp
 
 enum.o: treelist.h trees.h matrices.h rand.h scoreTree.h enum.h
@@ -49,7 +49,7 @@ scoreTree.o: scoreTree.h matrices.h treelist.h trees.h
 treelist.o: matrices.h rand.h treelist.h
 	${CXX} ${CXXFLAGS} -c treelist.cpp	
 
-trees.o: matrices.h treeList.o trees.h rand.h output.h
+trees.o: matrices.h treelist.o trees.h rand.h output.h
 	${CXX} ${CXXFLAGS} -c trees.cpp
 
 clean:
