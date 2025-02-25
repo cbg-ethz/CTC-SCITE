@@ -1,5 +1,5 @@
-CXX	= gcc
-CXXFLAGS = -std=c++11 -O2
+CXX	=
+CXXFLAGS =
 
 
 CTC-SCITE: findBestTrees.o CTC_treeScoring.o binTree_output.o doublets.o enum.o matrices.o mcmc.o mcmcBinTreeMove.o output.o rand.o recMut.o scoreBinTree.o scoreTree.o treelist.o trees.o
