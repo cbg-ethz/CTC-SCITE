@@ -1,4 +1,4 @@
-CXX	=
+CXX	?= g++
 CXXFLAGS =
 
 
