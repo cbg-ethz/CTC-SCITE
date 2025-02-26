@@ -75,20 +75,20 @@ An exaple file is given as input/ex_samples_nodeDescription.tsv
 **CTC-SCITE** can then be executed as follows:
 
 ```bash
-./CTC-SCITE -i input/ex.txt -samples input/ex_samples_nodeDescription.tsv -r 1 -l 1000 -g 1 -e 0.1 -p 1 -o test
+CTC-SCITE -i input/ex.txt -samples input/ex_samples_nodeDescription.tsv -r 1 -l 1000 -g 1 -e 0.1 -p 1 -o input/test
 ```
 
 ##  Output Files
 
 ### 1. ML/MAP trees
 
-ML/MAP trees are written to files in GraphViz format. Files are numbered consecutively (e.g. ex_ml1.gv, ex_ml2.gv, ...). The base name of the output file is derived from the name of the input file (unless a different name is specified via `-o <filename>`).
+ML/MAP trees are written to files in GraphViz format. Files are numbered consecutively (e.g. `ex_rank_1.gv`, `ex_rank_2.gv`, ...). The base name of the output file is derived from the name of the input file (unless a different name is specified via `-o <filename>`).
 
 ### 2. Samples from the posterior distribution
 
 When the `-p <INT>` option is set, **CTC-SCITE** samples from the posterior distribution, and writes the sampled trees (i.e. as Prüfer sequence) together with their scores and learned error rates to a single tab-separated file (one sample per line). The name of the output file is derived from the input file name using the ending `_post_sampling.tsv`.
 
-To enable sampling from the posterior distribution, set `-p <INT>`. **CTC-SCITE**, will write the sampled trees to a file using the parent vector format. The value of <INT> specifies how dense the sampling is. The name of the output file is derived from the input file name using the ending .sample. To make sure that SCITE samples from the posterior distribution -p <INT> needs to be combined with `-g 1` (gamma is set to 1).
+To enable sampling from the posterior distribution, set `-p <INT>`. **CTC-SCITE**, will write the sampled trees to a file using the parent vector format. The value of <INT> specifies how dense the sampling is. The name of the output file is derived from the input file name using the ending `.postSampling.tsv`. To make sure that SCITE samples from the posterior distribution -p <INT> needs to be combined with `-g 1` (gamma is set to 1).
 
 
 
