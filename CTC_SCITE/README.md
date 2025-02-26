@@ -20,7 +20,7 @@ allowing us to the the mixed and assess clonality of the cell clusters.
 
 ##    Installation
 
-**CTC-SCITE** is available as a conda package from Bioconda. To install **CTC-SCITE**, please make sure you have conda installed on your machine, .e.g. following [these instructions](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html). Once conda is installed, you can install **CTC-SCITE** into an environment `env_name` by running the command
+**CTC-SCITE** is available as a conda package from Bioconda for linux-64, linux-aarch64, osx-64 and osx-arm64 architectures. To install **CTC-SCITE**, please make sure you have conda installed on your machine, e.g. following [these instructions](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html). Once conda is installed, you can install **CTC-SCITE** into an environment `env_name` by running the command
 
 ```bash
 conda create -n env_name -c bioconda ctc-scite
@@ -38,7 +38,19 @@ To check of the installation succeeded run
 ```bash
 CTC-SCITE -help 
 ```
-It should output a help message explaining the command line interface.
+This should print a help message explaining the command line interface.
+
+In case you are a user of Windows 10 or higher, you can run **CTC-SCITE** by installing wsl (Windows subsystem for Linux). Open a Powershell terminal and enter
+
+```Powershell
+wsl --install
+```
+Please note that the installation of wsl may take a while. Now launch the Linux subsystem with
+
+```Powershell
+wsl
+```
+and follow the installation intructions for Linux users as above.
 
 ##  Input Files
 
