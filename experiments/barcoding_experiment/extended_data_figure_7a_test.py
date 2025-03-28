@@ -1,5 +1,6 @@
 from pathlib import Path
 import logging
+import argparse
 
 import numpy as np
 import pandas as pd
@@ -168,24 +169,29 @@ def compute_test(all_clones, n_cells_in_cluster, simulations = None):
     G = compute_G_score(clones_in_cluster, n_cells_in_cluster)
     p_value = sum(G_scores >= G)/resolution_of_simulation
     return(p_value)
-    #p_value = clones_in_cluster["prop_av"].prod()* math.factorial(n_cells_in_cluster)/math.factorial(clones_in_cluster.shape[0])
 
 
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Test the extended data figure 7a')
+    parser.add_argument('--clusters', type=str, default='/Users/jgawron/Documents/projects/CTC_backup/validation_experiment/barcoding_experiment/Cluster data', help='Path to the cluster data')
+    parser.add_argument('--tumours', type=str, nargs='+', default=None, help='Specify one or more tumour IDs to be analyzed')
+    return parser.parse_args()
 
 
 if __name__ == '__main__':
-    path = '/Users/jgawron/Documents/projects/CTC_backup/validation_experiment/barcoding_experiment/Cluster data'
+    args = parse_args()
+    path = args.clusters
     primary_data_path = '/Users/jgawron/Documents/projects/CTC_backup/validation_experiment/barcoding_experiment/combined_primary_cluster'
     primary_data = load_primary_data(Path(primary_data_path))
     primary_data = preprocess_primary_data(primary_data)
     cluster2tumor = pd.read_csv('/Users/jgawron/Documents/projects/CTC_backup/validation_experiment/barcoding_experiment/summary_df_filter_final_all.csv')
-    tumor_samples = list(set(cluster2tumor['tumor_sample']))
+    if args.tumours:
+        tumor_samples = [int(tumor) for tumor in args.tumours]
+    else:
+        tumor_samples = list(set(cluster2tumor['tumor_sample']))
     
-    
-    
-    #####DEBUGGIN#####
-    #tumor_samples = [102]
-    #####DEBUGGING####
+
     
     
     
@@ -210,7 +216,7 @@ if __name__ == '__main__':
                 simulated_G_scores[str(cell_number)] = simulate_G_scores(first_dataset['prop_av'], cell_number, number_of_simulations)
 
         for cluster_id, cluster_data in merged_data.items():
-            filter = [basename in '8B' for basename in cluster2tumor['basename']]
+            filter = [basename in cluster_id for basename in cluster2tumor['basename']]
             n_cells = cluster2tumor.loc[filter, 'cluster_size'].iloc[0]
             p_values.append(compute_test(cluster_data, int(n_cells), simulated_G_scores[str(n_cells)])+1e-36)
             mouse_models.append(pattern)
@@ -230,7 +236,7 @@ if __name__ == '__main__':
     plt.show()
     # Plot the p_values stratified by Mouse model
     plt.figure(figsize=(10, 6))
-    for mouse_model in ['Mouse Model'].unique():
+    for mouse_model in p_value_summary['Mouse Model'].unique():
         subset = p_value_summary[p_value_summary['Mouse Model'] == mouse_model]
         plt.hist(subset['P value'], bins=30, alpha=0.5, label=f'Mouse Model {mouse_model}')
 
