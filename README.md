@@ -30,3 +30,4 @@ The clonal diversity of cells within individual CTC clusters in human malignanci
 
 
 All software is freely available under a GPL3 license.
+If you are using CTC-SCITE in a publication, please cite [10.1038/s41588-025-02205-2](https://www.nature.com/articles/s41588-025-02205-2). 
