@@ -4,7 +4,7 @@
 
 
 # Interrogating the clonality of circulating tumor cell (CTC) clusters
-========
+-----------
 
 This repository accompanies the publication: Gremmelspacher, D. and Gawron, J. *et al.* Phylogenetic inference reveals clonal heterogeneity in circulating tumor cell clusters. Nat. Genetics (2025). (doi:[10.1038/s41588-025-02205-2](https://www.nature.com/articles/s41588-025-02205-2)).
 
