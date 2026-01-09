@@ -15,7 +15,7 @@ allowing us to the the mixed and assess clonality of the cell clusters.
 
 ## Availability
 
-**CTC-SCITE** is freely available under a GPL3 license at http://CTC-SCITE
+**CTC-SCITE** is freely available under a GPL3 license. 
 
 
 ##    Installation
